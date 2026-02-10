@@ -98,7 +98,7 @@ namespace DS_Game_Maker
             // SavetoKitButton
             // 
             SavetoKitButton.Font = new Font("Arial", 11.25f, FontStyle.Regular, GraphicsUnit.Point, 0);
-            SavetoKitButton.Image = DS_Game_Maker.My.Resources.Resources.BigHBIcon;
+            SavetoKitButton.Image = Properties.Resources.BigHBIcon;
             SavetoKitButton.ImageAlign = ContentAlignment.MiddleLeft;
             SavetoKitButton.Location = new Point(8, 114);
             SavetoKitButton.Name = "SavetoKitButton";
@@ -111,7 +111,7 @@ namespace DS_Game_Maker
             // OpenCompileFolderButton
             // 
             OpenCompileFolderButton.Font = new Font("Arial", 11.25f, FontStyle.Regular, GraphicsUnit.Point, 0);
-            OpenCompileFolderButton.Image = DS_Game_Maker.My.Resources.Resources.BigFolderIcon;
+            OpenCompileFolderButton.Image = Properties.Resources.BigFolderIcon;
             OpenCompileFolderButton.ImageAlign = ContentAlignment.MiddleLeft;
             OpenCompileFolderButton.Location = new Point(8, 214);
             OpenCompileFolderButton.Name = "OpenCompileFolderButton";
@@ -124,7 +124,7 @@ namespace DS_Game_Maker
             // SaveNDSFileButton
             // 
             SaveNDSFileButton.Font = new Font("Arial", 11.25f, FontStyle.Regular, GraphicsUnit.Point, 0);
-            SaveNDSFileButton.Image = DS_Game_Maker.My.Resources.Resources.BigSaveIcon;
+            SaveNDSFileButton.Image = Properties.Resources.BigSaveIcon;
             SaveNDSFileButton.ImageAlign = ContentAlignment.MiddleLeft;
             SaveNDSFileButton.Location = new Point(8, 164);
             SaveNDSFileButton.Name = "SaveNDSFileButton";
@@ -137,7 +137,7 @@ namespace DS_Game_Maker
             // PlayButton
             // 
             PlayButton.Font = new Font("Arial", 11.25f, FontStyle.Regular, GraphicsUnit.Point, 0);
-            PlayButton.Image = DS_Game_Maker.My.Resources.Resources.BigPlayButton;
+            PlayButton.Image = Properties.Resources.BigPlayButton;
             PlayButton.ImageAlign = ContentAlignment.MiddleLeft;
             PlayButton.Location = new Point(8, 64);
             PlayButton.Name = "PlayButton";

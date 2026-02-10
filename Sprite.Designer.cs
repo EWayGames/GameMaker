@@ -165,7 +165,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+            DAcceptButton.Image = Properties.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);
@@ -184,7 +184,7 @@ namespace DS_Game_Maker
             // 
             // FromFileButton
             // 
-            FromFileButton.Image = DS_Game_Maker.My.Resources.Resources.OpenIcon;
+            FromFileButton.Image = Properties.Resources.OpenIcon;
             FromFileButton.ImageTransparentColor = Color.Magenta;
             FromFileButton.Name = "FromFileButton";
             FromFileButton.Size = new Size(43, 22);
@@ -193,7 +193,7 @@ namespace DS_Game_Maker
             // 
             // FromSheetButton
             // 
-            FromSheetButton.Image = DS_Game_Maker.My.Resources.Resources.InsertIcon;
+            FromSheetButton.Image = Properties.Resources.InsertIcon;
             FromSheetButton.ImageTransparentColor = Color.Magenta;
             FromSheetButton.Name = "FromSheetButton";
             FromSheetButton.Size = new Size(55, 22);
@@ -214,7 +214,7 @@ namespace DS_Game_Maker
             // AddBlankFrameButton
             // 
             AddBlankFrameButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            AddBlankFrameButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
+            AddBlankFrameButton.Image = Properties.Resources.PlusIcon;
             AddBlankFrameButton.ImageTransparentColor = Color.Magenta;
             AddBlankFrameButton.Name = "AddBlankFrameButton";
             AddBlankFrameButton.Size = new Size(23, 22);
@@ -224,7 +224,7 @@ namespace DS_Game_Maker
             // DeleteFrameButton
             // 
             DeleteFrameButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            DeleteFrameButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+            DeleteFrameButton.Image = Properties.Resources.DeleteIcon;
             DeleteFrameButton.ImageTransparentColor = Color.Magenta;
             DeleteFrameButton.Name = "DeleteFrameButton";
             DeleteFrameButton.Size = new Size(23, 22);
@@ -233,7 +233,7 @@ namespace DS_Game_Maker
             // 
             // EditFrameButton
             // 
-            EditFrameButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
+            EditFrameButton.Image = Properties.Resources.PencilIcon;
             EditFrameButton.ImageTransparentColor = Color.Magenta;
             EditFrameButton.Name = "EditFrameButton";
             EditFrameButton.Size = new Size(45, 22);
@@ -248,7 +248,7 @@ namespace DS_Game_Maker
             // LoadFrameButton
             // 
             LoadFrameButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            LoadFrameButton.Image = DS_Game_Maker.My.Resources.Resources.OpenIcon;
+            LoadFrameButton.Image = Properties.Resources.OpenIcon;
             LoadFrameButton.ImageTransparentColor = Color.Magenta;
             LoadFrameButton.Name = "LoadFrameButton";
             LoadFrameButton.Size = new Size(23, 22);
@@ -258,7 +258,7 @@ namespace DS_Game_Maker
             // AddFrameFromFileButton
             // 
             AddFrameFromFileButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            AddFrameFromFileButton.Image = DS_Game_Maker.My.Resources.Resources.AddFolderIcon;
+            AddFrameFromFileButton.Image = Properties.Resources.AddFolderIcon;
             AddFrameFromFileButton.ImageTransparentColor = Color.Magenta;
             AddFrameFromFileButton.Name = "AddFrameFromFileButton";
             AddFrameFromFileButton.Size = new Size(23, 22);
@@ -268,7 +268,7 @@ namespace DS_Game_Maker
             // ExportDSSpriteStripButton
             // 
             ExportDSSpriteStripButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            ExportDSSpriteStripButton.Image = DS_Game_Maker.My.Resources.Resources.ExportSpriteStripButton;
+            ExportDSSpriteStripButton.Image = Properties.Resources.ExportSpriteStripButton;
             ExportDSSpriteStripButton.ImageTransparentColor = Color.Magenta;
             ExportDSSpriteStripButton.Name = "ExportDSSpriteStripButton";
             ExportDSSpriteStripButton.Size = new Size(23, 22);
@@ -283,7 +283,7 @@ namespace DS_Game_Maker
             // CutButton
             // 
             CutButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            CutButton.Image = DS_Game_Maker.My.Resources.Resources.CutIcon;
+            CutButton.Image = Properties.Resources.CutIcon;
             CutButton.ImageTransparentColor = Color.Magenta;
             CutButton.Name = "CutButton";
             CutButton.Size = new Size(23, 22);
@@ -292,7 +292,7 @@ namespace DS_Game_Maker
             // CopyButton
             // 
             CopyButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            CopyButton.Image = DS_Game_Maker.My.Resources.Resources.CopyIcon;
+            CopyButton.Image = Properties.Resources.CopyIcon;
             CopyButton.ImageTransparentColor = Color.Magenta;
             CopyButton.Name = "CopyButton";
             CopyButton.Size = new Size(23, 22);
@@ -301,7 +301,7 @@ namespace DS_Game_Maker
             // PasteButton
             // 
             PasteButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            PasteButton.Image = DS_Game_Maker.My.Resources.Resources.PasteIcon;
+            PasteButton.Image = Properties.Resources.PasteIcon;
             PasteButton.ImageTransparentColor = Color.Magenta;
             PasteButton.Name = "PasteButton";
             PasteButton.Size = new Size(23, 22);
@@ -315,7 +315,7 @@ namespace DS_Game_Maker
             // TransformButton
             // 
             TransformButton.Enabled = false;
-            TransformButton.Image = DS_Game_Maker.My.Resources.Resources.TransformIcon;
+            TransformButton.Image = Properties.Resources.TransformIcon;
             TransformButton.ImageTransparentColor = Color.Magenta;
             TransformButton.Name = "TransformButton";
             TransformButton.Size = new Size(76, 22);

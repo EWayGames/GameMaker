@@ -84,7 +84,7 @@ namespace DS_Game_Maker
             Bitmap TIcon = (Bitmap)DS_Game_Maker.DSGMlib.PathToImage(ActionGetIconPath(ActionName, true));
             if (TIcon.Width == 32)
             {
-                TBMPGFX.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.ActionBacker, 0, 0);
+                TBMPGFX.DrawImageUnscaled(Properties.Resources.ActionBacker, 0, 0);
                 TBMPGFX.DrawImageUnscaled(TIcon, new Point(0, 0));
             }
             else

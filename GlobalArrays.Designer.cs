@@ -102,7 +102,7 @@ namespace DS_Game_Maker
             // 
             // DeleteButton
             // 
-            DeleteButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+            DeleteButton.Image = Properties.Resources.DeleteIcon;
             DeleteButton.ImageTransparentColor = Color.Magenta;
             DeleteButton.Name = "DeleteButton";
             DeleteButton.Size = new Size(58, 22);
@@ -119,7 +119,7 @@ namespace DS_Game_Maker
             // 
             // AddButton
             // 
-            AddButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
+            AddButton.Image = Properties.Resources.PlusIcon;
             AddButton.ImageTransparentColor = Color.Magenta;
             AddButton.Name = "AddButton";
             AddButton.Size = new Size(46, 22);
@@ -127,7 +127,7 @@ namespace DS_Game_Maker
             // 
             // CloseButton
             // 
-            CloseButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+            CloseButton.Image = Properties.Resources.AcceptIcon;
             CloseButton.ImageTransparentColor = Color.Magenta;
             CloseButton.Name = "CloseButton";
             CloseButton.Size = new Size(53, 22);

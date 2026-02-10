@@ -139,7 +139,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+            DAcceptButton.Image = Properties.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);
@@ -148,7 +148,7 @@ namespace DS_Game_Maker
             // SelectAllButton
             // 
             SelectAllButton.Alignment = ToolStripItemAlignment.Right;
-            SelectAllButton.Image = DS_Game_Maker.My.Resources.Resources.CopyIcon;
+            SelectAllButton.Image = Properties.Resources.CopyIcon;
             SelectAllButton.ImageTransparentColor = Color.Magenta;
             SelectAllButton.Name = "SelectAllButton";
             SelectAllButton.Size = new Size(70, 22);
@@ -163,7 +163,7 @@ namespace DS_Game_Maker
             // SelectManyButton
             // 
             SelectManyButton.Alignment = ToolStripItemAlignment.Right;
-            SelectManyButton.Image = DS_Game_Maker.My.Resources.Resources.ListIcon;
+            SelectManyButton.Image = Properties.Resources.ListIcon;
             SelectManyButton.ImageTransparentColor = Color.Magenta;
             SelectManyButton.Name = "SelectManyButton";
             SelectManyButton.Size = new Size(85, 22);
@@ -172,7 +172,7 @@ namespace DS_Game_Maker
             // SelectOneButton
             // 
             SelectOneButton.Alignment = ToolStripItemAlignment.Right;
-            SelectOneButton.Image = DS_Game_Maker.My.Resources.Resources.ListIcon;
+            SelectOneButton.Image = Properties.Resources.ListIcon;
             SelectOneButton.ImageTransparentColor = Color.Magenta;
             SelectOneButton.Name = "SelectOneButton";
             SelectOneButton.Size = new Size(79, 22);
@@ -243,7 +243,7 @@ namespace DS_Game_Maker
             // 
             // AddEventRightClickButton
             // 
-            AddEventRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
+            AddEventRightClickButton.Image = Properties.Resources.PlusIcon;
             AddEventRightClickButton.Name = "AddEventRightClickButton";
             AddEventRightClickButton.Size = new Size(124, 22);
             AddEventRightClickButton.Text = "Add Event";
@@ -255,7 +255,7 @@ namespace DS_Game_Maker
             // 
             // ChangeEventRightClickButton
             // 
-            ChangeEventRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
+            ChangeEventRightClickButton.Image = Properties.Resources.PencilIcon;
             ChangeEventRightClickButton.Name = "ChangeEventRightClickButton";
             ChangeEventRightClickButton.Size = new Size(124, 22);
             ChangeEventRightClickButton.Text = "Change";
@@ -267,7 +267,7 @@ namespace DS_Game_Maker
             // 
             // DeleteEventRightClickButton
             // 
-            DeleteEventRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+            DeleteEventRightClickButton.Image = Properties.Resources.DeleteIcon;
             DeleteEventRightClickButton.Name = "DeleteEventRightClickButton";
             DeleteEventRightClickButton.Size = new Size(124, 22);
             DeleteEventRightClickButton.Text = "Delete";
@@ -319,7 +319,7 @@ namespace DS_Game_Maker
             // 
             // FrameRightButton
             // 
-            FrameRightButton.Image = DS_Game_Maker.My.Resources.Resources.RightArrowSmall;
+            FrameRightButton.Image = Properties.Resources.RightArrowSmall;
             FrameRightButton.ImageAlign = ContentAlignment.MiddleRight;
             FrameRightButton.Location = new Point(158, 42);
             FrameRightButton.Name = "FrameRightButton";
@@ -329,7 +329,7 @@ namespace DS_Game_Maker
             // 
             // FrameLeftButton
             // 
-            FrameLeftButton.Image = DS_Game_Maker.My.Resources.Resources.LeftArrowSmall;
+            FrameLeftButton.Image = Properties.Resources.LeftArrowSmall;
             FrameLeftButton.ImageAlign = ContentAlignment.MiddleLeft;
             FrameLeftButton.Location = new Point(134, 42);
             FrameLeftButton.Name = "FrameLeftButton";
@@ -398,7 +398,7 @@ namespace DS_Game_Maker
             // 
             // EditValuesRightClickButton
             // 
-            EditValuesRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
+            EditValuesRightClickButton.Image = Properties.Resources.PencilIcon;
             EditValuesRightClickButton.Name = "EditValuesRightClickButton";
             EditValuesRightClickButton.Size = new Size(132, 22);
             EditValuesRightClickButton.Text = "Edit Values";
@@ -410,14 +410,14 @@ namespace DS_Game_Maker
             // 
             // SelectOneRightClickButton
             // 
-            SelectOneRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.ListIcon;
+            SelectOneRightClickButton.Image = Properties.Resources.ListIcon;
             SelectOneRightClickButton.Name = "SelectOneRightClickButton";
             SelectOneRightClickButton.Size = new Size(132, 22);
             SelectOneRightClickButton.Text = "Select One";
             // 
             // SelectManyRightClickButton
             // 
-            SelectManyRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.ListIcon;
+            SelectManyRightClickButton.Image = Properties.Resources.ListIcon;
             SelectManyRightClickButton.Name = "SelectManyRightClickButton";
             SelectManyRightClickButton.Size = new Size(132, 22);
             SelectManyRightClickButton.Text = "Select Many";
@@ -435,14 +435,14 @@ namespace DS_Game_Maker
             // 
             // CopyActionRightClickButton
             // 
-            CopyActionRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.CopyIcon;
+            CopyActionRightClickButton.Image = Properties.Resources.CopyIcon;
             CopyActionRightClickButton.Name = "CopyActionRightClickButton";
             CopyActionRightClickButton.Size = new Size(132, 22);
             CopyActionRightClickButton.Text = "Copy";
             // 
             // PasteActionBelowRightClickButton
             // 
-            PasteActionBelowRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.PasteIcon;
+            PasteActionBelowRightClickButton.Image = Properties.Resources.PasteIcon;
             PasteActionBelowRightClickButton.Name = "PasteActionBelowRightClickButton";
             PasteActionBelowRightClickButton.Size = new Size(132, 22);
             PasteActionBelowRightClickButton.Text = "Paste below";
@@ -454,7 +454,7 @@ namespace DS_Game_Maker
             // 
             // DeleteActionRightClickButton
             // 
-            DeleteActionRightClickButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+            DeleteActionRightClickButton.Image = Properties.Resources.DeleteIcon;
             DeleteActionRightClickButton.Name = "DeleteActionRightClickButton";
             DeleteActionRightClickButton.Size = new Size(132, 22);
             DeleteActionRightClickButton.Text = "Delete";

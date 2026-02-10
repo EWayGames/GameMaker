@@ -111,7 +111,7 @@ namespace DS_Game_Maker
             // 
             // UpdateIconPanel
             // 
-            UpdateIconPanel.BackgroundImage = DS_Game_Maker.My.Resources.Resources.UpdateBigIcon;
+            UpdateIconPanel.BackgroundImage = Properties.Resources.UpdateBigIcon;
             UpdateIconPanel.Location = new Point(6, 6);
             UpdateIconPanel.Name = "UpdateIconPanel";
             UpdateIconPanel.Size = new Size(96, 96);

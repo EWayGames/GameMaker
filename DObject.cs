@@ -774,13 +774,13 @@ namespace DS_Game_Maker
             {
                 case (byte)0:
                     {
-                        Drawable = DS_Game_Maker.My.Resources.Resources.QuestionIcon;
+                        Drawable = Properties.Resources.QuestionIcon;
                         FinalText = "<Unkown>";
                         break;
                     }
                 case (byte)1:
                     {
-                        Drawable = DS_Game_Maker.My.Resources.Resources.CreateEventIcon;
+                        Drawable = Properties.Resources.CreateEventIcon;
                         FinalText = "Create";
                         break;
                     }
@@ -788,19 +788,19 @@ namespace DS_Game_Maker
                 case (byte)3:
                 case (byte)4:
                     {
-                        Drawable = DS_Game_Maker.My.Resources.Resources.KeyIcon;
+                        Drawable = Properties.Resources.KeyIcon;
                         FinalText = DEventSubClasses[e.Index] + " " + DEventMainClasses[e.Index];
                         break;
                     }
                 case (byte)5:
                     {
-                        Drawable = DS_Game_Maker.My.Resources.Resources.StylusIcon;
+                        Drawable = Properties.Resources.StylusIcon;
                         FinalText += "Touch (" + DEventSubClasses[e.Index] + ")";
                         break;
                     }
                 case (byte)6:
                     {
-                        Drawable = DS_Game_Maker.My.Resources.Resources.Collision;
+                        Drawable = Properties.Resources.Collision;
                         string TheWith = DEventSubClasses[e.Index];
                         if (TheWith == "NoData")
                             TheWith = "<Unknown>";
@@ -809,22 +809,22 @@ namespace DS_Game_Maker
                     }
                 case (byte)7:
                     {
-                        Drawable = DS_Game_Maker.My.Resources.Resources.ClockIcon;
+                        Drawable = Properties.Resources.ClockIcon;
                         FinalText = "Step";
                         break;
                     }
                 case (byte)8:
                     {
-                        Drawable = DS_Game_Maker.My.Resources.Resources.OtherIcon;
+                        Drawable = Properties.Resources.OtherIcon;
                         FinalText += DEventSubClasses[e.Index];
                         break;
                     }
             }
             e.Graphics.FillRectangle(Brushes.White, e.Bounds);
             if (IsSelected)
-                e.Graphics.DrawImage(DS_Game_Maker.My.Resources.Resources.BarBGSmall, e.Bounds);
+                e.Graphics.DrawImage(Properties.Resources.BarBGSmall, e.Bounds);
             if (IsSelected)
-                e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.RoundedBlock, new Point(2, e.Bounds.Y + 2));
+                e.Graphics.DrawImageUnscaled(Properties.Resources.RoundedBlock, new Point(2, e.Bounds.Y + 2));
             e.Graphics.DrawImage(Drawable, new Point(4, e.Bounds.Y + 4));
             // If IsSelected Then
             // e.Graphics.DrawString(FinalText, New Font("Tahoma", 11, FontStyle.Regular, GraphicsUnit.Pixel), Brushes.Black, 24, 5 + e.Bounds.Y)
@@ -977,7 +977,7 @@ namespace DS_Game_Maker
             short MyX = (short)(CurrentIndents[e.Index] * (ThinList ? 16 : 24));
             e.Graphics.FillRectangle(Brushes.White, new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height));
             if (IsSelected)
-                e.Graphics.DrawImage(DS_Game_Maker.My.Resources.Resources.BarBG, new Rectangle(0, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height));
+                e.Graphics.DrawImage(Properties.Resources.BarBG, new Rectangle(0, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height));
             string ThingString = ActionAppliesTos[e.Index];
             string ArgString = string.Empty;
             string NiceArgs = ArgumentsMakeAttractive(ActionArguments[e.Index], true);
@@ -1038,10 +1038,10 @@ namespace DS_Game_Maker
                     e.Graphics.DrawString(ArgString, new Font("Tahoma", 11f, FontStyle.Regular, GraphicsUnit.Pixel), Brushes.Gray, MyX + ThinNum, e.Bounds.Y + 18);
                     e.Graphics.DrawString(ActionDisplays[e.Index], new Font("Tahoma", 11f, FontStyle.Regular, GraphicsUnit.Pixel), Brushes.White, MyX + ThinNum, e.Bounds.Y + (NiceArgs.Length > 0 ? 5 : 10) + 1);
                     e.Graphics.DrawString(ActionDisplays[e.Index], new Font("Tahoma", 11f, FontStyle.Regular, GraphicsUnit.Pixel), Brushes.Black, MyX + ThinNum, e.Bounds.Y + (NiceArgs.Length > 0 ? 5 : 10));
-                    e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.Corners, new Point(-7, e.Bounds.Y - 6));
-                    e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.Corners, new Point(-7, e.Bounds.Y + ThinNum - 6));
-                    e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.Corners, new Point(e.Bounds.Width - 7, e.Bounds.Y - 7));
-                    e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.Corners, new Point(e.Bounds.Width - 7, e.Bounds.Y + 29));
+                    e.Graphics.DrawImageUnscaled(Properties.Resources.Corners, new Point(-7, e.Bounds.Y - 6));
+                    e.Graphics.DrawImageUnscaled(Properties.Resources.Corners, new Point(-7, e.Bounds.Y + ThinNum - 6));
+                    e.Graphics.DrawImageUnscaled(Properties.Resources.Corners, new Point(e.Bounds.Width - 7, e.Bounds.Y - 7));
+                    e.Graphics.DrawImageUnscaled(Properties.Resources.Corners, new Point(e.Bounds.Width - 7, e.Bounds.Y + 29));
                 }
                 else
                 {

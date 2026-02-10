@@ -455,17 +455,17 @@ namespace DS_Game_Maker
 
             // FinalString += "#include ""NitroGraphics.h""" + vbCrLf
 
-            File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"include\NitroGraphics.h", DS_Game_Maker.My.Resources.Resources.NitroGraphics);
+            File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"include\NitroGraphics.h", Properties.Resources.NitroGraphics);
             if (GetXDSLine("INCLUDE_WIFI_LIB ").Substring(17) == "1")
             {
                 FinalString += "#include \"ky_geturl.h\"" + Constants.vbCrLf;
                 if (!File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.h"))
                 {
-                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.h", DS_Game_Maker.My.Resources.Resources.WifiLibH);
+                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.h", Properties.Resources.WifiLibH);
                 }
                 if (!File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.c"))
                 {
-                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.c", DS_Game_Maker.My.Resources.Resources.WifiLibC);
+                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.c", Properties.Resources.WifiLibC);
                 }
             }
             else
@@ -2094,9 +2094,9 @@ namespace DS_Game_Maker
             }
             if (!(FID == 100))
             {
-                TheControl.InsertText(Conversions.ToString(MakeSpaces((byte)(SpaceCount + Amount))));
+                TheControl.InsertText(0, Conversions.ToString(MakeSpaces((byte)(SpaceCount + Amount))));
                 bool DoAdd = true;
-                for (byte i = (byte)TheControl.Caret.LineNumber, loopTo2 = (byte)(TheControl.Lines.Count - 1); i <= loopTo2; i++)
+                for (byte i = (byte)TheControl.CurrentLine, loopTo2 = (byte)(TheControl.Lines.Count - 1); i <= loopTo2; i++)
                 {
                     string L = TheControl.Lines[i].Text;
                     L = L.Substring(0, L.Length - 2).ToLower();
@@ -2108,10 +2108,10 @@ namespace DS_Game_Maker
                 }
                 if (DoAdd)
                 {
-                    short BackupPos = (short)TheControl.Caret.Position;
-                    TheControl.InsertText(Conversions.ToString(Operators.AddObject(Operators.AddObject(Constants.vbCrLf, MakeSpaces((byte)SpaceCount)), CapsEnders[FID])));
-                    TheControl.Caret.Position = BackupPos;
-                    TheControl.Selection.Length = 0;
+                    short BackupPos = (short)TheControl.CurrentPosition;
+                    TheControl.InsertText(0, Conversions.ToString(Operators.AddObject(Operators.AddObject(Constants.vbCrLf, MakeSpaces((byte)SpaceCount)), CapsEnders[FID])));
+                    TheControl.CurrentPosition = BackupPos;
+                    // TheControl.SelectedText.Length = 0; Wat?
                 }
                 return;
             }
@@ -2136,7 +2136,7 @@ namespace DS_Game_Maker
             if (SpaceCount < 0)
                 SpaceCount = 0;
             TempSpaces = (byte)SpaceCount;
-            TheControl.InsertText(Conversions.ToString(MakeSpaces((byte)SpaceCount)));
+            TheControl.InsertText(0,Conversions.ToString(MakeSpaces((byte)SpaceCount)));
         }
 
         public static void SilentMoveFile(string FromPath, string ToPath)
