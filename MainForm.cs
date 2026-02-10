@@ -548,7 +548,8 @@ namespace DS_Game_Maker
 
         private void OptionsButton_Click(object sender, EventArgs e)
         {
-            DS_Game_Maker.My.MyProject.Forms.Options.ShowDialog();
+            //DS_Game_Maker.My.MyProject.Forms.Options.ShowDialog();
+            new Options().ShowDialog();
         }
 
         private void ResourcesTreeView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -561,17 +562,21 @@ namespace DS_Game_Maker
 
         private void GameSettingsButton_Click(object sender, EventArgs e)
         {
-            DS_Game_Maker.My.MyProject.Forms.GameSettings.ShowDialog();
+            new GameSettings().ShowDialog();
         }
 
         private void TestGameButton_Click(object sender, EventArgs e)
         {
-            if (Conversions.ToBoolean(!DS_Game_Maker.DSGMlib.CompileWrapper()))
+            if (!(bool)DSGMlib.CompileWrapper())
                 return;
-            DS_Game_Maker.My.MyProject.Forms.Compile.HasDoneIt = false;
-            DS_Game_Maker.My.MyProject.Forms.Compile.ShowDialog();
-            if (DS_Game_Maker.My.MyProject.Forms.Compile.Success)
-            {
+
+            /* DS_Game_Maker.My.MyProject.Forms.Compile.HasDoneIt = false;
+             DS_Game_Maker.My.MyProject.Forms.Compile.ShowDialog();
+             if (DS_Game_Maker.My.MyProject.Forms.Compile.Success )
+             {*/
+
+            if (new Compile().ShowDialog() == DialogResult.OK)
+            { 
                 DS_Game_Maker.DSGMlib.NOGBAShizzle();
             }
             else
@@ -582,8 +587,9 @@ namespace DS_Game_Maker
 
         private void CompileGameButton_Click(object sender, EventArgs e)
         {
-            if (Conversions.ToBoolean(!DS_Game_Maker.DSGMlib.CompileWrapper()))
+            if (!(bool)DSGMlib.CompileWrapper())
                 return;
+
             DS_Game_Maker.My.MyProject.Forms.Compile.HasDoneIt = false;
             DS_Game_Maker.My.MyProject.Forms.Compile.ShowDialog();
             if (DS_Game_Maker.My.MyProject.Forms.Compile.Success)
