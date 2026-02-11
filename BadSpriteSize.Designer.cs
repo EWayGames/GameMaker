@@ -52,7 +52,7 @@ namespace DS_Game_Maker
             // 
             // Panel1
             // 
-            Panel1.BackgroundImage = DS_Game_Maker.My.Resources.Resources.SpriteSizesTable1;
+            Panel1.BackgroundImage = Properties.Resources.SpriteSizesTable1;
             Panel1.Location = new Point(13, 80);
             Panel1.Name = "Panel1";
             Panel1.Size = new Size(196, 94);
@@ -60,7 +60,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+            DAcceptButton.Image = Properties.Resources.AcceptIcon;
             DAcceptButton.ImageAlign = ContentAlignment.MiddleLeft;
             DAcceptButton.Location = new Point(134, 180);
             DAcceptButton.Name = "DAcceptButton";

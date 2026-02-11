@@ -137,7 +137,7 @@ namespace DS_Game_Maker
             // SearchButton
             // 
             SearchButton.AccessibleName = "Search";
-            SearchButton.Image = DS_Game_Maker.My.Resources.Resources.TestGameIcon;
+            SearchButton.Image = Properties.Resources.TestGameIcon;
             SearchButton.Location = new Point(176, 7);
             SearchButton.Name = "SearchButton";
             SearchButton.Size = new Size(26, 26);

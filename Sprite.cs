@@ -497,7 +497,7 @@ namespace DS_Game_Maker
             }
             for (short X = 0, loopTo = (short)(MainImageList.Images.Count - 1); X <= loopTo; X++)
                 MainImageList.Images[X].Save(DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\" + X.ToString() + "_" + NewName + ".png");
-            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (X.Name == "DObject")
                 {
@@ -529,7 +529,7 @@ namespace DS_Game_Maker
             }
             DS_Game_Maker.DSGMlib.UpdateArrayActionsName("Sprite", SpriteName, NewName, false);
             DS_Game_Maker.DSGMlib.CurrentXDS = DS_Game_Maker.DSGMlib.UpdateActionsName(DS_Game_Maker.DSGMlib.CurrentXDS, "Sprite", SpriteName, NewName, false);
-            foreach (TreeNode X in DS_Game_Maker.My.MyProject.Forms.MainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Sprite].Nodes)
+            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Sprite].Nodes)
             {
                 if ((X.Text ?? "") == (SpriteName ?? ""))
                     X.Text = NewName;

@@ -55,7 +55,7 @@ namespace DS_Game_Maker
                 DS_Game_Maker.DSGMlib.XDSChangeLine("BACKGROUND " + BackgroundName, "BACKGROUND " + NewName);
                 DS_Game_Maker.DSGMlib.SilentMoveFile(RealPath, DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
                 // File.Move(RealPath, SessionPath + "Backgrounds\" + NewName + ".png")
-                foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+                foreach (Form X in Program.mainForm.MdiChildren)
                 {
                     if (X.Name == "Room")
                     {
@@ -131,7 +131,7 @@ namespace DS_Game_Maker
                 if (DS_Game_Maker.DSGMlib.BGsToRedo.Contains(BackgroundName))
                     DS_Game_Maker.DSGMlib.BGsToRedo.Remove(BackgroundName);
                 DS_Game_Maker.DSGMlib.BGsToRedo.Add(NewName);
-                foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+                foreach (Form X in Program.mainForm.MdiChildren)
                 {
                     if (!(X.Name == "Room"))
                         continue;
@@ -236,7 +236,7 @@ namespace DS_Game_Maker
                 File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
                 DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\temp_gfx.h", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
             }
-            foreach (TreeNode X in DS_Game_Maker.My.MyProject.Forms.MainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Background].Nodes)
+            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Background].Nodes)
             {
                 if ((X.Text ?? "") == (BackgroundName ?? ""))
                     X.Text = NewName;

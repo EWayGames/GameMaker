@@ -43,7 +43,7 @@ namespace DS_Game_Maker
             MainTimer.Enabled = true;
         }
 
-        private void MainTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        private void MainTimer_Tick(object sender, EventArgs e)
         {
             FrameOn = (byte)(FrameOn + 1);
             // MsgError("Showing " + FrameOn.ToString)

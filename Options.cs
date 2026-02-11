@@ -75,7 +75,7 @@ namespace DS_Game_Maker
             DS_Game_Maker.SettingsLib.SetSetting("DEFAULT_ROOM_HEIGHT", DefaultRoomHeightTB.Text);
             DS_Game_Maker.SettingsLib.SetSetting("EMULATOR_PATH", CustomEmulatorTextBox.Text);
             DS_Game_Maker.SettingsLib.SaveSettings();
-            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 string TheText = X.Text;
                 if (TheText.StartsWith("Outputted C Preview for "))

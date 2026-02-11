@@ -550,7 +550,7 @@ namespace DS_Game_Maker
             }
             // FinalString = UpdateActionsName(FinalString, "Object", ObjectName, NewName, True)
             DS_Game_Maker.DSGMlib.CurrentXDS += Constants.vbCrLf + FinalString + Constants.vbCrLf;
-            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (X.Name == "Room")
                 {
@@ -581,7 +581,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSChangeLine(X, DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ",") + ",6," + NewName);
             }
             DS_Game_Maker.DSGMlib.CurrentXDS = DS_Game_Maker.DSGMlib.UpdateActionsName(DS_Game_Maker.DSGMlib.CurrentXDS, "Object", ObjectName, NewName, true);
-            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (!DS_Game_Maker.DSGMlib.IsObject(X.Text))
                     continue;
@@ -610,7 +610,7 @@ namespace DS_Game_Maker
                 }
                 DForm.MyXDSLines = LF;
             }
-            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (!(X.Name == "DObject"))
                     continue;
@@ -618,7 +618,7 @@ namespace DS_Game_Maker
                 DForm.MyXDSLines = DS_Game_Maker.DSGMlib.UpdateActionsName(DForm.MyXDSLines, "Object", ObjectName, NewName, true);
             }
             DS_Game_Maker.DSGMlib.UpdateArrayActionsName("Object", ObjectName, NewName, true);
-            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (!(X.Name == "DObject"))
                     continue;
@@ -645,7 +645,7 @@ namespace DS_Game_Maker
                     }
                 }
             }
-            foreach (TreeNode X in DS_Game_Maker.My.MyProject.Forms.MainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.DObject].Nodes)
+            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.DObject].Nodes)
             {
                 if ((X.Text ?? "") == (ObjectName ?? ""))
                     X.Text = NewName;

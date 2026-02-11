@@ -41,7 +41,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSAddLine("SCRIPTARG " + NameTextBox.Text + "," + ArgumentNames[P] + "," + ArgumentTypes[P]);
             }
             File.WriteAllText(DS_Game_Maker.SessionsLib.SessionPath + @"Scripts\" + NameTextBox.Text + ".dbas", MainTextBox.Text);
-            foreach (TreeNode X in DS_Game_Maker.My.MyProject.Forms.MainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Script].Nodes)
+            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Script].Nodes)
             {
                 if ((X.Text ?? "") == (ScriptName ?? ""))
                     X.Text = NameTextBox.Text;
@@ -421,7 +421,7 @@ namespace DS_Game_Maker
                 e.Graphics.DrawString(TheName, TF, Brushes.Black, 16f, e.Bounds.Y + 1);
                 e.Graphics.DrawString(TheType, TF, Brushes.LightGray, e.Bounds.Width - TW - 3, e.Bounds.Y + 1);
             }
-            e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.ArgumentIcon, new Point(0, e.Bounds.Y));
+            e.Graphics.DrawImageUnscaled(Properties.Resources.ArgumentIcon, new Point(0, e.Bounds.Y));
         }
 
         private void ArgumentsList_MeasureItem(object sender, MeasureItemEventArgs e)

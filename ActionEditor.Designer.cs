@@ -130,7 +130,7 @@ namespace DS_Game_Maker
             // 
             // CloseButton
             // 
-            CloseButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+            CloseButton.Image = Properties.Resources.AcceptIcon;
             CloseButton.ImageTransparentColor = Color.Magenta;
             CloseButton.Name = "CloseButton";
             CloseButton.Size = new Size(53, 22);
@@ -143,7 +143,7 @@ namespace DS_Game_Maker
             // 
             // AddActionButton
             // 
-            AddActionButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
+            AddActionButton.Image = Properties.Resources.PlusIcon;
             AddActionButton.ImageTransparentColor = Color.Magenta;
             AddActionButton.Name = "AddActionButton";
             AddActionButton.Size = new Size(79, 22);
@@ -151,7 +151,7 @@ namespace DS_Game_Maker
             // 
             // DeleteActionButton
             // 
-            DeleteActionButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+            DeleteActionButton.Image = Properties.Resources.DeleteIcon;
             DeleteActionButton.ImageTransparentColor = Color.Magenta;
             DeleteActionButton.Name = "DeleteActionButton";
             DeleteActionButton.Size = new Size(58, 22);
@@ -312,7 +312,7 @@ namespace DS_Game_Maker
             // 
             // SaveButton
             // 
-            SaveButton.Image = DS_Game_Maker.My.Resources.Resources.SaveIcon;
+            SaveButton.Image = Properties.Resources.SaveIcon;
             SaveButton.ImageTransparentColor = Color.Magenta;
             SaveButton.Name = "SaveButton";
             SaveButton.Size = new Size(51, 22);
@@ -326,7 +326,7 @@ namespace DS_Game_Maker
             // AddArgumentButton
             // 
             AddArgumentButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            AddArgumentButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
+            AddArgumentButton.Image = Properties.Resources.PlusIcon;
             AddArgumentButton.ImageTransparentColor = Color.Magenta;
             AddArgumentButton.Name = "AddArgumentButton";
             AddArgumentButton.Size = new Size(23, 22);
@@ -335,7 +335,7 @@ namespace DS_Game_Maker
             // EditArgumentButton
             // 
             EditArgumentButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            EditArgumentButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
+            EditArgumentButton.Image = Properties.Resources.PencilIcon;
             EditArgumentButton.ImageTransparentColor = Color.Magenta;
             EditArgumentButton.Name = "EditArgumentButton";
             EditArgumentButton.Size = new Size(23, 22);
@@ -344,7 +344,7 @@ namespace DS_Game_Maker
             // DeleteArgumentButton
             // 
             DeleteArgumentButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            DeleteArgumentButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+            DeleteArgumentButton.Image = Properties.Resources.DeleteIcon;
             DeleteArgumentButton.ImageTransparentColor = Color.Magenta;
             DeleteArgumentButton.Name = "DeleteArgumentButton";
             DeleteArgumentButton.Size = new Size(23, 22);
@@ -353,7 +353,7 @@ namespace DS_Game_Maker
             // InsertArgumentButton
             // 
             InsertArgumentButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            InsertArgumentButton.Image = DS_Game_Maker.My.Resources.Resources.InsertIcon;
+            InsertArgumentButton.Image = Properties.Resources.InsertIcon;
             InsertArgumentButton.ImageTransparentColor = Color.Magenta;
             InsertArgumentButton.Name = "InsertArgumentButton";
             InsertArgumentButton.Size = new Size(23, 22);

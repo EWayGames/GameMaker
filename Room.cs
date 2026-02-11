@@ -403,7 +403,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSChangeLine("BOOTROOM " + RoomName, "BOOTROOM " + NewName);
                 }
             }
-            foreach (TreeNode X in DS_Game_Maker.My.MyProject.Forms.MainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Room].Nodes)
+            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Room].Nodes)
             {
                 if ((X.Text ?? "") == (RoomName ?? ""))
                     X.Text = NewName;
@@ -816,7 +816,7 @@ namespace DS_Game_Maker
             foreach (string X in ObjectsToOpen)
             {
                 bool DoShow = true;
-                foreach (Form TheForm in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+                foreach (Form TheForm in Program.mainForm.MdiChildren)
                 {
                     if ((TheForm.Text ?? "") == (X ?? ""))
                     {

@@ -23,7 +23,7 @@ namespace DS_Game_Maker
         {
             MainToolStrip.Renderer = new DS_Game_Maker.clsToolstripRenderer();
             SubToolStrip.Renderer = new DS_Game_Maker.clsToolstripRenderer();
-            MainImageList.Images.Add("ActionIcon", DS_Game_Maker.My.Resources.Resources.ActionIcon);
+            MainImageList.Images.Add("ActionIcon", Properties.Resources.ActionIcon); 
             ActionsTreeView.ImageList = MainImageList;
             TypeDropper.Items.Clear();
             ImageDropper.Items.Clear();
@@ -216,7 +216,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSChangeLine(X, NewLine);
                 }
             }
-            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT " + X.Text + ",").Length == 0)
                     continue;

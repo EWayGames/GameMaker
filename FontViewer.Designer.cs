@@ -73,7 +73,7 @@ namespace DS_Game_Maker
             // RebuildCacheButton
             // 
             RebuildCacheButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            RebuildCacheButton.Image = DS_Game_Maker.My.Resources.Resources.OpenLastIcon;
+            RebuildCacheButton.Image = Properties.Resources.OpenLastIcon;
             RebuildCacheButton.Location = new Point(205, 1);
             RebuildCacheButton.Name = "RebuildCacheButton";
             RebuildCacheButton.Size = new Size(24, 24);
@@ -83,7 +83,7 @@ namespace DS_Game_Maker
             // PreviousButton
             // 
             PreviousButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            PreviousButton.Image = DS_Game_Maker.My.Resources.Resources.ArrowUp;
+            PreviousButton.Image = Properties.Resources.ArrowUp;
             PreviousButton.Location = new Point(229, 1);
             PreviousButton.Name = "PreviousButton";
             PreviousButton.Size = new Size(24, 24);
@@ -93,7 +93,7 @@ namespace DS_Game_Maker
             // NextButton
             // 
             NextButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            NextButton.Image = DS_Game_Maker.My.Resources.Resources.ArrowDown;
+            NextButton.Image = Properties.Resources.ArrowDown;
             NextButton.Location = new Point(253, 1);
             NextButton.Name = "NextButton";
             NextButton.Size = new Size(24, 24);

@@ -240,7 +240,7 @@ namespace DS_Game_Maker
             {
                 e.Graphics.DrawString(FinalText, TF, Brushes.Black, 20f, e.Bounds.Y + 3);
             }
-            e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.VariableIcon, new Point(4, e.Bounds.Y + 4));
+            e.Graphics.DrawImageUnscaled(Properties.Resources.VariableIcon, new Point(4, e.Bounds.Y + 4));
         }
 
         private void TypeList_MeasureItem(object sender, MeasureItemEventArgs e)

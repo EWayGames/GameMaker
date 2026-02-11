@@ -80,7 +80,7 @@ namespace DS_Game_Maker
             {
                 e.Graphics.DrawString(FinalText, TF, Brushes.Black, 20f, e.Bounds.Y + 3);
             }
-            e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.StructureIcon, new Point(4, e.Bounds.Y + 4));
+            e.Graphics.DrawImageUnscaled(Properties.Resources.StructureIcon, new Point(4, e.Bounds.Y + 4));
         }
 
         public void SetEnablity(bool Enabled)
@@ -327,7 +327,7 @@ namespace DS_Game_Maker
                 e.Graphics.DrawString(TheType, TF, Brushes.DarkGray, 66f, e.Bounds.Y + 1);
                 e.Graphics.DrawString(TheValue, TF, Brushes.DarkGray, 138f, e.Bounds.Y + 1);
             }
-            e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.ArgumentIcon, new Point(0, e.Bounds.Y));
+            e.Graphics.DrawImageUnscaled(Properties.Resources.ArgumentIcon, new Point(0, e.Bounds.Y));
         }
 
     }

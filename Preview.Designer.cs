@@ -35,9 +35,11 @@ namespace DS_Game_Maker
         [DebuggerStepThrough()]
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
+            var resources = new System.ComponentModel.ComponentResourceManager(typeof(Preview));
             PreviewPanel = new Panel();
-            MainTimer = new System.Timers.Timer();
-            ((System.ComponentModel.ISupportInitialize)MainTimer).BeginInit();
+            MainTimer = new System.Timers.Timer(components.Components.Count);
+            MainTimer.Elapsed += new System.Timers.ElapsedEventHandler(MainTimer_Tick);
             SuspendLayout();
             // 
             // PreviewPanel
@@ -51,27 +53,23 @@ namespace DS_Game_Maker
             // 
             // MainTimer
             // 
-            MainTimer.Enabled = true;
-            MainTimer.Interval = 2D;
-            MainTimer.SynchronizingObject = this;
-            MainTimer.Elapsed += MainTimer_Tick;
             // 
             // Preview
             // 
-            AutoScaleDimensions = new SizeF(6F, 13F);
+            AutoScaleDimensions = new SizeF(6.0f, 13.0f);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
             ClientSize = new Size(158, 136);
             Controls.Add(PreviewPanel);
-            Font = new Font("Tahoma", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            Font = new Font("Tahoma", 8.25f, FontStyle.Regular, GraphicsUnit.Point, 0);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "Preview";
             StartPosition = FormStartPosition.CenterParent;
             Text = "Sprite Preview";
-            Load += Preview_Load;
-            ((System.ComponentModel.ISupportInitialize)MainTimer).EndInit();
+            Load += new EventHandler(Preview_Load);
             ResumeLayout(false);
 
         }

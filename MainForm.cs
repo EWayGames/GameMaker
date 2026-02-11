@@ -99,13 +99,13 @@ namespace DS_Game_Maker
                 DS_Game_Maker.DSGMlib.AppPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\" + Application.ProductName;
             DS_Game_Maker.DSGMlib.AppPath += @"\";
             // Set Up Action icons
-            DS_Game_Maker.DSGMlib.ActionBG = (Bitmap)(File.Exists(DS_Game_Maker.DSGMlib.AppPath + "ActionBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(DS_Game_Maker.DSGMlib.AppPath + "ActionBG.png") : DS_Game_Maker.My.Resources.Resources.ActionBG);
-            DS_Game_Maker.DSGMlib.ActionConditionalBG = (Bitmap)(File.Exists(DS_Game_Maker.DSGMlib.AppPath + "ActionConditionalBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(DS_Game_Maker.DSGMlib.AppPath + "ActionConditionalBG.png") : DS_Game_Maker.My.Resources.Resources.ActionConditionalBG);
+            DS_Game_Maker.DSGMlib.ActionBG = (Bitmap)(File.Exists(DS_Game_Maker.DSGMlib.AppPath + "ActionBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(DS_Game_Maker.DSGMlib.AppPath + "ActionBG.png") : Properties.Resources.ActionBG);
+            DS_Game_Maker.DSGMlib.ActionConditionalBG = (Bitmap)(File.Exists(DS_Game_Maker.DSGMlib.AppPath + "ActionConditionalBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(DS_Game_Maker.DSGMlib.AppPath + "ActionConditionalBG.png") : Properties.Resources.ActionConditionalBG);
             DS_Game_Maker.DSGMlib.CDrive = DS_Game_Maker.DSGMlib.AppPath.Substring(0, 3);
             foreach (Control ctl in Controls)
             {
                 if (ctl is MdiClient)
-                    ctl.BackgroundImage = DS_Game_Maker.My.Resources.Resources.MDIBG;
+                    ctl.BackgroundImage = Properties.Resources.MDIBG;
             }
             string System32Path = Environment.GetFolderPath(Environment.SpecialFolder.System);
             CacheHasTinternet = DS_Game_Maker.DSGMlib.HasInternetConnection("http://google.com");
@@ -168,22 +168,22 @@ namespace DS_Game_Maker
             ResRightClickMenu.Renderer = new DS_Game_Maker.clsMenuRenderer();
             // Resources Setup
             DS_Game_Maker.DSGMlib.ResourceTypes[0] = "Sprites";
-            MainImageList.Images.Add("SpriteIcon", DS_Game_Maker.My.Resources.Resources.SpriteIcon);
+            MainImageList.Images.Add("SpriteIcon", Properties.Resources.SpriteIcon);
             DS_Game_Maker.DSGMlib.ResourceTypes[1] = "Objects";
-            MainImageList.Images.Add("ObjectIcon", DS_Game_Maker.My.Resources.Resources.ObjectIcon);
+            MainImageList.Images.Add("ObjectIcon", Properties.Resources.ObjectIcon);
             DS_Game_Maker.DSGMlib.ResourceTypes[2] = "Backgrounds";
-            MainImageList.Images.Add("BackgroundIcon", DS_Game_Maker.My.Resources.Resources.BackgroundIcon);
+            MainImageList.Images.Add("BackgroundIcon", Properties.Resources.BackgroundIcon);
             DS_Game_Maker.DSGMlib.ResourceTypes[3] = "Sounds";
-            MainImageList.Images.Add("SoundIcon", DS_Game_Maker.My.Resources.Resources.SoundIcon);
+            MainImageList.Images.Add("SoundIcon", Properties.Resources.SoundIcon);
             DS_Game_Maker.DSGMlib.ResourceTypes[4] = "Rooms";
-            MainImageList.Images.Add("RoomIcon", DS_Game_Maker.My.Resources.Resources.RoomIcon);
+            MainImageList.Images.Add("RoomIcon", Properties.Resources.RoomIcon);
             DS_Game_Maker.DSGMlib.ResourceTypes[5] = "Paths";
-            MainImageList.Images.Add("PathIcon", DS_Game_Maker.My.Resources.Resources.PathIcon);
+            MainImageList.Images.Add("PathIcon", Properties.Resources.PathIcon);
             DS_Game_Maker.DSGMlib.ResourceTypes[6] = "Scripts";
-            MainImageList.Images.Add("ScriptIcon", DS_Game_Maker.My.Resources.Resources.ScriptIcon);
+            MainImageList.Images.Add("ScriptIcon", Properties.Resources.ScriptIcon);
             // Imagelist Setup
             // MainImageList.Images.Add("ScriptIcon", My.Resources.ScriptIcon)
-            MainImageList.Images.Add("FolderIcon", DS_Game_Maker.My.Resources.Resources.FolderIcon);
+            MainImageList.Images.Add("FolderIcon", Properties.Resources.FolderIcon);
             // Resources Setup
             for (byte Resource = 0, loopTo = (byte)(DS_Game_Maker.DSGMlib.ResourceTypes.Length - 1); Resource <= loopTo; Resource++)
                 ResourcesTreeView.Nodes.Add(string.Empty, DS_Game_Maker.DSGMlib.ResourceTypes[(int)Resource], 7, 7);
@@ -928,7 +928,7 @@ namespace DS_Game_Maker
                     OpenResourceRightClickButton.Enabled = true;
                     DuplicateResourceRightClickButton.Enabled = true;
                     CompilesToNitroFSButton.Enabled = true;
-                    CompilesToNitroFSButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+                    CompilesToNitroFSButton.Image = Properties.Resources.DeleteIcon;
                     if (string.IsNullOrEmpty(ToWorkFrom.Text))
                         break;
                 }
@@ -939,13 +939,13 @@ namespace DS_Game_Maker
                     OpenResourceRightClickButton.Enabled = false;
                     DuplicateResourceRightClickButton.Enabled = false;
                     CompilesToNitroFSButton.Enabled = false;
-                    CompilesToNitroFSButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+                    CompilesToNitroFSButton.Image = Properties.Resources.DeleteIcon;
                 }
             }
             while (false);
             {
                 var withBlock = AddResourceRightClickButton;
-                withBlock.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
+                withBlock.Image = Properties.Resources.PlusIcon;
                 switch (ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) ?? "")
                 {
                     case "Sprite":
@@ -993,11 +993,11 @@ namespace DS_Game_Maker
                     withBlock1.Enabled = false;
                     if (!(ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) == "Sound"))
                     {
-                        withBlock1.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
+                        withBlock1.Image = Properties.Resources.DeleteIcon;
                     }
                     else
                     {
-                        withBlock1.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+                        withBlock1.Image = Properties.Resources.AcceptIcon;
                     }
                 }
                 else
@@ -1006,14 +1006,14 @@ namespace DS_Game_Maker
                     {
                         if (DS_Game_Maker.DSGMlib.iGet(DS_Game_Maker.DSGMlib.GetXDSLine("SPRITE " + ResourcesTreeView.SelectedNode.Text), (byte)3, ",") == "Nitro")
                         {
-                            withBlock1.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+                            withBlock1.Image = Properties.Resources.AcceptIcon;
                         }
                     }
                     if (ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) == "Background")
                     {
                         if (DS_Game_Maker.DSGMlib.iGet(DS_Game_Maker.DSGMlib.GetXDSLine("BACKGROUND " + ResourcesTreeView.SelectedNode.Text), (byte)1, ",") == "Nitro")
                         {
-                            withBlock1.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
+                            withBlock1.Image = Properties.Resources.AcceptIcon;
                         }
                     }
                 }
