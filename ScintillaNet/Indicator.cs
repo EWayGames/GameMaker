@@ -1,133 +1,225 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Text;
 
-#nullable disable
-namespace ScintillaNet;
-
-[TypeConverter(typeof (ExpandableObjectConverter))]
-public class Indicator : ScintillaHelperBase
+namespace ScintillaNET
 {
-  private int _number;
-
-  internal Indicator(int number, Scintilla scintilla)
-    : base(scintilla)
-  {
-    this._number = number;
-  }
-
-  internal bool ShouldSerialize()
-  {
-    return this.ShouldSerializeColor() || this.ShouldSerializeIsDrawnUnder() || this.ShouldSerializeStyle();
-  }
-
-  public int Number
-  {
-    get => this._number;
-    set => this._number = value;
-  }
-
-  public Color Color
-  {
-    get
+    /// <summary>
+    /// Represents an indicator in a <see cref="Scintilla" /> control.
+    /// </summary>
+    public class Indicator
     {
-      return this.Scintilla.ColorBag.ContainsKey(this.ToString() + ".Color") ? this.Scintilla.ColorBag[this.ToString() + ".Color"] : Utilities.RgbToColor(this.NativeScintilla.IndicGetFore(this._number));
+        private readonly Scintilla scintilla;
+
+        /// <summary>
+        /// An OR mask to use with <see cref="Scintilla.IndicatorValue" /> and <see cref="IndicatorFlags.ValueFore" /> to indicate
+        /// that the user-defined indicator value should be treated as a RGB color.
+        /// </summary>
+        public const int ValueBit = NativeMethods.SC_INDICVALUEBIT;
+
+        /// <summary>
+        /// An AND mask to use with <see cref="Indicator.ValueAt" /> to retrieve the user-defined value as a RGB color when being treated as such.
+        /// </summary>
+        public const int ValueMask = NativeMethods.SC_INDICVALUEMASK;
+
+        /*
+        /// <summary>
+        /// Given a position within a text range using this indicator, will return
+        /// the end position of that range.
+        /// </summary>
+        /// <param name="position">Any zero-based byte position with the range using this indicator.</param>
+        /// <returns>The end position byte index.</returns>
+        public int FindEnd(int position)
+        {
+            return scintilla.DirectMessage(NativeMethods.SCI_INDICATOREND, new IntPtr(Index), new IntPtr(position)).ToInt32();
+        }
+
+        /// <summary>
+        /// Given a position within a text range using this indicator, will return
+        /// the start position of that range.
+        /// </summary>
+        /// <param name="position">Any zero-based byte position with the range using this indicator.</param>
+        /// <returns>The start position byte index.</returns>
+        public int FindStart(int position)
+        {
+            return scintilla.DirectMessage(NativeMethods.SCI_INDICATORSTART, new IntPtr(Index), new IntPtr(position)).ToInt32();
+        }
+        */
+
+        /// <summary>
+        /// Returns the user-defined value for the indicator at the specified position.
+        /// </summary>
+        /// <param name="position">The zero-based document position to get the indicator value for.</param>
+        /// <returns>The user-defined value at the specified <paramref name="position" />.</returns>
+        public int ValueAt(int position)
+        {
+            position = Helpers.Clamp(position, 0, scintilla.TextLength);
+            position = scintilla.Lines.CharToBytePosition(position);
+
+            return scintilla.DirectMessage(NativeMethods.SCI_INDICATORVALUEAT, new IntPtr(Index), new IntPtr(position)).ToInt32();
+        }
+
+        /// <summary>
+        /// Gets or sets the alpha transparency of the indicator.
+        /// </summary>
+        /// <returns>
+        /// The alpha transparency ranging from 0 (completely transparent)
+        /// to 255 (no transparency). The default is 30.
+        /// </returns>
+        public int Alpha
+        {
+            get
+            {
+                return scintilla.DirectMessage(NativeMethods.SCI_INDICGETALPHA, new IntPtr(Index)).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, 255);
+                scintilla.DirectMessage(NativeMethods.SCI_INDICSETALPHA, new IntPtr(Index), new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the indicator flags.
+        /// </summary>
+        /// <returns>
+        /// A bitwise combination of the <see cref="IndicatorFlags" /> enumeration.
+        /// The default is <see cref="IndicatorFlags.None" />.
+        /// </returns>
+        public IndicatorFlags Flags
+        {
+            get
+            {
+                return (IndicatorFlags)scintilla.DirectMessage(NativeMethods.SCI_INDICGETFLAGS, new IntPtr(Index));
+            }
+            set
+            {
+                int flags = (int)value;
+                scintilla.DirectMessage(NativeMethods.SCI_INDICSETFLAGS, new IntPtr(Index), new IntPtr(flags));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the color used to draw an indicator.
+        /// </summary>
+        /// <returns>The Color used to draw an indicator. The default varies.</returns>
+        /// <remarks>Changing the <see cref="ForeColor" /> property will reset the <see cref="HoverForeColor" />.</remarks>
+        /// <seealso cref="HoverForeColor" />
+        public Color ForeColor
+        {
+            get
+            {
+                var color = scintilla.DirectMessage(NativeMethods.SCI_INDICGETFORE, new IntPtr(Index)).ToInt32();
+                return ColorTranslator.FromWin32(color);
+            }
+            set
+            {
+                var color = ColorTranslator.ToWin32(value);
+                scintilla.DirectMessage(NativeMethods.SCI_INDICSETFORE, new IntPtr(Index), new IntPtr(color));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the color used to draw an indicator when the mouse or caret is over an indicator.
+        /// </summary>
+        /// <returns>
+        /// The Color used to draw an indicator.
+        /// By default, the hover style is equal to the regular <see cref="ForeColor" />.
+        /// </returns>
+        /// <remarks>Changing the <see cref="ForeColor" /> property will reset the <see cref="HoverForeColor" />.</remarks>
+        /// <seealso cref="ForeColor" />
+        public Color HoverForeColor
+        {
+            get
+            {
+                var color = scintilla.DirectMessage(NativeMethods.SCI_INDICGETHOVERFORE, new IntPtr(Index)).ToInt32();
+                return ColorTranslator.FromWin32(color);
+            }
+            set
+            {
+                var color = ColorTranslator.ToWin32(value);
+                scintilla.DirectMessage(NativeMethods.SCI_INDICSETHOVERFORE, new IntPtr(Index), new IntPtr(color));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the indicator style used when the mouse or caret is over an indicator.
+        /// </summary>
+        /// <returns>
+        /// One of the <see cref="ScintillaNET.IndicatorStyle" /> enumeration values.
+        /// By default, the hover style is equal to the regular <see cref="Style" />.
+        /// </returns>
+        /// <remarks>Changing the <see cref="Style" /> property will reset the <see cref="HoverStyle" />.</remarks>
+        /// <seealso cref="Style" />
+        public IndicatorStyle HoverStyle
+        {
+            get
+            {
+                return (IndicatorStyle)scintilla.DirectMessage(NativeMethods.SCI_INDICGETHOVERSTYLE, new IntPtr(Index));
+            }
+            set
+            {
+                var style = (int)value;
+                scintilla.DirectMessage(NativeMethods.SCI_INDICSETHOVERSTYLE, new IntPtr(Index), new IntPtr(style));
+            }
+        }
+
+        /// <summary>
+        /// Gets the zero-based indicator index this object represents.
+        /// </summary>
+        /// <returns>The indicator definition index within the <see cref="IndicatorCollection" />.</returns>
+        public int Index { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the alpha transparency of the indicator outline.
+        /// </summary>
+        /// <returns>
+        /// The alpha transparency ranging from 0 (completely transparent)
+        /// to 255 (no transparency). The default is 50.
+        /// </returns>
+        public int OutlineAlpha
+        {
+            get
+            {
+                return scintilla.DirectMessage(NativeMethods.SCI_INDICGETOUTLINEALPHA, new IntPtr(Index)).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, 255);
+                scintilla.DirectMessage(NativeMethods.SCI_INDICSETOUTLINEALPHA, new IntPtr(Index), new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the indicator style.
+        /// </summary>
+        /// <returns>One of the <see cref="ScintillaNET.IndicatorStyle" /> enumeration values. The default varies.</returns>
+        /// <remarks>Changing the <see cref="Style" /> property will reset the <see cref="HoverStyle" />.</remarks>
+        /// <seealso cref="HoverStyle" />
+        public IndicatorStyle Style
+        {
+            get
+            {
+                return (IndicatorStyle)scintilla.DirectMessage(NativeMethods.SCI_INDICGETSTYLE, new IntPtr(Index));
+            }
+            set
+            {
+                var style = (int)value;
+                scintilla.DirectMessage(NativeMethods.SCI_INDICSETSTYLE, new IntPtr(Index), new IntPtr(style));
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Indicator" /> class.
+        /// </summary>
+        /// <param name="scintilla">The <see cref="Scintilla" /> control that created this indicator.</param>
+        /// <param name="index">The index of this style within the <see cref="IndicatorCollection" /> that created it.</param>
+        public Indicator(Scintilla scintilla, int index)
+        {
+            this.scintilla = scintilla;
+            Index = index;
+        }
     }
-    set
-    {
-      this.Scintilla.ColorBag[this.ToString() + ".Color"] = value;
-      this.NativeScintilla.IndicSetFore(this._number, Utilities.ColorToRgb(value));
-    }
-  }
-
-  private bool ShouldSerializeColor() => this.Color != this.getDefaultColor();
-
-  public void ResetColor() => this.Color = this.getDefaultColor();
-
-  private Color getDefaultColor()
-  {
-    if (this._number == 0)
-      return Color.FromArgb(0, (int) sbyte.MaxValue, 0);
-    if (this._number == 1)
-      return Color.FromArgb(0, 0, (int) byte.MaxValue);
-    return this._number == 2 ? Color.FromArgb((int) byte.MaxValue, 0, 0) : Color.FromArgb(0, 0, 0);
-  }
-
-  public IndicatorStyle Style
-  {
-    get => (IndicatorStyle) this.NativeScintilla.IndicGetStyle(this._number);
-    set => this.NativeScintilla.IndicSetStyle(this._number, (int) value);
-  }
-
-  private bool ShouldSerializeStyle() => this.Style != this.getDefaultStyle();
-
-  public void ResetStyle() => this.Style = this.getDefaultStyle();
-
-  private IndicatorStyle getDefaultStyle()
-  {
-    if (this._number == 0)
-      return IndicatorStyle.Squiggle;
-    return this._number == 1 ? IndicatorStyle.TT : IndicatorStyle.Plain;
-  }
-
-  public bool IsDrawnUnder
-  {
-    get => this.NativeScintilla.IndicGetUnder(this._number);
-    set => this.NativeScintilla.IndicSetUnder(this._number, value);
-  }
-
-  private bool ShouldSerializeIsDrawnUnder() => this.IsDrawnUnder;
-
-  public void ResetIsDrawnUnder() => this.IsDrawnUnder = false;
-
-  public void Reset()
-  {
-    this.ResetColor();
-    this.ResetIsDrawnUnder();
-    this.ResetStyle();
-  }
-
-  public Range Search() => this.Search(this.Scintilla.GetRange());
-
-  public Range Search(Range searchRange)
-  {
-    int num = this.NativeScintilla.IndicatorEnd(this._number, searchRange.Start);
-    int end = this.NativeScintilla.IndicatorEnd(this._number, num);
-    return num < 0 || num > searchRange.End || num == end ? (Range) null : new Range(num, end, this.Scintilla);
-  }
-
-  public Range Search(Range searchRange, Range startingAfterRange)
-  {
-    int end1 = startingAfterRange.End;
-    if (end1 > this.NativeScintilla.GetTextLength())
-      return (Range) null;
-    int num = this.NativeScintilla.IndicatorEnd(this._number, end1);
-    int end2 = this.NativeScintilla.IndicatorEnd(this._number, num);
-    return num < 0 || num > searchRange.End || num == end2 ? (Range) null : new Range(num, end2, this.Scintilla);
-  }
-
-  public List<Range> SearchAll() => this.SearchAll(this.Scintilla.GetRange());
-
-  public List<Range> SearchAll(Range searchRange)
-  {
-    Range startingAfterRange = this.Scintilla.GetRange(-1, -1);
-    List<Range> rangeList = new List<Range>();
-    do
-    {
-      startingAfterRange = this.Search(searchRange, startingAfterRange);
-      if (startingAfterRange != null)
-        rangeList.Add(startingAfterRange);
-    }
-    while (startingAfterRange != null);
-    return rangeList;
-  }
-
-  public override string ToString() => nameof (Indicator) + (object) this._number;
-
-  public override bool Equals(object obj)
-  {
-    return this.IsSameHelperFamily(obj) && ((Indicator) obj).Number == this.Number;
-  }
-
-  public override int GetHashCode() => base.GetHashCode();
 }

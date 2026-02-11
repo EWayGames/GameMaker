@@ -1,4057 +1,4601 @@
-﻿using ScintillaNet.Configuration;
-using ScintillaNet.Design;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Design;
-using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
-#nullable disable
-namespace ScintillaNet;
-
-[Designer(typeof (ScintillaDesigner))]
-[Docking(DockingBehavior.Ask)]
-[DefaultBindingProperty("Text")]
-[DefaultProperty("Text")]
-[DefaultEvent("DocumentChanged")]
-public class Scintilla : Control, INativeScintilla, ISupportInitialize
+namespace ScintillaNET
 {
-  private const uint TEXT_MODIFIED_FLAGS = 3075;
-  public const string DefaultDllName = "SciLexer_x64.dll";
-  private static readonly object _styleNeededEventKeyNative = new object();
-  private static readonly object _charAddedEventKeyNative = new object();
-  private static readonly object _savePointReachedEventKeyNative = new object();
-  private static readonly object _savePointLeftEventKeyNative = new object();
-  private static readonly object _modifyAttemptROEventKey = new object();
-  private static readonly object _keyEventKey = new object();
-  private static readonly object _doubleClickEventKey = new object();
-  private static readonly object _updateUIEventKey = new object();
-  private static readonly object _macroRecordEventKeyNative = new object();
-  private static readonly object _marginClickEventKeyNative = new object();
-  private static readonly object _modifiedEventKey = new object();
-  private static readonly object _changeEventKey = new object();
-  private static readonly object _needShownEventKey = new object();
-  private static readonly object _paintedEventKey = new object();
-  private static readonly object _userListSelectionEventKeyNative = new object();
-  private static readonly object _uriDroppedEventKeyNative = new object();
-  private static readonly object _dwellStartEventKeyNative = new object();
-  private static readonly object _dwellEndEventKeyNative = new object();
-  private static readonly object _zoomEventKey = new object();
-  private static readonly object _hotSpotClickEventKey = new object();
-  private static readonly object _hotSpotDoubleClickEventKey = new object();
-  private static readonly object _callTipClickEventKeyNative = new object();
-  private static readonly object _autoCSelectionEventKey = new object();
-  private static readonly object _indicatorClickKeyNative = new object();
-  private static readonly object _indicatorReleaseKeyNative = new object();
-  private Scintilla.LastSelection lastSelection = new Scintilla.LastSelection();
-  private System.Timers.Timer _textChangedTimer;
-  private static readonly int _modifiedState = BitVector32.CreateMask();
-  private static readonly int _acceptsReturnState = BitVector32.CreateMask(Scintilla._modifiedState);
-  private static readonly int _acceptsTabState = BitVector32.CreateMask(Scintilla._acceptsReturnState);
-  private BitVector32 _state;
-  private Whitespace _whitespace;
-  private Dictionary<string, Color> _colorBag = new Dictionary<string, Color>();
-  private Hashtable _propertyBag = new Hashtable();
-  private static bool _sciLexerLoaded = false;
-  private bool _allowDrop;
-  private AutoComplete _autoComplete;
-  private CallTip _callTip;
-  private string _caption;
-  private CaretInfo _caret;
-  private Clipboard _clipboard;
-  private Commands _commands;
-  private ConfigurationManager _configurationManager;
-  private DocumentHandler _documentHandler;
-  private DocumentNavigation _documentNavigation;
-  private DropMarkers _dropMarkers;
-  private EndOfLine _endOfLine;
-  internal static readonly IList<Encoding> ValidCodePages = (IList<Encoding>) new Encoding[8]
-  {
-    Encoding.ASCII,
-    Encoding.UTF8,
-    Encoding.Unicode,
-    Encoding.GetEncoding(932),
-    Encoding.GetEncoding(936),
-    Encoding.GetEncoding(949),
-    Encoding.GetEncoding(950),
-    Encoding.GetEncoding(1361)
-  };
-  private Encoding _encoding;
-  private FindReplace _findReplace;
-  private Folding _folding;
-  private GoTo _goto;
-  private HotspotStyle _hotspotStyle;
-  private IndicatorCollection _indicators;
-  private Indentation _indentation;
-  private bool _isBraceMatching;
-  private bool _isCustomPaintingEnabled = true;
-  private Lexing _lexing;
-  private LinesCollection _lines;
-  private LineWrap _lineWrap;
-  private LongLines _longLines;
-  private List<ManagedRange> _managedRanges = new List<ManagedRange>();
-  private MarginCollection _margins;
-  private MarkerCollection _markers;
-  private bool _matchBraces = true;
-  private INativeScintilla _ns;
-  private Printing _printing;
-  private Scrolling _scrolling;
-  private Selection _selection;
-  private SearchFlags _searchFlags;
-  private SnippetManager _snippets;
-  private StyleCollection _styles;
-  private bool _supressControlCharacters = true;
-  private UndoRedo _undoRedo;
-  private bool _useForeColor;
-  private bool _useFont;
-  private bool _useBackColor;
-  private static readonly object _loadEventKey = new object();
-  private static readonly object _textInsertedEventKey = new object();
-  private static readonly object _textDeletedEventKey = new object();
-  private static readonly object _beforeTextInsertEventKey = new object();
-  private static readonly object _beforeTextDeleteEventKey = new object();
-  private static readonly object _documentChangeEventKey = new object();
-  private static readonly object _foldChangedEventKey = new object();
-  private static readonly object _markerChangedEventKey = new object();
-  private static readonly object _styleNeededEventKey = new object();
-  private static readonly object _charAddedEventKey = new object();
-  private static readonly object _modifiedChangedEventKey = new object();
-  private static readonly object _readOnlyModifyAttemptEventKey = new object();
-  private static readonly object _selectionChangedEventKey = new object();
-  private static readonly object _linesNeedShownEventKey = new object();
-  private static readonly object _uriDroppedEventKey = new object();
-  private static readonly object _dwellStartEventKey = new object();
-  private static readonly object _dwellEndEventKey = new object();
-  private static readonly object _zoomChangedEventKey = new object();
-  private static readonly object _hotspotClickedEventKey = new object();
-  private static readonly object _hotspotDoubleClickedEventKey = new object();
-  private static readonly object _dropMarkerCollectEventKey = new object();
-  private static readonly object _callTipClickEventKey = new object();
-  private static readonly object _autoCompleteAcceptedEventKey = new object();
-  private static readonly object _marginClickEventKey = new object();
-  private static readonly object _indicatorClickEventKey = new object();
-  private static readonly object _scrollEventKey = new object();
-  private static readonly object _macroRecordEventKey = new object();
-  private static readonly object _userListEventKey = new object();
-  private static readonly object _fileDropEventKey = new object();
-  private static readonly object _textChangedKey = new object();
-  private List<TopLevelHelper> _helpers = new List<TopLevelHelper>();
-  private bool _isInitializing;
-
-  IntPtr INativeScintilla.SendMessageDirect(uint msg, IntPtr wParam, IntPtr lParam)
-  {
-    if (this.IsDisposed)
-      return IntPtr.Zero;
-    Message m = new Message();
-    m.Msg = (int) msg;
-    m.WParam = wParam;
-    m.LParam = lParam;
-    m.HWnd = this.Handle;
-    this.DefWndProc(ref m);
-    return m.Result;
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg)
-  {
-    return (int) this._ns.SendMessageDirect(msg, IntPtr.Zero, IntPtr.Zero);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, int wParam, int lParam)
-  {
-    return (int) this._ns.SendMessageDirect(msg, (IntPtr) wParam, (IntPtr) lParam);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, int wParam, uint lParam)
-  {
-    int lParam1 = (int) lParam;
-    return (int) this._ns.SendMessageDirect(msg, (IntPtr) wParam, (IntPtr) lParam1);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, int wParam)
-  {
-    return (int) this._ns.SendMessageDirect(msg, (IntPtr) wParam, IntPtr.Zero);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, VOID wParam, int lParam)
-  {
-    return (int) this._ns.SendMessageDirect(msg, IntPtr.Zero, (IntPtr) lParam);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, bool wParam, int lParam)
-  {
-    return (int) this._ns.SendMessageDirect(msg, (IntPtr) (wParam ? 1 : 0), (IntPtr) lParam);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, bool wParam)
-  {
-    return (int) this._ns.SendMessageDirect(msg, (IntPtr) (wParam ? 1 : 0), IntPtr.Zero);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, int wParam, bool lParam)
-  {
-    return (int) this._ns.SendMessageDirect(msg, (IntPtr) wParam, (IntPtr) (lParam ? 1 : 0));
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, out string text)
-  {
-    int length = this._ns.SendMessageDirect(msg, 0, 0);
-    return this._ns.SendMessageDirect(msg, IntPtr.Zero, out text, length);
-  }
-
-  int INativeScintilla.SendMessageDirect(uint msg, int wParam, out string text)
-  {
-    int length = this._ns.SendMessageDirect(msg, 0, 0);
-    return this._ns.SendMessageDirect(msg, (IntPtr) wParam, out text, length);
-  }
-
-  unsafe int INativeScintilla.SendMessageDirect(
-    uint msg,
-    IntPtr wParam,
-    out string text,
-    int length)
-  {
-    byte[] bytes = new byte[length + 1];
-    IntPtr num;
-    fixed (byte* lParam = bytes)
+    /// <summary>
+    /// Represents a Scintilla editor control.
+    /// </summary>
+    [Docking(DockingBehavior.Ask)]
+    public class Scintilla : Control
     {
-      num = this._ns.SendMessageDirect(msg, wParam, (IntPtr) (void*) lParam);
-      if (lParam[length - 1] == (byte) 0)
-        --length;
-    }
-    text = this._encoding.GetString(bytes, 0, length);
-    return (int) num;
-  }
-
-  unsafe int INativeScintilla.SendMessageDirect(uint msg, int wParam, string lParam)
-  {
-    fixed (byte* lParam1 = this._encoding.GetBytes(Scintilla.ZeroTerminated(lParam)))
-      return (int) this._ns.SendMessageDirect(msg, (IntPtr) wParam, (IntPtr) (void*) lParam1);
-  }
-
-  unsafe int INativeScintilla.SendMessageDirect(uint msg, VOID NULL, string lParam)
-  {
-    fixed (byte* lParam1 = this._encoding.GetBytes(Scintilla.ZeroTerminated(lParam)))
-      return (int) this._ns.SendMessageDirect(msg, IntPtr.Zero, (IntPtr) (void*) lParam1);
-  }
-
-  unsafe int INativeScintilla.SendMessageDirect(uint msg, string wParam, string lParam)
-  {
-    fixed (byte* wParam1 = this._encoding.GetBytes(Scintilla.ZeroTerminated(wParam)))
-      fixed (byte* lParam1 = this._encoding.GetBytes(Scintilla.ZeroTerminated(lParam)))
-        return (int) this._ns.SendMessageDirect(msg, (IntPtr) (void*) wParam1, (IntPtr) (void*) lParam1);
-  }
-
-  unsafe int INativeScintilla.SendMessageDirect(uint msg, string wParam, out string stringResult)
-  {
-    IntPtr num;
-    fixed (byte* wParam1 = this._encoding.GetBytes(Scintilla.ZeroTerminated(wParam)))
-    {
-      int count = (int) this._ns.SendMessageDirect(msg, (IntPtr) (void*) wParam1, IntPtr.Zero);
-      byte[] bytes = new byte[count + 1];
-      fixed (byte* lParam = bytes)
-        num = this._ns.SendMessageDirect(msg, (IntPtr) (void*) wParam1, (IntPtr) (void*) lParam);
-      stringResult = this._encoding.GetString(bytes, 0, count);
-    }
-    return (int) num;
-  }
-
-  unsafe int INativeScintilla.SendMessageDirect(uint msg, string wParam, int lParam)
-  {
-    fixed (byte* wParam1 = this._encoding.GetBytes(Scintilla.ZeroTerminated(wParam)))
-      return (int) this._ns.SendMessageDirect(msg, (IntPtr) (void*) wParam1, (IntPtr) lParam);
-  }
-
-  unsafe int INativeScintilla.SendMessageDirect(uint msg, string wParam)
-  {
-    fixed (byte* wParam1 = this._encoding.GetBytes(Scintilla.ZeroTerminated(wParam)))
-      return (int) this._ns.SendMessageDirect(msg, (IntPtr) (void*) wParam1, IntPtr.Zero);
-  }
-
-  private static string ZeroTerminated(string param)
-  {
-    if (string.IsNullOrEmpty(param))
-      return "\0";
-    return !param.EndsWith("\0") ? param + "\0" : param;
-  }
-
-  int INativeScintilla.GetText(int length, out string text)
-  {
-    return this._ns.SendMessageDirect(2182U, (IntPtr) length, out text, length);
-  }
-
-  void INativeScintilla.SetText(string text) => this._ns.SendMessageDirect(2181U, VOID.NULL, text);
-
-  void INativeScintilla.SetSavePoint() => this._ns.SendMessageDirect(2014U, 0, 0);
-
-  int INativeScintilla.GetLine(int line, out string text)
-  {
-    int length = this._ns.SendMessageDirect(2153U, line, 0);
-    if (length != 0)
-      return this._ns.SendMessageDirect(2153U, (IntPtr) line, out text, length);
-    text = string.Empty;
-    return 0;
-  }
-
-  void INativeScintilla.ReplaceSel(string text)
-  {
-    this._ns.SendMessageDirect(2170U, VOID.NULL, text);
-  }
-
-  void INativeScintilla.SetReadOnly(bool readOnly)
-  {
-    this._ns.SendMessageDirect(2171U, readOnly, 0);
-  }
-
-  bool INativeScintilla.GetReadOnly() => this._ns.SendMessageDirect(2140U, 0, 0) != 0;
-
-  unsafe int INativeScintilla.GetTextRange(ref TextRange tr)
-  {
-    fixed (TextRange* lParam = &tr)
-      return (int) this._ns.SendMessageDirect(2162U, IntPtr.Zero, (IntPtr) (void*) lParam);
-  }
-
-  void INativeScintilla.Allocate(int bytes) => this._ns.SendMessageDirect(2446U, bytes, 0);
-
-  void INativeScintilla.AddText(int length, string s)
-  {
-    this._ns.SendMessageDirect(2001U, length, s);
-  }
-
-  unsafe void INativeScintilla.AddStyledText(int length, byte[] s)
-  {
-    fixed (byte* lParam = s)
-      this._ns.SendMessageDirect(2002U, (IntPtr) length, (IntPtr) (void*) lParam);
-  }
-
-  void INativeScintilla.AppendText(int length, string s)
-  {
-    this._ns.SendMessageDirect(2282U, length, s);
-  }
-
-  void INativeScintilla.InsertText(int pos, string text)
-  {
-    this._ns.SendMessageDirect(2003U, pos, text);
-  }
-
-  void INativeScintilla.ClearAll() => this._ns.SendMessageDirect(2004U, 0, 0);
-
-  void INativeScintilla.ClearDocumentStyle() => this._ns.SendMessageDirect(2005U, 0, 0);
-
-  char INativeScintilla.GetCharAt(int position)
-  {
-    return (char) this._ns.SendMessageDirect(2007U, position, 0);
-  }
-
-  byte INativeScintilla.GetStyleAt(int position)
-  {
-    return (byte) this._ns.SendMessageDirect(2010U, position, 0);
-  }
-
-  unsafe void INativeScintilla.GetStyledText(ref TextRange tr)
-  {
-    fixed (TextRange* lParam = &tr)
-      this._ns.SendMessageDirect(2015U, IntPtr.Zero, (IntPtr) (void*) lParam);
-  }
-
-  void INativeScintilla.SetStyleBits(int bits) => this._ns.SendMessageDirect(2090U, bits, 0);
-
-  int INativeScintilla.GetStyleBits() => this._ns.SendMessageDirect(2091U, 0, 0);
-
-  int INativeScintilla.TargetAsUtf8(out string s) => throw new NotSupportedException();
-
-  int INativeScintilla.EncodeFromUtf8(string utf8, out string encoded)
-  {
-    throw new NotSupportedException();
-  }
-
-  int INativeScintilla.SetLengthForEncode(int bytes) => throw new NotSupportedException();
-
-  unsafe int INativeScintilla.FindText(int searchFlags, ref TextToFind ttf)
-  {
-    fixed (TextToFind* lParam = &ttf)
-      return (int) this._ns.SendMessageDirect(2150U, (IntPtr) searchFlags, (IntPtr) (void*) lParam);
-  }
-
-  void INativeScintilla.SearchAnchor() => this._ns.SendMessageDirect(2366U, 0, 0);
-
-  int INativeScintilla.SearchNext(int searchFlags, string text)
-  {
-    return this._ns.SendMessageDirect(2367U, searchFlags, text);
-  }
-
-  int INativeScintilla.SearchPrev(int searchFlags, string text)
-  {
-    return this._ns.SendMessageDirect(2368U, searchFlags, text);
-  }
-
-  void INativeScintilla.SetTargetStart(int pos) => this._ns.SendMessageDirect(2190U, pos, 0);
-
-  int INativeScintilla.GetTargetStart() => this._ns.SendMessageDirect(2191U, 0, 0);
-
-  void INativeScintilla.SetTargetEnd(int pos) => this._ns.SendMessageDirect(2192U, pos, 0);
-
-  int INativeScintilla.GetTargetEnd() => this._ns.SendMessageDirect(2193U, 0, 0);
-
-  void INativeScintilla.TargetFromSelection() => this._ns.SendMessageDirect(2287U, 0, 0);
-
-  void INativeScintilla.SetSearchFlags(int searchFlags)
-  {
-    this._ns.SendMessageDirect(2198U, searchFlags, 0);
-  }
-
-  int INativeScintilla.GetSearchFlags() => this._ns.SendMessageDirect(2199U, 0, 0);
-
-  int INativeScintilla.SearchInTarget(int length, string text)
-  {
-    return this._ns.SendMessageDirect(2197U, length, text);
-  }
-
-  int INativeScintilla.ReplaceTarget(int length, string text)
-  {
-    return this._ns.SendMessageDirect(2194U, length, text);
-  }
-
-  int INativeScintilla.ReplaceTargetRE(int length, string text)
-  {
-    return this._ns.SendMessageDirect(2195U, length, text);
-  }
-
-  void INativeScintilla.SetOvertype(bool overType)
-  {
-    this._ns.SendMessageDirect(2186U, overType, 0);
-  }
-
-  bool INativeScintilla.GetOvertype() => this._ns.SendMessageDirect(2187U, 0, 0) != 0;
-
-  void INativeScintilla.Cut() => this._ns.SendMessageDirect(2177U, 0, 0);
-
-  void INativeScintilla.Copy() => this._ns.SendMessageDirect(2178U, 0, 0);
-
-  void INativeScintilla.Paste() => this._ns.SendMessageDirect(2179U, 0, 0);
-
-  void INativeScintilla.Clear() => this._ns.SendMessageDirect(2180U, 0, 0);
-
-  bool INativeScintilla.CanPaste() => this._ns.SendMessageDirect(2173U, 0, 0) != 0;
-
-  void INativeScintilla.CopyRange(int start, int end)
-  {
-    this._ns.SendMessageDirect(2419U, start, end);
-  }
-
-  void INativeScintilla.CopyText(int length, string text)
-  {
-    this._ns.SendMessageDirect(2420U, length, text);
-  }
-
-  void INativeScintilla.SetPasteConvertEndings(bool convert)
-  {
-    this._ns.SendMessageDirect(2467U, convert, 0);
-  }
-
-  bool INativeScintilla.GetPasteConvertEndings() => this._ns.SendMessageDirect(2468U, 0, 0) != 0;
-
-  void INativeScintilla.SetStatus(int status) => this._ns.SendMessageDirect(2382U, status, 0);
-
-  int INativeScintilla.GetStatus() => this._ns.SendMessageDirect(2383U, 0, 0);
-
-  void INativeScintilla.Undo() => this._ns.SendMessageDirect(2176U, 0, 0);
-
-  bool INativeScintilla.CanUndo() => this._ns.SendMessageDirect(2174U, 0, 0) != 0;
-
-  void INativeScintilla.EmptyUndoBuffer() => this._ns.SendMessageDirect(2175U, 0, 0);
-
-  void INativeScintilla.Redo() => this._ns.SendMessageDirect(2011U, 0, 0);
-
-  bool INativeScintilla.CanRedo() => this._ns.SendMessageDirect(2016U, 0, 0) != 0;
-
-  void INativeScintilla.SetUndoCollection(bool collectUndo)
-  {
-    this._ns.SendMessageDirect(2012U, collectUndo, 0);
-  }
-
-  bool INativeScintilla.GetUndoCollection() => this._ns.SendMessageDirect(2019U, 0, 0) != 0;
-
-  void INativeScintilla.BeginUndoAction() => this._ns.SendMessageDirect(2078U, 0, 0);
-
-  void INativeScintilla.EndUndoAction() => this._ns.SendMessageDirect(2079U, 0, 0);
-
-  int INativeScintilla.GetTextLength() => this._ns.SendMessageDirect(2183U, 0, 0);
-
-  int INativeScintilla.GetLength() => this._ns.SendMessageDirect(2006U, 0, 0);
-
-  int INativeScintilla.GetLineCount() => this._ns.SendMessageDirect(2154U, 0, 0);
-
-  int INativeScintilla.GetFirstVisibleLine() => this._ns.SendMessageDirect(2152U, 0, 0);
-
-  int INativeScintilla.LinesOnScreen() => this._ns.SendMessageDirect(2370U, 0, 0);
-
-  bool INativeScintilla.GetModify() => this._ns.SendMessageDirect(2159U, 0, 0) != 0;
-
-  void INativeScintilla.SetSel(int anchorPos, int currentPos)
-  {
-    this._ns.SendMessageDirect(2160U, anchorPos, currentPos);
-  }
-
-  void INativeScintilla.GotoPos(int position) => this._ns.SendMessageDirect(2025U, position, 0);
-
-  void INativeScintilla.GotoLine(int line) => this._ns.SendMessageDirect(2024U, line, 0);
-
-  void INativeScintilla.SetCurrentPos(int position)
-  {
-    this._ns.SendMessageDirect(2141U, position, 0);
-  }
-
-  int INativeScintilla.GetCurrentPos() => this._ns.SendMessageDirect(2008U, 0, 0);
-
-  void INativeScintilla.SetAnchor(int position) => this._ns.SendMessageDirect(2026U, position, 0);
-
-  int INativeScintilla.GetAnchor() => this._ns.SendMessageDirect(2009U, 0, 0);
-
-  void INativeScintilla.SetSelectionStart(int position)
-  {
-    this._ns.SendMessageDirect(2142U, position, 0);
-  }
-
-  int INativeScintilla.GetSelectionStart() => this._ns.SendMessageDirect(2143U, 0, 0);
-
-  void INativeScintilla.SetSelectionEnd(int position)
-  {
-    this._ns.SendMessageDirect(2144U, position, 0);
-  }
-
-  int INativeScintilla.GetSelectionEnd() => this._ns.SendMessageDirect(2145U, 0, 0);
-
-  void INativeScintilla.SelectAll() => this._ns.SendMessageDirect(2013U, 0, 0);
-
-  int INativeScintilla.LineFromPosition(int pos) => this._ns.SendMessageDirect(2166U, pos, 0);
-
-  int INativeScintilla.PositionFromLine(int line) => this._ns.SendMessageDirect(2167U, line, 0);
-
-  int INativeScintilla.GetLineEndPosition(int line) => this._ns.SendMessageDirect(2136U, line, 0);
-
-  int INativeScintilla.LineLength(int line) => this._ns.SendMessageDirect(2350U, line, 0);
-
-  int INativeScintilla.GetColumn(int position) => this._ns.SendMessageDirect(2129U, position, 0);
-
-  int INativeScintilla.FindColumn(int line, int column)
-  {
-    return this._ns.SendMessageDirect(2456U, line, column);
-  }
-
-  int INativeScintilla.PositionFromPoint(int x, int y) => this._ns.SendMessageDirect(2022U, x, y);
-
-  int INativeScintilla.PositionFromPointClose(int x, int y)
-  {
-    return this._ns.SendMessageDirect(2023U, x, y);
-  }
-
-  int INativeScintilla.PointXFromPosition(int position)
-  {
-    return this._ns.SendMessageDirect(2164U, VOID.NULL, position);
-  }
-
-  int INativeScintilla.PointYFromPosition(int position)
-  {
-    return this._ns.SendMessageDirect(2165U, VOID.NULL, position);
-  }
-
-  void INativeScintilla.HideSelection(bool hide) => this._ns.SendMessageDirect(2163U, hide, 0);
-
-  void INativeScintilla.GetSelText(out string text)
-  {
-    int length = this._ns.GetSelectionEnd() - this._ns.GetSelectionStart() + 1;
-    this._ns.SendMessageDirect(2161U, IntPtr.Zero, out text, length);
-  }
-
-  int INativeScintilla.GetCurLine(int textLen, out string text)
-  {
-    return this._ns.SendMessageDirect(2027U, (IntPtr) textLen, out text, textLen);
-  }
-
-  bool INativeScintilla.SelectionIsRectangle() => this._ns.SendMessageDirect(2372U, 0, 0) != 0;
-
-  void INativeScintilla.SetSelectionMode(int mode) => this._ns.SendMessageDirect(2422U, mode, 0);
-
-  int INativeScintilla.GetSelectionMode() => this._ns.SendMessageDirect(2423U, 0, 0);
-
-  int INativeScintilla.GetLineSelStartPosition(int line)
-  {
-    return this._ns.SendMessageDirect(2424U, line, 0);
-  }
-
-  int INativeScintilla.GetLineSelEndPosition(int line)
-  {
-    return this._ns.SendMessageDirect(2425U, line, 0);
-  }
-
-  void INativeScintilla.MoveCaretInsideView() => this._ns.SendMessageDirect(2401U, 0, 0);
-
-  int INativeScintilla.WordEndPosition(int position, bool onlyWordCharacters)
-  {
-    return this._ns.SendMessageDirect(2267U, position, onlyWordCharacters);
-  }
-
-  int INativeScintilla.WordStartPosition(int position, bool onlyWordCharacters)
-  {
-    return this._ns.SendMessageDirect(2266U, position, onlyWordCharacters);
-  }
-
-  int INativeScintilla.PositionBefore(int position)
-  {
-    return this._ns.SendMessageDirect(2417U, position, 0);
-  }
-
-  int INativeScintilla.PositionAfter(int position)
-  {
-    return this._ns.SendMessageDirect(2418U, position, 0);
-  }
-
-  int INativeScintilla.TextWidth(int styleNumber, string text)
-  {
-    return this._ns.SendMessageDirect(2276U, styleNumber, text);
-  }
-
-  int INativeScintilla.TextHeight(int line) => this._ns.SendMessageDirect(2279U, line, 0);
-
-  void INativeScintilla.ChooseCaretX() => this._ns.SendMessageDirect(2399U, 0, 0);
-
-  void INativeScintilla.LineScroll(int columns, int lines)
-  {
-    this._ns.SendMessageDirect(2168U, columns, lines);
-  }
-
-  void INativeScintilla.ScrollCaret() => this._ns.SendMessageDirect(2169U, 0, 0);
-
-  void INativeScintilla.SetXCaretPolicy(int caretPolicy, int caretSlop)
-  {
-    this._ns.SendMessageDirect(2402U, caretPolicy, caretSlop);
-  }
-
-  void INativeScintilla.SetYCaretPolicy(int caretPolicy, int caretSlop)
-  {
-    this._ns.SendMessageDirect(2403U, caretPolicy, caretSlop);
-  }
-
-  void INativeScintilla.SetVisiblePolicy(int visiblePolicy, int visibleSlop)
-  {
-    this._ns.SendMessageDirect(2394U, visiblePolicy, visibleSlop);
-  }
-
-  void INativeScintilla.SetHScrollBar(bool visible)
-  {
-    this._ns.SendMessageDirect(2130U, visible, 0);
-  }
-
-  bool INativeScintilla.GetHScrollBar() => this._ns.SendMessageDirect(2131U, 0, 0) != 0;
-
-  void INativeScintilla.SetVScrollBar(bool visible)
-  {
-    this._ns.SendMessageDirect(2280U, visible, 0);
-  }
-
-  bool INativeScintilla.GetVScrollBar() => this._ns.SendMessageDirect(2281U, 0, 0) != 0;
-
-  int INativeScintilla.GetXOffset() => this._ns.SendMessageDirect(2398U, 0, 0);
-
-  void INativeScintilla.SetXOffset(int xOffset) => this._ns.SendMessageDirect(2397U, xOffset, 0);
-
-  void INativeScintilla.SetScrollWidth(int pixelWidth)
-  {
-    this._ns.SendMessageDirect(2274U, pixelWidth, 0);
-  }
-
-  int INativeScintilla.GetScrollWidth() => this._ns.SendMessageDirect(2275U, 0, 0);
-
-  void INativeScintilla.SetEndAtLastLine(bool endAtLastLine)
-  {
-    this._ns.SendMessageDirect(2277U, endAtLastLine, 0);
-  }
-
-  bool INativeScintilla.GetEndAtLastLine() => this._ns.SendMessageDirect(2278U, 0, 0) != 0;
-
-  void INativeScintilla.SetViewWs(int wsMode) => this._ns.SendMessageDirect(2021U, wsMode, 0);
-
-  int INativeScintilla.GetViewWs() => this._ns.SendMessageDirect(2020U, 0, 0);
-
-  void INativeScintilla.SetWhitespaceFore(bool useWhitespaceForeColour, int colour)
-  {
-    this._ns.SendMessageDirect(2084U, useWhitespaceForeColour, colour);
-  }
-
-  void INativeScintilla.SetWhitespaceBack(bool useWhitespaceBackColour, int colour)
-  {
-    this._ns.SendMessageDirect(2085U, useWhitespaceBackColour, colour);
-  }
-
-  void INativeScintilla.SetCursor(int curType) => this._ns.SendMessageDirect(2386U, curType, 0);
-
-  int INativeScintilla.GetCursor() => this._ns.SendMessageDirect(2387U, 0, 0);
-
-  void INativeScintilla.SetMouseDownCaptures(bool captures)
-  {
-    this._ns.SendMessageDirect(2384U, captures, 0);
-  }
-
-  bool INativeScintilla.GetMouseDownCaptures() => this._ns.SendMessageDirect(2385U, 0, 0) != 0;
-
-  void INativeScintilla.SetEolMode(int eolMode) => this._ns.SendMessageDirect(2031U, eolMode, 0);
-
-  int INativeScintilla.GetEolMode() => this._ns.SendMessageDirect(2030U, 0, 0);
-
-  void INativeScintilla.ConvertEols(int eolMode) => this._ns.SendMessageDirect(2029U, eolMode, 0);
-
-  void INativeScintilla.SetViewEol(bool visible) => this._ns.SendMessageDirect(2356U, visible, 0);
-
-  bool INativeScintilla.GetViewEol() => this._ns.SendMessageDirect(2355U, 0, 0) != 0;
-
-  int INativeScintilla.GetEndStyled() => this._ns.SendMessageDirect(2028U, 0, 0);
-
-  void INativeScintilla.StartStyling(int position, int mask)
-  {
-    this._ns.SendMessageDirect(2032U, position, mask);
-  }
-
-  void INativeScintilla.SetStyling(int length, int style)
-  {
-    this._ns.SendMessageDirect(2033U, length, style);
-  }
-
-  void INativeScintilla.SetStylingEx(int length, string styles)
-  {
-    this._ns.SendMessageDirect(2073U, length, styles);
-  }
-
-  void INativeScintilla.SetLineState(int line, int value)
-  {
-    this._ns.SendMessageDirect(2092U, line, value);
-  }
-
-  int INativeScintilla.GetLineState(int line) => this._ns.SendMessageDirect(2093U, line, 0);
-
-  int INativeScintilla.GetMaxLineState() => this._ns.SendMessageDirect(2094U, 0, 0);
-
-  void INativeScintilla.StyleResetDefault() => this._ns.SendMessageDirect(2058U, 0, 0);
-
-  void INativeScintilla.StyleClearAll() => this._ns.SendMessageDirect(2050U, 0, 0);
-
-  void INativeScintilla.StyleSetFont(int styleNumber, string fontName)
-  {
-    this._ns.SendMessageDirect(2056U, styleNumber, fontName);
-  }
-
-  void INativeScintilla.StyleGetFont(int styleNumber, out string fontName)
-  {
-    int length = this._ns.SendMessageDirect(2486U, 0, 0);
-    string lParam;
-    this._ns.SendMessageDirect(2486U, (IntPtr) styleNumber, out lParam, length);
-    fontName = lParam;
-  }
-
-  void INativeScintilla.StyleSetSize(int styleNumber, int sizeInPoints)
-  {
-    this._ns.SendMessageDirect(2055U, styleNumber, sizeInPoints);
-  }
-
-  int INativeScintilla.StyleGetSize(int styleNumber) => this._ns.SendMessageDirect(2485U, 0, 0);
-
-  void INativeScintilla.StyleSetBold(int styleNumber, bool bold)
-  {
-    this._ns.SendMessageDirect(2053U, styleNumber, bold);
-  }
-
-  bool INativeScintilla.StyleGetBold(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2483U, styleNumber, 0) != 0;
-  }
-
-  void INativeScintilla.StyleSetItalic(int styleNumber, bool italic)
-  {
-    this._ns.SendMessageDirect(2054U, styleNumber, italic);
-  }
-
-  bool INativeScintilla.StyleGetItalic(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2484U, styleNumber, 0) != 0;
-  }
-
-  void INativeScintilla.StyleSetUnderline(int styleNumber, bool underline)
-  {
-    this._ns.SendMessageDirect(2059U, styleNumber, underline);
-  }
-
-  bool INativeScintilla.StyleGetUnderline(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2488U, styleNumber, 0) != 0;
-  }
-
-  void INativeScintilla.StyleSetFore(int styleNumber, int colour)
-  {
-    this._ns.SendMessageDirect(2051U, styleNumber, colour);
-  }
-
-  int INativeScintilla.StyleGetFore(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2481U, styleNumber, 0);
-  }
-
-  void INativeScintilla.StyleSetBack(int styleNumber, int colour)
-  {
-    this._ns.SendMessageDirect(2052U, styleNumber, colour);
-  }
-
-  int INativeScintilla.StyleGetBack(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2482U, styleNumber, 0);
-  }
-
-  void INativeScintilla.StyleSetEOLFilled(int styleNumber, bool eolFilled)
-  {
-    this._ns.SendMessageDirect(2057U, styleNumber, eolFilled);
-  }
-
-  bool INativeScintilla.StyleGetEOLFilled(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2487U, styleNumber, 0) != 0;
-  }
-
-  void INativeScintilla.StyleSetCharacterSet(int styleNumber, int charSet)
-  {
-    this._ns.SendMessageDirect(2066U, styleNumber, charSet);
-  }
-
-  int INativeScintilla.StyleGetCharacterSet(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2490U, styleNumber, 0);
-  }
-
-  void INativeScintilla.StyleSetCase(int styleNumber, int caseMode)
-  {
-    this._ns.SendMessageDirect(2060U, styleNumber, caseMode);
-  }
-
-  int INativeScintilla.StyleGetCase(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2489U, styleNumber, 0);
-  }
-
-  void INativeScintilla.StyleSetVisible(int styleNumber, bool visible)
-  {
-    this._ns.SendMessageDirect(2074U, styleNumber, visible);
-  }
-
-  bool INativeScintilla.StyleGetVisible(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2491U, styleNumber, 0) != 0;
-  }
-
-  void INativeScintilla.StyleSetChangeable(int styleNumber, bool changeable)
-  {
-    this._ns.SendMessageDirect(2099U, styleNumber, changeable);
-  }
-
-  bool INativeScintilla.StyleGetChangeable(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2492U, styleNumber, 0) != 0;
-  }
-
-  void INativeScintilla.StyleSetHotSpot(int styleNumber, bool hotspot)
-  {
-    this._ns.SendMessageDirect(2409U, styleNumber, hotspot);
-  }
-
-  bool INativeScintilla.StyleGetHotSpot(int styleNumber)
-  {
-    return this._ns.SendMessageDirect(2493U, styleNumber, 0) != 0;
-  }
-
-  int INativeScintilla.GetHotSpotActiveBack() => this._ns.SendMessageDirect(2495U, 0, 0);
-
-  int INativeScintilla.GetHotSpotActiveFore() => this._ns.SendMessageDirect(2494U, 0, 0);
-
-  bool INativeScintilla.GetHotSpotActiveUnderline() => this._ns.SendMessageDirect(2496U, 0, 0) != 0;
-
-  bool INativeScintilla.GetHotSpotSingleLine() => this._ns.SendMessageDirect(2497U, 0, 0) != 0;
-
-  int INativeScintilla.IndicatorEnd(int indicator, int position)
-  {
-    return this._ns.SendMessageDirect(2509U, indicator, position);
-  }
-
-  int INativeScintilla.IndicatorStart(int indicator, int position)
-  {
-    return this._ns.SendMessageDirect(2508U, indicator, position);
-  }
-
-  int INativeScintilla.IndicatorValueAt(int indicator, int position)
-  {
-    return this._ns.SendMessageDirect(2507U, indicator, position);
-  }
-
-  bool INativeScintilla.IndicGetUnder(int indicatorNumber)
-  {
-    return this._ns.SendMessageDirect(2511U, indicatorNumber, 0) != 0;
-  }
-
-  void INativeScintilla.IndicSetUnder(int indicatorNumber, bool under)
-  {
-    this._ns.SendMessageDirect(2510U, indicatorNumber, under);
-  }
-
-  void INativeScintilla.SetIndicatorValue(int value) => this._ns.SendMessageDirect(2502U, value, 0);
-
-  void INativeScintilla.SetPositionCache(int size) => this._ns.SendMessageDirect(2514U, size, 0);
-
-  void INativeScintilla.SetSelFore(bool useSelectionForeColour, int colour)
-  {
-    this._ns.SendMessageDirect(2067U, useSelectionForeColour, colour);
-  }
-
-  void INativeScintilla.SetSelBack(bool useSelectionBackColour, int colour)
-  {
-    this._ns.SendMessageDirect(2068U, useSelectionBackColour, colour);
-  }
-
-  void INativeScintilla.SetCaretFore(int alpha) => this._ns.SendMessageDirect(2069U, alpha, 0);
-
-  int INativeScintilla.GetCaretFore() => this._ns.SendMessageDirect(2138U, 0, 0);
-
-  void INativeScintilla.SetCaretLineVisible(bool colour)
-  {
-    this._ns.SendMessageDirect(2096U, colour, 0);
-  }
-
-  bool INativeScintilla.GetCaretLineVisible() => this._ns.SendMessageDirect(2095U, 0, 0) != 0;
-
-  void INativeScintilla.SetCaretLineBack(int show) => this._ns.SendMessageDirect(2098U, show, 0);
-
-  int INativeScintilla.GetCaretLineBack() => this._ns.SendMessageDirect(2097U, 0, 0);
-
-  void INativeScintilla.SetCaretLineBackAlpha(int alpha)
-  {
-    this._ns.SendMessageDirect(2470U, alpha, 0);
-  }
-
-  int INativeScintilla.GetCaretLineBackAlpha() => this._ns.SendMessageDirect(2471U, 0, 0);
-
-  void INativeScintilla.SetCaretPeriod(int milliseconds)
-  {
-    this._ns.SendMessageDirect(2076U, milliseconds, 0);
-  }
-
-  int INativeScintilla.GetCaretPeriod() => this._ns.SendMessageDirect(2075U, 0, 0);
-
-  void INativeScintilla.SetCaretWidth(int pixels) => this._ns.SendMessageDirect(2188U, pixels, 0);
-
-  int INativeScintilla.GetCaretWidth() => this._ns.SendMessageDirect(2189U, 0, 0);
-
-  void INativeScintilla.SetHotspotActiveFore(bool useHotSpotForeColour, int colour)
-  {
-    this._ns.SendMessageDirect(2410U, useHotSpotForeColour, colour);
-  }
-
-  void INativeScintilla.SetHotspotActiveBack(bool useHotSpotBackColour, int colour)
-  {
-    this._ns.SendMessageDirect(2411U, useHotSpotBackColour, colour);
-  }
-
-  void INativeScintilla.SetHotspotActiveUnderline(bool underline)
-  {
-    this._ns.SendMessageDirect(2412U, underline, 0);
-  }
-
-  void INativeScintilla.SetHotspotSingleLine(bool singleLine)
-  {
-    this._ns.SendMessageDirect(2421U, singleLine, 0);
-  }
-
-  void INativeScintilla.SetControlCharSymbol(int symbol)
-  {
-    this._ns.SendMessageDirect(2388U, symbol, 0);
-  }
-
-  int INativeScintilla.GetControlCharSymbol() => this._ns.SendMessageDirect(2389U, 0, 0);
-
-  bool INativeScintilla.GetCaretSticky() => this._ns.SendMessageDirect(2457U, 0, 0) != 0;
-
-  void INativeScintilla.SetCaretSticky(bool useCaretStickyBehaviour)
-  {
-    this._ns.SendMessageDirect(2458U, useCaretStickyBehaviour, 0);
-  }
-
-  void INativeScintilla.ToggleCaretSticky() => this._ns.SendMessageDirect(2459U, 0, 0);
-
-  int INativeScintilla.GetCaretStyle() => this._ns.SendMessageDirect(2513U, 0, 0);
-
-  void INativeScintilla.SetCaretStyle(int style) => this._ns.SendMessageDirect(2512U, style, 0);
-
-  void INativeScintilla.SetMarginTypeN(int margin, int type)
-  {
-    this._ns.SendMessageDirect(2240U, margin, type);
-  }
-
-  int INativeScintilla.GetMarginTypeN(int margin) => this._ns.SendMessageDirect(2241U, margin, 0);
-
-  void INativeScintilla.SetMarginWidthN(int margin, int pixelWidth)
-  {
-    this._ns.SendMessageDirect(2242U, margin, pixelWidth);
-  }
-
-  int INativeScintilla.GetMarginWidthN(int margin) => this._ns.SendMessageDirect(2243U, margin, 0);
-
-  void INativeScintilla.SetMarginMaskN(int margin, int mask)
-  {
-    this._ns.SendMessageDirect(2244U, margin, mask);
-  }
-
-  int INativeScintilla.GetMarginMaskN(int margin) => this._ns.SendMessageDirect(2245U, margin, 0);
-
-  void INativeScintilla.SetMarginSensitiveN(int margin, bool sensitive)
-  {
-    this._ns.SendMessageDirect(2246U, margin, sensitive);
-  }
-
-  bool INativeScintilla.GetMarginSensitiveN(int margin)
-  {
-    return this._ns.SendMessageDirect(2247U, margin, 0) != 0;
-  }
-
-  void INativeScintilla.SetMarginLeft(int pixels) => this._ns.SendMessageDirect(2155U, 0, pixels);
-
-  int INativeScintilla.GetMarginLeft() => this._ns.SendMessageDirect(2156U, 0, 0);
-
-  void INativeScintilla.SetMarginRight(int pixels) => this._ns.SendMessageDirect(2157U, 0, pixels);
-
-  int INativeScintilla.GetMarginRight() => this._ns.SendMessageDirect(2158U, 0, 0);
-
-  void INativeScintilla.SetFoldMarginColour(bool useSetting, int colour)
-  {
-    this._ns.SendMessageDirect(2290U, useSetting, colour);
-  }
-
-  void INativeScintilla.SetFoldMarginHiColour(bool useSetting, int colour)
-  {
-    this._ns.SendMessageDirect(2291U, useSetting, colour);
-  }
-
-  void INativeScintilla.SetUsePalette(bool allowPaletteUse)
-  {
-    this._ns.SendMessageDirect(2039U, allowPaletteUse, 0);
-  }
-
-  bool INativeScintilla.GetUsePalette() => this._ns.SendMessageDirect(2139U, 0, 0) != 0;
-
-  void INativeScintilla.SetBufferedDraw(bool isBuffered)
-  {
-    this._ns.SendMessageDirect(2035U, isBuffered, 0);
-  }
-
-  bool INativeScintilla.GetBufferedDraw() => this._ns.SendMessageDirect(2034U, 0, 0) != 0;
-
-  void INativeScintilla.SetTwoPhaseDraw(bool twoPhase)
-  {
-    this._ns.SendMessageDirect(2284U, twoPhase, 0);
-  }
-
-  bool INativeScintilla.GetTwoPhaseDraw() => this._ns.SendMessageDirect(2283U, 0, 0) != 0;
-
-  void INativeScintilla.SetCodePage(int codePage)
-  {
-    this._ns.SendMessageDirect(2037U, codePage, 0);
-    this._encoding = Encoding.GetEncoding(codePage);
-  }
-
-  int INativeScintilla.GetCodePage() => this._ns.SendMessageDirect(2137U, 0, 0);
-
-  void INativeScintilla.SetWordChars(string chars)
-  {
-    this._ns.SendMessageDirect(2077U, VOID.NULL, chars);
-  }
-
-  void INativeScintilla.SetWhitespaceChars(string chars)
-  {
-    this._ns.SendMessageDirect(2443U, VOID.NULL, chars);
-  }
-
-  void INativeScintilla.SetCharsDefault() => this._ns.SendMessageDirect(2444U, 0, 0);
-
-  void INativeScintilla.GrabFocus() => this._ns.SendMessageDirect(2400U, 0, 0);
-
-  void INativeScintilla.SetFocus(bool focus) => this._ns.SendMessageDirect(2380U, focus, 0);
-
-  bool INativeScintilla.GetFocus() => this._ns.SendMessageDirect(2381U, 0, 0) != 0;
-
-  void INativeScintilla.BraceHighlight(int pos1, int pos2)
-  {
-    this._ns.SendMessageDirect(2351U, pos1, pos2);
-  }
-
-  void INativeScintilla.BraceBadLight(int pos1) => this._ns.SendMessageDirect(2352U, pos1, 0);
-
-  int INativeScintilla.BraceMatch(int pos, int maxReStyle)
-  {
-    return this._ns.SendMessageDirect(2353U, pos, maxReStyle);
-  }
-
-  void INativeScintilla.SetTabWidth(int widthInChars)
-  {
-    this._ns.SendMessageDirect(2036U, widthInChars, 0);
-  }
-
-  int INativeScintilla.GetTabWidth() => this._ns.SendMessageDirect(2121U, 0, 0);
-
-  void INativeScintilla.SetUseTabs(bool useTabs) => this._ns.SendMessageDirect(2124U, useTabs, 0);
-
-  bool INativeScintilla.GetUseTabs() => this._ns.SendMessageDirect(2125U, 0, 0) != 0;
-
-  void INativeScintilla.SetIndent(int widthInChars)
-  {
-    this._ns.SendMessageDirect(2122U, widthInChars, 0);
-  }
-
-  int INativeScintilla.GetIndent() => this._ns.SendMessageDirect(2123U, 0, 0);
-
-  void INativeScintilla.SetTabIndents(bool tabIndents)
-  {
-    this._ns.SendMessageDirect(2260U, tabIndents, 0);
-  }
-
-  bool INativeScintilla.GetTabIndents() => this._ns.SendMessageDirect(2261U, 0, 0) != 0;
-
-  void INativeScintilla.SetBackSpaceUnIndents(bool bsUnIndents)
-  {
-    this._ns.SendMessageDirect(2262U, bsUnIndents, 0);
-  }
-
-  bool INativeScintilla.GetBackSpaceUnIndents() => this._ns.SendMessageDirect(2263U, 0, 0) != 0;
-
-  void INativeScintilla.SetLineIndentation(int line, int indentation)
-  {
-    this._ns.SendMessageDirect(2126U, line, indentation);
-  }
-
-  int INativeScintilla.GetLineIndentation(int line) => this._ns.SendMessageDirect(2127U, line, 0);
-
-  int INativeScintilla.GetLineIndentPosition(int line)
-  {
-    return this._ns.SendMessageDirect(2128U, line, 0);
-  }
-
-  void INativeScintilla.SetIndentationGuides(bool view)
-  {
-    this._ns.SendMessageDirect(2132U, view, 0);
-  }
-
-  bool INativeScintilla.GetIndentationGuides() => this._ns.SendMessageDirect(2133U, 0, 0) != 0;
-
-  void INativeScintilla.SetHighlightGuide(int column)
-  {
-    this._ns.SendMessageDirect(2134U, column, 0);
-  }
-
-  int INativeScintilla.GetHighlightGuide() => this._ns.SendMessageDirect(2135U, 0, 0);
-
-  void INativeScintilla.MarkerDefine(int markerNumber, int markerSymbol)
-  {
-    this._ns.SendMessageDirect(2040U, markerNumber, markerSymbol);
-  }
-
-  void INativeScintilla.MarkerDefinePixmap(int markerNumber, string xpm)
-  {
-    this._ns.SendMessageDirect(2049U, markerNumber, xpm);
-  }
-
-  void INativeScintilla.MarkerSetFore(int markerNumber, int colour)
-  {
-    this._ns.SendMessageDirect(2041U, markerNumber, colour);
-  }
-
-  void INativeScintilla.MarkerSetBack(int markerNumber, int colour)
-  {
-    this._ns.SendMessageDirect(2042U, markerNumber, colour);
-  }
-
-  void INativeScintilla.MarkerSetAlpha(int markerNumber, int alpha)
-  {
-    this._ns.SendMessageDirect(2476U, markerNumber, alpha);
-  }
-
-  int INativeScintilla.MarkerAdd(int line, int markerNumber)
-  {
-    return this._ns.SendMessageDirect(2043U, line, markerNumber);
-  }
-
-  void INativeScintilla.MarkerAddSet(int line, uint markerMask)
-  {
-    this._ns.SendMessageDirect(2466U, line, markerMask);
-  }
-
-  void INativeScintilla.MarkerDelete(int line, int markerNumber)
-  {
-    this._ns.SendMessageDirect(2044U, line, markerNumber);
-  }
-
-  void INativeScintilla.MarkerDeleteAll(int markerNumber)
-  {
-    this._ns.SendMessageDirect(2045U, markerNumber, 0);
-  }
-
-  int INativeScintilla.MarkerGet(int line) => this._ns.SendMessageDirect(2046U, line, 0);
-
-  int INativeScintilla.MarkerNext(int lineStart, uint markerMask)
-  {
-    return this._ns.SendMessageDirect(2047U /*0x07FF*/, lineStart, markerMask);
-  }
-
-  int INativeScintilla.MarkerPrevious(int lineStart, uint markerMask)
-  {
-    return this._ns.SendMessageDirect(2048U /*0x0800*/, lineStart, markerMask);
-  }
-
-  int INativeScintilla.MarkerLineFromHandle(int handle)
-  {
-    return this._ns.SendMessageDirect(2017U, handle, 0);
-  }
-
-  void INativeScintilla.MarkerDeleteHandle(int handle)
-  {
-    this._ns.SendMessageDirect(2018U, handle, 0);
-  }
-
-  void INativeScintilla.IndicSetStyle(int indicatorNumber, int indicatorStyle)
-  {
-    this._ns.SendMessageDirect(2080U, indicatorNumber, indicatorStyle);
-  }
-
-  int INativeScintilla.IndicGetStyle(int indicatorNumber)
-  {
-    return this._ns.SendMessageDirect(2081U, indicatorNumber, 0);
-  }
-
-  void INativeScintilla.IndicSetFore(int indicatorNumber, int colour)
-  {
-    this._ns.SendMessageDirect(2082U, indicatorNumber, colour);
-  }
-
-  int INativeScintilla.IndicGetFore(int indicatorNumber)
-  {
-    return this._ns.SendMessageDirect(2083U, indicatorNumber, 0);
-  }
-
-  int INativeScintilla.GetIndicatorCurrent() => this._ns.SendMessageDirect(2501U, 0, 0);
-
-  int INativeScintilla.GetIndicatorValue() => this._ns.SendMessageDirect(2503U, 0, 0);
-
-  int INativeScintilla.GetPositionCache() => this._ns.SendMessageDirect(2515U, 0, 0);
-
-  uint INativeScintilla.IndicatorAllOnFor(int position)
-  {
-    return (uint) this._ns.SendMessageDirect(2506U, position, 0);
-  }
-
-  void INativeScintilla.IndicatorClearRange(int position, int fillLength)
-  {
-    this._ns.SendMessageDirect(2505U, position, fillLength);
-  }
-
-  void INativeScintilla.IndicatorFillRange(int position, int fillLength)
-  {
-    this._ns.SendMessageDirect(2504U, position, fillLength);
-  }
-
-  void INativeScintilla.SetIndicatorCurrent(int indicator)
-  {
-    this._ns.SendMessageDirect(2500U, indicator, 0);
-  }
-
-  void INativeScintilla.AutoCShow(int lenEntered, string list)
-  {
-    this._ns.SendMessageDirect(2100U, lenEntered, list);
-  }
-
-  void INativeScintilla.AutoCCancel() => this._ns.SendMessageDirect(2101U, 0, 0);
-
-  bool INativeScintilla.AutoCActive() => this._ns.SendMessageDirect(2102U, 0, 0) != 0;
-
-  int INativeScintilla.AutoCPosStart() => this._ns.SendMessageDirect(2103U, 0, 0);
-
-  void INativeScintilla.AutoCComplete() => this._ns.SendMessageDirect(2104U, 0, 0);
-
-  void INativeScintilla.AutoCStops(string chars)
-  {
-    this._ns.SendMessageDirect(2105U, VOID.NULL, chars);
-  }
-
-  void INativeScintilla.AutoCSetSeparator(char separator)
-  {
-    this._ns.SendMessageDirect(2106U, (int) separator, 0);
-  }
-
-  char INativeScintilla.AutoCGetSeparator() => (char) this._ns.SendMessageDirect(2107U, 0, 0);
-
-  void INativeScintilla.AutoCSelect(string select)
-  {
-    this._ns.SendMessageDirect(2108U, VOID.NULL, select);
-  }
-
-  int INativeScintilla.AutoCGetCurrent() => this._ns.SendMessageDirect(2445U, 0, 0);
-
-  void INativeScintilla.AutoCSetCancelAtStart(bool cancel)
-  {
-    this._ns.SendMessageDirect(2110U, cancel, 0);
-  }
-
-  bool INativeScintilla.AutoCGetCancelAtStart() => this._ns.SendMessageDirect(2111U, 0, 0) != 0;
-
-  void INativeScintilla.AutoCSetFillUps(string chars)
-  {
-    this._ns.SendMessageDirect(2112U, VOID.NULL, chars);
-  }
-
-  void INativeScintilla.AutoCSetChooseSingle(bool chooseSingle)
-  {
-    this._ns.SendMessageDirect(2113U, chooseSingle, 0);
-  }
-
-  bool INativeScintilla.AutoCGetChooseSingle() => this._ns.SendMessageDirect(2114U, 0, 0) != 0;
-
-  void INativeScintilla.AutoCSetIgnoreCase(bool ignoreCase)
-  {
-    this._ns.SendMessageDirect(2115U, ignoreCase, 0);
-  }
-
-  bool INativeScintilla.AutoCGetIgnoreCase() => this._ns.SendMessageDirect(2116U, 0, 0) != 0;
-
-  void INativeScintilla.AutoCSetAutoHide(bool autoHide)
-  {
-    this._ns.SendMessageDirect(2118U, autoHide, 0);
-  }
-
-  bool INativeScintilla.AutoCGetAutoHide() => this._ns.SendMessageDirect(2119U, 0, 0) != 0;
-
-  void INativeScintilla.AutoCSetDropRestOfWord(bool dropRestOfWord)
-  {
-    this._ns.SendMessageDirect(2270U, dropRestOfWord, 0);
-  }
-
-  bool INativeScintilla.AutoCGetDropRestOfWord() => this._ns.SendMessageDirect(2271U, 0, 0) != 0;
-
-  void INativeScintilla.RegisterImage(int type, string xpmData)
-  {
-    this._ns.SendMessageDirect(2405U, type, xpmData);
-  }
-
-  void INativeScintilla.ClearRegisteredImages() => this._ns.SendMessageDirect(2408U, 0, 0);
-
-  void INativeScintilla.AutoCSetTypeSeparator(char separatorCharacter)
-  {
-    this._ns.SendMessageDirect(2286U, (int) separatorCharacter, 0);
-  }
-
-  char INativeScintilla.AutoCGetTypeSeparator() => (char) this._ns.SendMessageDirect(2285U, 0, 0);
-
-  void INativeScintilla.AutoCSetMaxHeight(int rowCount)
-  {
-    this._ns.SendMessageDirect(2210U, rowCount, 0);
-  }
-
-  int INativeScintilla.AutoCGetMaxHeight() => this._ns.SendMessageDirect(2211U, 0, 0);
-
-  void INativeScintilla.AutoCSetMaxWidth(int characterCount)
-  {
-    this._ns.SendMessageDirect(2208U, characterCount, 0);
-  }
-
-  int INativeScintilla.AutoCGetMaxWidth() => this._ns.SendMessageDirect(2209U, 0, 0);
-
-  void INativeScintilla.UserListShow(int listType, string list)
-  {
-    this._ns.SendMessageDirect(2117U, listType, list);
-  }
-
-  void INativeScintilla.CallTipShow(int posStart, string definition)
-  {
-    this._ns.SendMessageDirect(2200U, posStart, definition);
-  }
-
-  void INativeScintilla.CallTipCancel() => this._ns.SendMessageDirect(2201U, 0, 0);
-
-  bool INativeScintilla.CallTipActive() => this._ns.SendMessageDirect(2202U, 0, 0) != 0;
-
-  int INativeScintilla.CallTipGetPosStart() => this._ns.SendMessageDirect(2203U, 0, 0);
-
-  void INativeScintilla.CallTipSetHlt(int hlStart, int hlEnd)
-  {
-    this._ns.SendMessageDirect(2204U, hlStart, hlEnd);
-  }
-
-  void INativeScintilla.CallTipSetBack(int colour) => this._ns.SendMessageDirect(2205U, colour, 0);
-
-  void INativeScintilla.CallTipSetFore(int colour) => this._ns.SendMessageDirect(2206U, colour, 0);
-
-  void INativeScintilla.CallTipSetForeHlt(int colour)
-  {
-    this._ns.SendMessageDirect(2207U, colour, 0);
-  }
-
-  void INativeScintilla.CallTipUseStyle(int tabsize)
-  {
-    this._ns.SendMessageDirect(2212U, tabsize, 0);
-  }
-
-  void INativeScintilla.LineDown() => this._ns.SendMessageDirect(2300U, 0, 0);
-
-  void INativeScintilla.LineDownExtend() => this._ns.SendMessageDirect(2301U, 0, 0);
-
-  void INativeScintilla.LineDownRectExtend() => this._ns.SendMessageDirect(2426U, 0, 0);
-
-  void INativeScintilla.LineScrollDown() => this._ns.SendMessageDirect(2342U, 0, 0);
-
-  void INativeScintilla.LineUp() => this._ns.SendMessageDirect(2302U, 0, 0);
-
-  void INativeScintilla.LineUpExtend() => this._ns.SendMessageDirect(2303U /*0x08FF*/, 0, 0);
-
-  void INativeScintilla.LineUpRectExtend() => this._ns.SendMessageDirect(2427U, 0, 0);
-
-  void INativeScintilla.LineScrollUp() => this._ns.SendMessageDirect(2343U, 0, 0);
-
-  void INativeScintilla.ParaDown() => this._ns.SendMessageDirect(2413U, 0, 0);
-
-  void INativeScintilla.ParaDownExtend() => this._ns.SendMessageDirect(2414U, 0, 0);
-
-  void INativeScintilla.ParaUp() => this._ns.SendMessageDirect(2415U, 0, 0);
-
-  void INativeScintilla.ParaUpExtend() => this._ns.SendMessageDirect(2416U, 0, 0);
-
-  void INativeScintilla.CharLeft() => this._ns.SendMessageDirect(2304U /*0x0900*/, 0, 0);
-
-  void INativeScintilla.CharLeftExtend() => this._ns.SendMessageDirect(2305U, 0, 0);
-
-  void INativeScintilla.CharLeftRectExtend() => this._ns.SendMessageDirect(2428U, 0, 0);
-
-  void INativeScintilla.CharRight() => this._ns.SendMessageDirect(2306U, 0, 0);
-
-  void INativeScintilla.CharRightExtend() => this._ns.SendMessageDirect(2307U, 0, 0);
-
-  void INativeScintilla.CharRightRectExtend() => this._ns.SendMessageDirect(2429U, 0, 0);
-
-  void INativeScintilla.WordLeft() => this._ns.SendMessageDirect(2308U, 0, 0);
-
-  void INativeScintilla.WordLeftExtend() => this._ns.SendMessageDirect(2309U, 0, 0);
-
-  void INativeScintilla.WordRight() => this._ns.SendMessageDirect(2310U, 0, 0);
-
-  void INativeScintilla.WordRightExtend() => this._ns.SendMessageDirect(2311U, 0, 0);
-
-  void INativeScintilla.WordLeftEnd() => this._ns.SendMessageDirect(2439U, 0, 0);
-
-  void INativeScintilla.WordLeftEndExtend() => this._ns.SendMessageDirect(2440U, 0, 0);
-
-  void INativeScintilla.WordRightEnd() => this._ns.SendMessageDirect(2441U, 0, 0);
-
-  void INativeScintilla.WordRightEndExtend() => this._ns.SendMessageDirect(2442U, 0, 0);
-
-  void INativeScintilla.WordPartLeft() => this._ns.SendMessageDirect(2390U, 0, 0);
-
-  void INativeScintilla.WordPartLeftExtend() => this._ns.SendMessageDirect(2391U, 0, 0);
-
-  void INativeScintilla.WordPartRight() => this._ns.SendMessageDirect(2392U, 0, 0);
-
-  void INativeScintilla.WordPartRightExtend() => this._ns.SendMessageDirect(2393U, 0, 0);
-
-  void INativeScintilla.Home() => this._ns.SendMessageDirect(2312U, 0, 0);
-
-  void INativeScintilla.HomeExtend() => this._ns.SendMessageDirect(2313U, 0, 0);
-
-  void INativeScintilla.HomeRectExtend() => this._ns.SendMessageDirect(2430U, 0, 0);
-
-  void INativeScintilla.HomeDisplay() => this._ns.SendMessageDirect(2345U, 0, 0);
-
-  void INativeScintilla.HomeDisplayExtend() => this._ns.SendMessageDirect(2346U, 0, 0);
-
-  void INativeScintilla.HomeWrap() => this._ns.SendMessageDirect(2349U, 0, 0);
-
-  void INativeScintilla.HomeWrapExtend() => this._ns.SendMessageDirect(2450U, 0, 0);
-
-  void INativeScintilla.VCHome() => this._ns.SendMessageDirect(2331U, 0, 0);
-
-  void INativeScintilla.VCHomeExtend() => this._ns.SendMessageDirect(2332U, 0, 0);
-
-  void INativeScintilla.VCHomeRectExtend() => this._ns.SendMessageDirect(2431U, 0, 0);
-
-  void INativeScintilla.VCHomeWrap() => this._ns.SendMessageDirect(2453U, 0, 0);
-
-  void INativeScintilla.VCHomeWrapExtend() => this._ns.SendMessageDirect(2454U, 0, 0);
-
-  void INativeScintilla.LineEnd() => this._ns.SendMessageDirect(2314U, 0, 0);
-
-  void INativeScintilla.LineEndExtend() => this._ns.SendMessageDirect(2315U, 0, 0);
-
-  void INativeScintilla.LineEndRectExtend() => this._ns.SendMessageDirect(2432U, 0, 0);
-
-  void INativeScintilla.LineEndDisplay() => this._ns.SendMessageDirect(2347U, 0, 0);
-
-  void INativeScintilla.LineEndDisplayExtend() => this._ns.SendMessageDirect(2348U, 0, 0);
-
-  void INativeScintilla.LineEndWrap() => this._ns.SendMessageDirect(2451U, 0, 0);
-
-  void INativeScintilla.LineEndWrapExtend() => this._ns.SendMessageDirect(2452U, 0, 0);
-
-  void INativeScintilla.DocumentStart() => this._ns.SendMessageDirect(2316U, 0, 0);
-
-  void INativeScintilla.DocumentStartExtend() => this._ns.SendMessageDirect(2317U, 0, 0);
-
-  void INativeScintilla.DocumentEnd() => this._ns.SendMessageDirect(2318U, 0, 0);
-
-  void INativeScintilla.DocumentEndExtend() => this._ns.SendMessageDirect(2319U, 0, 0);
-
-  void INativeScintilla.PageUp() => this._ns.SendMessageDirect(2320U, 0, 0);
-
-  void INativeScintilla.PageUpExtend() => this._ns.SendMessageDirect(2321U, 0, 0);
-
-  void INativeScintilla.PageUpRectExtend() => this._ns.SendMessageDirect(2433U, 0, 0);
-
-  void INativeScintilla.PageDown() => this._ns.SendMessageDirect(2322U, 0, 0);
-
-  void INativeScintilla.PageDownExtend() => this._ns.SendMessageDirect(2323U, 0, 0);
-
-  void INativeScintilla.PageDownRectExtend() => this._ns.SendMessageDirect(2434U, 0, 0);
-
-  void INativeScintilla.StutteredPageUp() => this._ns.SendMessageDirect(2435U, 0, 0);
-
-  void INativeScintilla.StutteredPageUpExtend() => this._ns.SendMessageDirect(2436U, 0, 0);
-
-  void INativeScintilla.StutteredPageDown() => this._ns.SendMessageDirect(2437U, 0, 0);
-
-  void INativeScintilla.StutteredPageDownExtend() => this._ns.SendMessageDirect(2438U, 0, 0);
-
-  void INativeScintilla.DeleteBack() => this._ns.SendMessageDirect(2326U, 0, 0);
-
-  void INativeScintilla.DeleteBackNotLine() => this._ns.SendMessageDirect(2344U, 0, 0);
-
-  void INativeScintilla.DelWordLeft() => this._ns.SendMessageDirect(2335U, 0, 0);
-
-  void INativeScintilla.DelWordRight() => this._ns.SendMessageDirect(2336U, 0, 0);
-
-  void INativeScintilla.DelLineLeft() => this._ns.SendMessageDirect(2395U, 0, 0);
-
-  void INativeScintilla.DelLineRight() => this._ns.SendMessageDirect(2396U, 0, 0);
-
-  void INativeScintilla.LineDelete() => this._ns.SendMessageDirect(2338U, 0, 0);
-
-  void INativeScintilla.LineCut() => this._ns.SendMessageDirect(2337U, 0, 0);
-
-  void INativeScintilla.LineCopy() => this._ns.SendMessageDirect(2455U, 0, 0);
-
-  void INativeScintilla.LineTranspose() => this._ns.SendMessageDirect(2339U, 0, 0);
-
-  void INativeScintilla.LineDuplicate() => this._ns.SendMessageDirect(2404U, 0, 0);
-
-  void INativeScintilla.LowerCase() => this._ns.SendMessageDirect(2340U, 0, 0);
-
-  void INativeScintilla.UpperCase() => this._ns.SendMessageDirect(2341U, 0, 0);
-
-  void INativeScintilla.Cancel() => this._ns.SendMessageDirect(2325U, 0, 0);
-
-  void INativeScintilla.EditToggleOvertype() => this._ns.SendMessageDirect(2324U, 0, 0);
-
-  void INativeScintilla.NewLine() => this._ns.SendMessageDirect(2329U, 0, 0);
-
-  void INativeScintilla.FormFeed() => this._ns.SendMessageDirect(2330U, 0, 0);
-
-  void INativeScintilla.Tab() => this._ns.SendMessageDirect(2327U, 0, 0);
-
-  void INativeScintilla.BackTab() => this._ns.SendMessageDirect(2328U, 0, 0);
-
-  void INativeScintilla.SelectionDuplicate() => this._ns.SendMessageDirect(2469U, 0, 0);
-
-  void INativeScintilla.AssignCmdKey(int keyDefinition, int sciCommand)
-  {
-    this._ns.SendMessageDirect(2070U, keyDefinition, sciCommand);
-  }
-
-  void INativeScintilla.ClearCmdKey(int keyDefinition)
-  {
-    this._ns.SendMessageDirect(2071U, keyDefinition, 0);
-  }
-
-  void INativeScintilla.ClearAllCmdKeys() => this._ns.SendMessageDirect(2072U, 0, 0);
-
-  void INativeScintilla.Null() => this._ns.SendMessageDirect(2172U, 0, 0);
-
-  void INativeScintilla.UsePopUp(bool bEnablePopup)
-  {
-    this._ns.SendMessageDirect(2371U, bEnablePopup, 0);
-  }
-
-  void INativeScintilla.StartRecord() => this._ns.SendMessageDirect(3001U, 0, 0);
-
-  void INativeScintilla.StopRecord() => this._ns.SendMessageDirect(3002U, 0, 0);
-
-  unsafe int INativeScintilla.FormatRange(bool bDraw, ref RangeToFormat pfr)
-  {
-    fixed (RangeToFormat* lParam = &pfr)
-      return (int) this._ns.SendMessageDirect(2151U, (IntPtr) (bDraw ? 1 : 0), (IntPtr) (void*) lParam);
-  }
-
-  void INativeScintilla.SetPrintMagnification(int magnification)
-  {
-    this._ns.SendMessageDirect(2146U, magnification, 0);
-  }
-
-  int INativeScintilla.GetPrintMagnification() => this._ns.SendMessageDirect(2147U, 0, 0);
-
-  void INativeScintilla.SetPrintColourMode(int mode) => this._ns.SendMessageDirect(2148U, mode, 0);
-
-  int INativeScintilla.GetPrintColourMode() => this._ns.SendMessageDirect(2149U, 0, 0);
-
-  int INativeScintilla.GetPrintWrapMode() => this._ns.SendMessageDirect(2407U, 0, 0);
-
-  void INativeScintilla.SetPrintWrapMode(int wrapMode)
-  {
-    this._ns.SendMessageDirect(2406U, wrapMode, 0);
-  }
-
-  IntPtr INativeScintilla.GetDirectFunction()
-  {
-    return this._ns.SendMessageDirect(2184U, IntPtr.Zero, IntPtr.Zero);
-  }
-
-  IntPtr INativeScintilla.GetDirectPointer()
-  {
-    return this._ns.SendMessageDirect(2185U, IntPtr.Zero, IntPtr.Zero);
-  }
-
-  IntPtr INativeScintilla.GetDocPointer()
-  {
-    return this._ns.SendMessageDirect(2357U, IntPtr.Zero, IntPtr.Zero);
-  }
-
-  void INativeScintilla.SetDocPointer(IntPtr pDoc)
-  {
-    this._ns.SendMessageDirect(2358U, IntPtr.Zero, pDoc);
-  }
-
-  IntPtr INativeScintilla.CreateDocument() => (IntPtr) this._ns.SendMessageDirect(2375U, 0, 0);
-
-  void INativeScintilla.AddRefDocument(IntPtr pDoc)
-  {
-    this._ns.SendMessageDirect(2376U, IntPtr.Zero, pDoc);
-  }
-
-  void INativeScintilla.ReleaseDocument(IntPtr pDoc)
-  {
-    this._ns.SendMessageDirect(2377U, IntPtr.Zero, pDoc);
-  }
-
-  int INativeScintilla.VisibleFromDocLine(int docLine)
-  {
-    return this._ns.SendMessageDirect(2220U, docLine, 0);
-  }
-
-  int INativeScintilla.DocLineFromVisible(int displayLine)
-  {
-    return this._ns.SendMessageDirect(2221U, displayLine, 0);
-  }
-
-  void INativeScintilla.ShowLines(int lineStart, int lineEnd)
-  {
-    this._ns.SendMessageDirect(2226U, lineStart, lineEnd);
-  }
-
-  void INativeScintilla.HideLines(int lineStart, int lineEnd)
-  {
-    this._ns.SendMessageDirect(2227U, lineStart, lineEnd);
-  }
-
-  bool INativeScintilla.GetLineVisible(int line) => this._ns.SendMessageDirect(2228U, line, 0) != 0;
-
-  void INativeScintilla.SetFoldLevel(int line, uint level)
-  {
-    this._ns.SendMessageDirect(2222U, line, level);
-  }
-
-  uint INativeScintilla.GetFoldLevel(int line) => (uint) this._ns.SendMessageDirect(2223U, line, 0);
-
-  void INativeScintilla.SetFoldFlags(int flags) => this._ns.SendMessageDirect(2233U, flags, 0);
-
-  int INativeScintilla.GetLastChild(int line, int level)
-  {
-    return this._ns.SendMessageDirect(2224U, line, level);
-  }
-
-  int INativeScintilla.GetFoldParent(int line) => this._ns.SendMessageDirect(2225U, line, 0);
-
-  void INativeScintilla.SetFoldExpanded(int line, bool expanded)
-  {
-    this._ns.SendMessageDirect(2229U, line, expanded);
-  }
-
-  bool INativeScintilla.GetFoldExpanded(int line)
-  {
-    return this._ns.SendMessageDirect(2230U, line, 0) != 0;
-  }
-
-  void INativeScintilla.ToggleFold(int line) => this._ns.SendMessageDirect(2231U, line, 0);
-
-  void INativeScintilla.EnsureVisible(int line) => this._ns.SendMessageDirect(2232U, line, 0);
-
-  void INativeScintilla.EnsureVisibleEnforcePolicy(int line)
-  {
-    this._ns.SendMessageDirect(2234U, line, 0);
-  }
-
-  void INativeScintilla.SetWrapMode(int wrapMode) => this._ns.SendMessageDirect(2268U, wrapMode, 0);
-
-  int INativeScintilla.GetWrapMode() => this._ns.SendMessageDirect(2269U, 0, 0);
-
-  void INativeScintilla.SetWrapVisualFlags(int wrapVisualFlags)
-  {
-    this._ns.SendMessageDirect(2460U, wrapVisualFlags, 0);
-  }
-
-  int INativeScintilla.GetWrapVisualFlags() => this._ns.SendMessageDirect(2461U, 0, 0);
-
-  void INativeScintilla.SetWrapVisualFlagsLocation(int wrapVisualFlagsLocation)
-  {
-    this._ns.SendMessageDirect(2462U, wrapVisualFlagsLocation, 0);
-  }
-
-  int INativeScintilla.GetWrapVisualFlagsLocation() => this._ns.SendMessageDirect(2463U, 0, 0);
-
-  void INativeScintilla.SetWrapStartIndent(int indent)
-  {
-    this._ns.SendMessageDirect(2464U, indent, 0);
-  }
-
-  int INativeScintilla.GetWrapStartIndent() => this._ns.SendMessageDirect(2465U, 0, 0);
-
-  void INativeScintilla.SetLayoutCache(int cacheMode)
-  {
-    this._ns.SendMessageDirect(2272U, cacheMode, 0);
-  }
-
-  int INativeScintilla.GetLayoutCache() => this._ns.SendMessageDirect(2273U, 0, 0);
-
-  void INativeScintilla.LinesJoin() => this._ns.SendMessageDirect(2288U, 0, 0);
-
-  void INativeScintilla.LinesSplit(int pixelWidth)
-  {
-    this._ns.SendMessageDirect(2289U, pixelWidth, 0);
-  }
-
-  int INativeScintilla.WrapCount(int docLine) => this._ns.SendMessageDirect(2235U, docLine, 0);
-
-  void INativeScintilla.ZoomIn() => this._ns.SendMessageDirect(2333U, 0, 0);
-
-  void INativeScintilla.ZoomOut() => this._ns.SendMessageDirect(2334U, 0, 0);
-
-  void INativeScintilla.SetZoom(int zoomInPoints)
-  {
-    this._ns.SendMessageDirect(2373U, zoomInPoints, 0);
-  }
-
-  int INativeScintilla.GetZoom() => this._ns.SendMessageDirect(2374U, 0, 0);
-
-  void INativeScintilla.SetEdgeMode(int mode) => this._ns.SendMessageDirect(2363U, mode, 0);
-
-  int INativeScintilla.GetEdgeMode() => this._ns.SendMessageDirect(2362U, 0, 0);
-
-  void INativeScintilla.SetEdgeColumn(int column) => this._ns.SendMessageDirect(2361U, column, 0);
-
-  int INativeScintilla.GetEdgeColumn() => this._ns.SendMessageDirect(2360U, 0, 0);
-
-  void INativeScintilla.SetEdgeColour(int colour) => this._ns.SendMessageDirect(2365U, colour, 0);
-
-  int INativeScintilla.GetEdgeColour() => this._ns.SendMessageDirect(2364U, 0, 0);
-
-  void INativeScintilla.SetLexer(int lexer) => this._ns.SendMessageDirect(4001U, lexer, 0);
-
-  int INativeScintilla.GetLexer() => this._ns.SendMessageDirect(4002U, 0, 0);
-
-  void INativeScintilla.SetLexerLanguage(string name)
-  {
-    this._ns.SendMessageDirect(4006U, VOID.NULL, name);
-  }
-
-  void INativeScintilla.LoadLexerLibrary(string path)
-  {
-    this._ns.SendMessageDirect(4007U, VOID.NULL, path);
-  }
-
-  void INativeScintilla.Colourise(int start, int end)
-  {
-    this._ns.SendMessageDirect(4003U, start, end);
-  }
-
-  void INativeScintilla.SetProperty(string key, string value)
-  {
-    this._ns.SendMessageDirect(4004U, key, value);
-  }
-
-  void INativeScintilla.GetProperty(string key, out string value)
-  {
-    this._ns.SendMessageDirect(4008U, key, out value);
-  }
-
-  void INativeScintilla.GetPropertyExpanded(string key, out string value)
-  {
-    this._ns.SendMessageDirect(4009U, key, out value);
-  }
-
-  int INativeScintilla.GetPropertyInt(string key, int @default)
-  {
-    return this._ns.SendMessageDirect(4010U, key, @default);
-  }
-
-  void INativeScintilla.SetKeywords(int keywordSet, string keyWordList)
-  {
-    this._ns.SendMessageDirect(4005U, keywordSet, keyWordList);
-  }
-
-  int INativeScintilla.GetStyleBitsNeeded() => this._ns.SendMessageDirect(4011U, 0, 0);
-
-  internal void FireStyleNeeded(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._styleNeededEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._styleNeededEventKeyNative])((object) this, ea);
-    this.OnStyleNeeded(new StyleNeededEventArgs(new Range(this._ns.PositionFromLine(this._ns.LineFromPosition(this._ns.GetEndStyled())), ea.SCNotification.position, this)));
-  }
-
-  internal void FireCharAdded(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._charAddedEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._charAddedEventKeyNative])((object) this, ea);
-    this.OnCharAdded(new CharAddedEventArgs(ea.SCNotification.ch));
-  }
-
-  internal void FireSavePointReached(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._savePointReachedEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._savePointReachedEventKeyNative])((object) this, ea);
-    this.Modified = false;
-  }
-
-  internal void FireSavePointLeft(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._savePointLeftEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._savePointLeftEventKeyNative])((object) this, ea);
-    this.Modified = true;
-  }
-
-  internal void FireModifyAttemptRO(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._modifyAttemptROEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._modifyAttemptROEventKey])((object) this, ea);
-    this.OnReadOnlyModifyAttempt(EventArgs.Empty);
-  }
-
-  internal void FireKey(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._keyEventKey] == null)
-      return;
-    ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._keyEventKey])((object) this, ea);
-  }
-
-  internal void FireDoubleClick(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._doubleClickEventKey] == null)
-      return;
-    ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._doubleClickEventKey])((object) this, ea);
-  }
-
-  internal void FireUpdateUI(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._updateUIEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._updateUIEventKey])((object) this, ea);
-    if (this.lastSelection.Start != this.Selection.Start || this.lastSelection.End != this.Selection.End || this.lastSelection.Length != this.Selection.Length)
-      this.OnSelectionChanged(EventArgs.Empty);
-    this.lastSelection.Start = this.Selection.Start;
-    this.lastSelection.End = this.Selection.End;
-    this.lastSelection.Length = this.Selection.Length;
-  }
-
-  internal void FireMacroRecord(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._macroRecordEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._macroRecordEventKeyNative])((object) this, ea);
-    this.OnMacroRecord(new MacroRecordEventArgs(ea));
-  }
-
-  internal void FireMarginClick(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._marginClickEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._marginClickEventKeyNative])((object) this, ea);
-    this.FireMarginClick(ea.SCNotification);
-  }
-
-  internal void FireModified(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._modifiedEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._modifiedEventKey])((object) this, ea);
-    SCNotification scNotification = ea.SCNotification;
-    int modificationType = scNotification.modificationType;
-    if (((long) modificationType & 3075L) > 0L)
-    {
-      TextModifiedEventArgs e = new TextModifiedEventArgs(modificationType, ((long) modificationType | 16L /*0x10*/) > 0L, scNotification.line, scNotification.position, scNotification.length, scNotification.linesAdded, Utilities.IntPtrToString(this._encoding, scNotification.text, scNotification.length));
-      bool flag = false;
-      if (((long) modificationType & 2048L /*0x0800*/) > 0L)
-      {
-        this.OnBeforeTextDelete(e);
-        flag = true;
-      }
-      else if (((long) modificationType & 1024L /*0x0400*/) > 0L)
-      {
-        this.OnBeforeTextInsert(e);
-        flag = true;
-      }
-      else if (((long) modificationType & 2L) > 0L)
-      {
-        this.OnTextDeleted(e);
-        flag = true;
-      }
-      else if (((long) modificationType & 1L) > 0L)
-      {
-        this.OnTextInserted(e);
-        flag = true;
-      }
-      if (flag)
-        this._textChangedTimer.Start();
-    }
-    else if (((long) modificationType & 8L) > 0L)
-      this.OnFoldChanged(new FoldChangedEventArgs(scNotification.line, scNotification.foldLevelNow, scNotification.foldLevelPrev, scNotification.modificationType));
-    else if (((long) modificationType & 4L) > 0L)
-      this.OnStyleChanged((EventArgs) new StyleChangedEventArgs(scNotification.position, scNotification.length, scNotification.modificationType));
-    else if (((long) modificationType & 512L /*0x0200*/) > 0L)
-      this.OnMarkerChanged(new MarkerChangedEventArgs(scNotification.line, scNotification.modificationType));
-    this.OnDocumentChange(ea);
-  }
-
-  private void textChangedTimer_Tick(object sender, EventArgs e)
-  {
-    this._textChangedTimer.Stop();
-    this.OnTextChanged();
-  }
-
-  internal void FireChange(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._changeEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._changeEventKey])((object) this, ea);
-    this.OnTextChanged(EventArgs.Empty);
-  }
-
-  internal void FireNeedShown(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._needShownEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._needShownEventKey])((object) this, ea);
-    int position = ea.SCNotification.position;
-    this.OnLinesNeedShown(new LinesNeedShownEventArgs(this._ns.LineFromPosition(position), this._ns.LineFromPosition(position + ea.SCNotification.length - 1)));
-  }
-
-  internal void FirePainted(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._paintedEventKey] == null)
-      return;
-    ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._paintedEventKey])((object) this, ea);
-  }
-
-  internal void FireUserListSelection(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._userListSelectionEventKeyNative] == null)
-      return;
-    ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._userListSelectionEventKeyNative])((object) this, ea);
-  }
-
-  internal void FireUriDropped(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._uriDroppedEventKeyNative] == null)
-      return;
-    ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._uriDroppedEventKeyNative])((object) this, ea);
-  }
-
-  internal void FireDwellStart(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._dwellStartEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._dwellStartEventKeyNative])((object) this, ea);
-    this.OnDwellStart(new ScintillaMouseEventArgs(ea.SCNotification.x, ea.SCNotification.y, ea.SCNotification.position));
-  }
-
-  internal void FireDwellEnd(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._dwellEndEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._dwellEndEventKeyNative])((object) this, ea);
-    this.OnDwellEnd(new ScintillaMouseEventArgs(ea.SCNotification.x, ea.SCNotification.y, ea.SCNotification.position));
-  }
-
-  internal void FireZoom(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._zoomEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._zoomEventKey])((object) this, ea);
-    this.OnZoomChanged(EventArgs.Empty);
-  }
-
-  internal void FireHotSpotClick(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._hotSpotClickEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._hotSpotClickEventKey])((object) this, ea);
-    Point client = this.PointToClient(new Point(Control.MousePosition.X, Control.MousePosition.Y));
-    this.OnHotspotClick(new ScintillaMouseEventArgs(client.X, client.Y, ea.SCNotification.position));
-  }
-
-  internal void FireHotSpotDoubleclick(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._hotSpotDoubleClickEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._hotSpotDoubleClickEventKey])((object) this, ea);
-    Point client = this.PointToClient(new Point(Control.MousePosition.X, Control.MousePosition.Y));
-    this.OnHotspotDoubleClick(new ScintillaMouseEventArgs(client.X, client.Y, ea.SCNotification.position));
-  }
-
-  internal void FireCallTipClick(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._callTipClickEventKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._callTipClickEventKeyNative])((object) this, ea);
-    this.FireCallTipClick(ea.SCNotification.position);
-  }
-
-  internal void FireAutoCSelection(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._autoCSelectionEventKey] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._autoCSelectionEventKey])((object) this, ea);
-    this.OnAutoCompleteAccepted(new AutoCompleteAcceptedEventArgs(ea.SCNotification, this._encoding));
-  }
-
-  internal void FireIndicatorClick(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._indicatorClickKeyNative] != null)
-      ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._indicatorClickKeyNative])((object) this, ea);
-    this.OnIndicatorClick(new ScintillaMouseEventArgs(ea.SCNotification.x, ea.SCNotification.y, ea.SCNotification.position));
-  }
-
-  internal void FireIndicatorRelease(NativeScintillaEventArgs ea)
-  {
-    if ((object) this.Events[Scintilla._indicatorReleaseKeyNative] == null)
-      return;
-    ((EventHandler<NativeScintillaEventArgs>) this.Events[Scintilla._indicatorReleaseKeyNative])((object) this, ea);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.StyleNeeded
-  {
-    add => this.Events.AddHandler(Scintilla._styleNeededEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._styleNeededEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.CharAdded
-  {
-    add => this.Events.AddHandler(Scintilla._charAddedEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._charAddedEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.SavePointReached
-  {
-    add => this.Events.AddHandler(Scintilla._savePointReachedEventKeyNative, (Delegate) value);
-    remove
-    {
-      this.Events.RemoveHandler(Scintilla._savePointReachedEventKeyNative, (Delegate) value);
-    }
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.SavePointLeft
-  {
-    add => this.Events.AddHandler(Scintilla._savePointLeftEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._savePointLeftEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.ModifyAttemptRO
-  {
-    add => this.Events.AddHandler(Scintilla._modifyAttemptROEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._modifyAttemptROEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.Key
-  {
-    add => this.Events.AddHandler(Scintilla._keyEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._keyEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.DoubleClick
-  {
-    add => this.Events.AddHandler(Scintilla._doubleClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._doubleClickEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.UpdateUI
-  {
-    add => this.Events.AddHandler(Scintilla._updateUIEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._updateUIEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.MacroRecord
-  {
-    add => this.Events.AddHandler(Scintilla._macroRecordEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._macroRecordEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.MarginClick
-  {
-    add => this.Events.AddHandler(Scintilla._marginClickEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._marginClickEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.Modified
-  {
-    add => this.Events.AddHandler(Scintilla._modifiedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._modifiedEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.Change
-  {
-    add => this.Events.AddHandler(Scintilla._changeEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._changeEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.NeedShown
-  {
-    add => this.Events.AddHandler(Scintilla._needShownEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._needShownEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.Painted
-  {
-    add => this.Events.AddHandler(Scintilla._paintedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._paintedEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.UserListSelection
-  {
-    add => this.Events.AddHandler(Scintilla._userListSelectionEventKeyNative, (Delegate) value);
-    remove
-    {
-      this.Events.RemoveHandler(Scintilla._userListSelectionEventKeyNative, (Delegate) value);
-    }
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.UriDropped
-  {
-    add => this.Events.AddHandler(Scintilla._uriDroppedEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._uriDroppedEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.DwellStart
-  {
-    add => this.Events.AddHandler(Scintilla._dwellStartEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._dwellStartEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.DwellEnd
-  {
-    add => this.Events.AddHandler(Scintilla._dwellEndEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._dwellEndEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.Zoom
-  {
-    add => this.Events.AddHandler(Scintilla._zoomEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._zoomEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.HotSpotClick
-  {
-    add => this.Events.AddHandler(Scintilla._hotSpotClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._hotSpotClickEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.HotSpotDoubleclick
-  {
-    add => this.Events.AddHandler(Scintilla._hotSpotDoubleClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._hotSpotDoubleClickEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.CallTipClick
-  {
-    add => this.Events.AddHandler(Scintilla._callTipClickEventKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._callTipClickEventKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.AutoCSelection
-  {
-    add => this.Events.AddHandler(Scintilla._autoCSelectionEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._autoCSelectionEventKey, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.IndicatorClick
-  {
-    add => this.Events.AddHandler(Scintilla._indicatorClickKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._indicatorClickKeyNative, (Delegate) value);
-  }
-
-  event EventHandler<NativeScintillaEventArgs> INativeScintilla.IndicatorRelease
-  {
-    add => this.Events.AddHandler(Scintilla._indicatorReleaseKeyNative, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._indicatorReleaseKeyNative, (Delegate) value);
-  }
-
-  void INativeScintilla.SetModEventMask(int modEventMask)
-  {
-    this._ns.SendMessageDirect(2359U, modEventMask, 0);
-  }
-
-  int INativeScintilla.GetModEventMask() => this._ns.SendMessageDirect(2378U, 0, 0);
-
-  void INativeScintilla.SetMouseDwellTime(int mouseDwellTime)
-  {
-    this._ns.SendMessageDirect(2264U, mouseDwellTime, 0);
-  }
-
-  int INativeScintilla.GetMouseDwellTime() => this._ns.SendMessageDirect(2265U, 0, 0);
-
-  internal Dictionary<string, Color> ColorBag => this._colorBag;
-
-  internal Hashtable PropertyBag => this._propertyBag;
-
-  public Scintilla()
-  {
-    this._state = new BitVector32(0);
-    this._state[Scintilla._acceptsReturnState] = true;
-    this._state[Scintilla._acceptsTabState] = true;
-    this._ns = (INativeScintilla) this;
-    this._textChangedTimer = new System.Timers.Timer();
-    this._textChangedTimer.Interval = 1;
-    this._textChangedTimer.Elapsed += new System.Timers.ElapsedEventHandler(this.textChangedTimer_Tick);
-    this._caption = this.GetType().FullName;
-    this.Encoding = Encoding.UTF8;
-    this._ns.StyleClearAll();
-    this._caret = new CaretInfo(this);
-    this._lines = new LinesCollection(this);
-    this._selection = new Selection(this);
-    this._indicators = new IndicatorCollection(this);
-    this._snippets = new SnippetManager(this);
-    this._margins = new MarginCollection(this);
-    this._scrolling = new Scrolling(this);
-    this._whitespace = new Whitespace(this);
-    this._endOfLine = new EndOfLine(this);
-    this._clipboard = new Clipboard(this);
-    this._undoRedo = new UndoRedo(this);
-    this._dropMarkers = new DropMarkers(this);
-    this._hotspotStyle = new HotspotStyle(this);
-    this._callTip = new CallTip(this);
-    this._styles = new StyleCollection(this);
-    this._indentation = new Indentation(this);
-    this._markers = new MarkerCollection(this);
-    this._autoComplete = new AutoComplete(this);
-    this._documentHandler = new DocumentHandler(this);
-    this._lineWrap = new LineWrap(this);
-    this._lexing = new Lexing(this);
-    this._longLines = new LongLines(this);
-    this._commands = new Commands(this);
-    this._folding = new Folding(this);
-    this._configurationManager = new ConfigurationManager(this);
-    this._printing = new Printing(this);
-    this._findReplace = new FindReplace(this);
-    this._documentNavigation = new DocumentNavigation(this);
-    this._goto = new GoTo(this);
-    this._helpers.AddRange((IEnumerable<TopLevelHelper>) new TopLevelHelper[28]
-    {
-      (TopLevelHelper) this._caret,
-      (TopLevelHelper) this._lines,
-      (TopLevelHelper) this._selection,
-      (TopLevelHelper) this._indicators,
-      (TopLevelHelper) this._snippets,
-      (TopLevelHelper) this._margins,
-      (TopLevelHelper) this._scrolling,
-      (TopLevelHelper) this._whitespace,
-      (TopLevelHelper) this._endOfLine,
-      (TopLevelHelper) this._clipboard,
-      (TopLevelHelper) this._undoRedo,
-      (TopLevelHelper) this._dropMarkers,
-      (TopLevelHelper) this._hotspotStyle,
-      (TopLevelHelper) this._styles,
-      (TopLevelHelper) this._indentation,
-      (TopLevelHelper) this._markers,
-      (TopLevelHelper) this._autoComplete,
-      (TopLevelHelper) this._documentHandler,
-      (TopLevelHelper) this._lineWrap,
-      (TopLevelHelper) this._lexing,
-      (TopLevelHelper) this._longLines,
-      (TopLevelHelper) this._commands,
-      (TopLevelHelper) this._folding,
-      (TopLevelHelper) this._configurationManager,
-      (TopLevelHelper) this._printing,
-      (TopLevelHelper) this._findReplace,
-      (TopLevelHelper) this._documentNavigation,
-      (TopLevelHelper) this._goto
-    });
-    this.BackColor = SystemColors.Window;
-    this.ForeColor = SystemColors.WindowText;
-  }
-
-    protected override void Dispose(bool disposing)
-    {
-        foreach (ScintillaHelperBase helper in this._helpers)
-            helper.Dispose();
-
-        if (disposing && this.IsHandleCreated)
+        #region Fields
+
+        // Static module data
+        private static string modulePath;
+        private static IntPtr moduleHandle;
+        private static NativeMethods.Scintilla_DirectFunction directFunction;
+
+        // Events
+        private static readonly object scNotificationEventKey = new object();
+        private static readonly object insertCheckEventKey = new object();
+        private static readonly object beforeInsertEventKey = new object();
+        private static readonly object beforeDeleteEventKey = new object();
+        private static readonly object insertEventKey = new object();
+        private static readonly object deleteEventKey = new object();
+        private static readonly object updateUIEventKey = new object();
+        private static readonly object modifyAttemptEventKey = new object();
+        private static readonly object styleNeededEventKey = new object();
+        private static readonly object savePointReachedEventKey = new object();
+        private static readonly object savePointLeftEventKey = new object();
+        private static readonly object changeAnnotationEventKey = new object();
+        private static readonly object marginClickEventKey = new object();
+        private static readonly object charAddedEventKey = new object();
+        private static readonly object autoCSelectionEventKey = new object();
+        private static readonly object autoCCancelledEventKey = new object();
+        private static readonly object autoCCharDeletedEventKey = new object();
+        private static readonly object dwellStartEventKey = new object();
+        private static readonly object dwellEndEventKey = new object();
+        private static readonly object borderStyleChangedEventKey = new object();
+
+        // The goods
+        private IntPtr sciPtr;
+        private BorderStyle borderStyle;
+
+        private int stylingPosition;
+        private int stylingBytePosition;
+
+        // Modified event optimization
+        private int? cachedPosition = null;
+        private string cachedText = null;
+
+        /// <summary>
+        /// A constant used to specify an infinite mouse dwell wait time.
+        /// </summary>
+        public const int TimeForever = NativeMethods.SC_TIME_FOREVER;
+
+        /// <summary>
+        /// A constant used to specify an invalid document position.
+        /// </summary>
+        public const int InvalidPosition = NativeMethods.INVALID_POSITION;
+
+        #endregion Fields
+
+        #region Methods
+
+        /// <summary>
+        /// Increases the reference count of the specified document by 1.
+        /// </summary>
+        /// <param name="document">The document reference count to increase.</param>
+        public void AddRefDocument(Document document)
         {
-            Message msg = new Message()
+            var ptr = document.Value;
+            DirectMessage(NativeMethods.SCI_ADDREFDOCUMENT, IntPtr.Zero, ptr);
+        }
+
+        /// <summary>
+        /// Adds an additional selection range to the existing main selection.
+        /// </summary>
+        /// <param name="caret">The zero-based document position to end the selection.</param>
+        /// <param name="anchor">The zero-based document position to start the selection.</param>
+        /// <remarks>A main selection must first have been set by a call to <see cref="SetSelection" />.</remarks>
+        public void AddSelection(int caret, int anchor)
+        {
+            var textLength = TextLength;
+            caret = Helpers.Clamp(caret, 0, textLength);
+            anchor = Helpers.Clamp(anchor, 0, textLength);
+
+            caret = Lines.CharToBytePosition(caret);
+            anchor = Lines.CharToBytePosition(anchor);
+
+            DirectMessage(NativeMethods.SCI_ADDSELECTION, new IntPtr(caret), new IntPtr(anchor));
+        }
+
+        /// <summary>
+        /// Inserts the specified text at the current caret position.
+        /// </summary>
+        /// <param name="text">The text to insert at the current caret position.</param>
+        /// <remarks>The caret position is set to the end of the inserted text, but it is not scrolled into view.</remarks>
+        public unsafe void AddText(string text)
+        {
+            var bytes = Helpers.GetBytes(text ?? string.Empty, Encoding, zeroTerminated: false);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_ADDTEXT, new IntPtr(bytes.Length), new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Removes the annotation text for every <see cref="Line" /> in the document.
+        /// </summary>
+        public void AnnotationClearAll()
+        {
+            DirectMessage(NativeMethods.SCI_ANNOTATIONCLEARALL);
+        }
+
+        /// <summary>
+        /// Adds the specified text to the end of the document.
+        /// </summary>
+        /// <param name="text">The text to add to the document.</param>
+        /// <remarks>The current selection is not changed and the new text is not scrolled into view.</remarks>
+        public unsafe void AppendText(string text)
+        {
+            var bytes = Helpers.GetBytes(text ?? string.Empty, Encoding, zeroTerminated: false);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_APPENDTEXT, new IntPtr(bytes.Length), new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Assigns the specified key definition to a <see cref="Scintilla" /> command.
+        /// </summary>
+        /// <param name="keyDefinition">The key combination to bind.</param>
+        /// <param name="sciCommand">The command to assign.</param>
+        public void AssignCmdKey(Keys keyDefinition, Command sciCommand)
+        {
+            DirectMessage(NativeMethods.SCI_ASSIGNCMDKEY, new IntPtr((int)keyDefinition), new IntPtr((int)sciCommand));
+        }
+
+        /// <summary>
+        /// Cancels any displayed autocompletion list.
+        /// </summary>
+        /// <seealso cref="AutoCStops" />
+        public void AutoCCancel()
+        {
+            DirectMessage(NativeMethods.SCI_AUTOCCANCEL);
+        }
+
+        /// <summary>
+        /// Triggers completion of the current autocompletion word.
+        /// </summary>
+        public void AutoCComplete()
+        {
+            DirectMessage(NativeMethods.SCI_AUTOCCOMPLETE);
+        }
+
+        /// <summary>
+        /// Selects an item in the autocompletion list.
+        /// </summary>
+        /// <param name="select">
+        /// The autocompletion word to select.
+        /// If found, the word in the autocompletion list is selected and the index can be obtained by calling <see cref="AutoCCurrent" />.
+        /// If not found, the behavior is determined by <see cref="AutoCAutoHide" />.
+        /// </param>
+        /// <remarks>
+        /// Comparisons are performed according to the <see cref="AutoCIgnoreCase" /> property
+        /// and will match the first word starting with <paramref name="select" />.
+        /// </remarks>
+        /// <seealso cref="AutoCCurrent" />
+        /// <seealso cref="AutoCAutoHide" />
+        /// <seealso cref="AutoCIgnoreCase" />
+        public unsafe void AutoCSelect(string select)
+        {
+            var bytes = Helpers.GetBytes(select, Encoding, zeroTerminated: true);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_AUTOCSELECT, IntPtr.Zero, new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Displays an auto completion list.
+        /// </summary>
+        /// <param name="lenEntered">The number of characters already entered to match on.</param>
+        /// <param name="list">A list of autocompletion words separated by the <see cref="AutoCSeparator" /> character.</param>
+        public unsafe void AutoCShow(int lenEntered, string list)
+        {
+            if (string.IsNullOrEmpty(list))
+                return;
+
+            lenEntered = Helpers.ClampMin(lenEntered, 0);
+            if (lenEntered > 0)
             {
-                Msg = 2,
-                HWnd = this.Handle
-            };
+                // Convert to bytes by counting back the specified number of characters
+                var endPos = DirectMessage(NativeMethods.SCI_GETCURRENTPOS).ToInt32();
+                var startPos = endPos;
+                for (int i = 0; i < lenEntered; i++)
+                    startPos = DirectMessage(NativeMethods.SCI_POSITIONBEFORE, new IntPtr(startPos)).ToInt32();
 
-            this.DefWndProc(ref msg);
+                lenEntered = (endPos - startPos);
+            }
+
+            var bytes = Helpers.GetBytes(list, Encoding, zeroTerminated: true);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_AUTOCSHOW, new IntPtr(lenEntered), new IntPtr(bp));
         }
-        base.Dispose(disposing);
-    }
 
-  protected override void WndProc(ref Message m)
-  {
-    if (m.Msg == 2)
-    {
-      if (this.IsHandleCreated)
-      {
-        NativeMethods.SetParent(this.Handle, NativeMethods.HWND_MESSAGE);
-        return;
-      }
-    }
-    else
-    {
-      if (m.Msg == 15)
-      {
-        base.WndProc(ref m);
-        if (!this._isCustomPaintingEnabled)
-          return;
-        RECT lpRect;
-        if (!NativeMethods.GetUpdateRect(this.Handle, out lpRect, false))
-          lpRect = (RECT) this.ClientRectangle;
-        this.CreateGraphics().SetClip((Rectangle) lpRect);
-        this.OnPaint(new PaintEventArgs(this.CreateGraphics(), (Rectangle) lpRect));
-        return;
-      }
-      if (m.Msg == 563)
-      {
-        this.handleFileDrop(m.WParam);
-        return;
-      }
-      if (m.Msg == 32 /*0x20*/)
-      {
-        this.DefWndProc(ref m);
-        return;
-      }
-      if (m.Msg == 13)
-      {
-        m.WParam = (IntPtr) (this.Caption.Length + 1);
-        Marshal.Copy(this.Caption.ToCharArray(), 0, m.LParam, this.Caption.Length);
-        m.Result = (IntPtr) this.Caption.Length;
-        return;
-      }
-      if (m.Msg == 14)
-      {
-        m.Result = (IntPtr) this.Caption.Length;
-        return;
-      }
-      if ((m.Msg ^ 8192 /*0x2000*/) == 78)
-      {
-        this.ReflectNotify(ref m);
-        return;
-      }
-      if (m.Msg >= 10000)
-      {
-        this._commands.Execute((BindableCommand) m.Msg);
-        return;
-      }
-    }
-    if (m.Msg == 276 || m.Msg == 277)
-      this.FireScroll(ref m);
-    else
-      base.WndProc(ref m);
-  }
-
-  private void ReflectNotify(ref Message m)
-  {
-    SCNotification structure = (SCNotification) Marshal.PtrToStructure(m.LParam, typeof (SCNotification));
-    NativeScintillaEventArgs ea = new NativeScintillaEventArgs(m, structure);
-    switch (structure.nmhdr.code)
-    {
-      case 768 /*0x0300*/:
-        this.FireChange(ea);
-        break;
-      case 2000:
-        this.FireStyleNeeded(ea);
-        break;
-      case 2001:
-        this.FireCharAdded(ea);
-        break;
-      case 2002:
-        this.FireSavePointReached(ea);
-        break;
-      case 2003:
-        this.FireSavePointLeft(ea);
-        break;
-      case 2004:
-        this.FireModifyAttemptRO(ea);
-        break;
-      case 2005:
-        this.FireKey(ea);
-        break;
-      case 2006:
-        this.FireDoubleClick(ea);
-        break;
-      case 2007:
-        this.FireUpdateUI(ea);
-        break;
-      case 2008:
-        this.FireModified(ea);
-        break;
-      case 2009:
-        this.FireMacroRecord(ea);
-        break;
-      case 2010:
-        this.FireMarginClick(ea);
-        break;
-      case 2011:
-        this.FireNeedShown(ea);
-        break;
-      case 2013:
-        this.FirePainted(ea);
-        break;
-      case 2014:
-        this.FireUserListSelection(ea);
-        break;
-      case 2015:
-        this.FireUriDropped(ea);
-        break;
-      case 2016:
-        this.FireDwellStart(ea);
-        break;
-      case 2017:
-        this.FireDwellEnd(ea);
-        break;
-      case 2018:
-        this.FireZoom(ea);
-        break;
-      case 2019:
-        this.FireHotSpotClick(ea);
-        break;
-      case 2020:
-        this.FireHotSpotDoubleclick(ea);
-        break;
-      case 2021:
-        this.FireCallTipClick(ea);
-        break;
-      case 2022:
-        this.FireAutoCSelection(ea);
-        break;
-      case 2023:
-        this.FireIndicatorClick(ea);
-        break;
-      case 2024:
-        this.FireIndicatorRelease(ea);
-        break;
-    }
-  }
-
-  protected override CreateParams CreateParams
-  {
-    get
-    {
-      this.SetStyle(ControlStyles.UserPaint, false);
-      if (!Scintilla._sciLexerLoaded)
-      {
-        if (NativeMethods.LoadLibrary(DefaultDllName /* "SciLexer_x64.dll" */) == IntPtr.Zero)
+        /// <summary>
+        /// Specifies the characters that will automatically cancel autocompletion without the need to call <see cref="AutoCCancel" />.
+        /// </summary>
+        /// <param name="chars">A String of the characters that will cancel autocompletion. The default is empty.</param>
+        /// <remarks>Characters specified should be limited to printable ASCII characters.</remarks>
+        public unsafe void AutoCStops(string chars)
         {
-          int lastWin32Error = Marshal.GetLastWin32Error();
-          if (lastWin32Error == 126)
-            throw new FileNotFoundException(string.Format((IFormatProvider) CultureInfo.CurrentCulture, "The Scintilla library could not be found. Please place the library in a searchable path such as the application or '{0}' directory.", (object) Environment.SystemDirectory), (Exception) new Win32Exception(lastWin32Error));
-          throw new Win32Exception(lastWin32Error);
+            var bytes = Helpers.GetBytes(chars ?? string.Empty, Encoding.ASCII, zeroTerminated: true);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_AUTOCSTOPS, IntPtr.Zero, new IntPtr(bp));
         }
-        Scintilla._sciLexerLoaded = true;
-      }
-      CreateParams createParams = base.CreateParams;
-      createParams.ClassName = nameof (Scintilla);
-      return createParams;
-    }
-  }
 
-  protected override bool IsInputKey(Keys keyData)
-  {
-    if ((keyData & Keys.Shift) != Keys.None)
-      keyData ^= Keys.Shift;
-    switch (keyData)
-    {
-      case Keys.Tab:
-        return this._state[Scintilla._acceptsTabState];
-      case Keys.Return:
-        return this._state[Scintilla._acceptsReturnState];
-      case Keys.Left:
-      case Keys.Up:
-      case Keys.Right:
-      case Keys.Down:
-      case Keys.F:
-        return true;
-      default:
-        return base.IsInputKey(keyData);
-    }
-  }
-
-  protected override void OnKeyPress(KeyPressEventArgs e)
-  {
-    if (this._supressControlCharacters && e.KeyChar < ' ')
-      e.Handled = true;
-    Snippet snippet;
-    if (this._snippets.IsEnabled && this._snippets.IsOneKeySelectionEmbedEnabled && this._selection.Length > 0 && this._snippets.List.TryGetValue(e.KeyChar.ToString(), out snippet) && snippet.IsSurroundsWith)
-    {
-      this._snippets.InsertSnippet(snippet);
-      e.Handled = true;
-    }
-    base.OnKeyPress(e);
-  }
-
-  protected override void OnKeyDown(KeyEventArgs e)
-  {
-    base.OnKeyDown(e);
-    if (e.Handled)
-      return;
-    e.SuppressKeyPress = this._commands.ProcessKey(e);
-  }
-
-  internal void FireKeyDown(KeyEventArgs e) => this.OnKeyDown(e);
-
-  protected override bool ProcessKeyMessage(ref Message m)
-  {
-    return (int) m.WParam == 13 && !this.AcceptsReturn || base.ProcessKeyMessage(ref m);
-  }
-
-  protected override Size DefaultSize => new Size(200, 100);
-
-  protected override Cursor DefaultCursor => Cursors.IBeam;
-
-  protected override void OnLostFocus(EventArgs e)
-  {
-    if (this.Selection.HideSelection)
-      this._ns.HideSelection(true);
-    this._ns.SetSelBack(this.Selection.BackColorUnfocused != Color.Transparent, Utilities.ColorToRgb(this.Selection.BackColorUnfocused));
-    this._ns.SetSelFore(this.Selection.ForeColorUnfocused != Color.Transparent, Utilities.ColorToRgb(this.Selection.ForeColorUnfocused));
-    base.OnLostFocus(e);
-  }
-
-  protected override void OnGotFocus(EventArgs e)
-  {
-    if (!this.Selection.Hidden)
-      this._ns.HideSelection(false);
-    this._ns.SetSelBack(this.Selection.BackColor != Color.Transparent, Utilities.ColorToRgb(this.Selection.BackColor));
-    this._ns.SetSelFore(this.Selection.ForeColor != Color.Transparent, Utilities.ColorToRgb(this.Selection.ForeColor));
-    base.OnGotFocus(e);
-  }
-
-  protected override void OnDoubleClick(EventArgs e)
-  {
-    base.OnDoubleClick(e);
-    if (!this._isBraceMatching)
-      return;
-    int num1 = this.CurrentPos - 1;
-    switch (this.CharAt(num1))
-    {
-      case '(':
-      case '[':
-      case '{':
-        if (this.PositionIsOnComment(num1))
-          break;
-        int num2 = num1;
-        int num3 = this._ns.BraceMatch(num1, 0) + 1;
-        this._selection.Start = num2;
-        this._selection.End = num3;
-        break;
-    }
-  }
-
-  protected override void OnCreateControl()
-  {
-    base.OnCreateControl();
-    this.OnLoad(EventArgs.Empty);
-  }
-
-  protected override void OnPaint(PaintEventArgs e)
-  {
-    base.OnPaint(e);
-    this.paintRanges(e.Graphics);
-  }
-
-  [DefaultValue(true)]
-  [Description("Indicates if return characters are accepted as text input.")]
-  [Category("Behavior")]
-  public bool AcceptsReturn
-  {
-    get => this._state[Scintilla._acceptsReturnState];
-    set => this._state[Scintilla._acceptsReturnState] = value;
-  }
-
-  [Category("Behavior")]
-  [Description("Indicates if tab characters are accepted as text input.")]
-  [DefaultValue(true)]
-  public bool AcceptsTab
-  {
-    get => this._state[Scintilla._acceptsTabState];
-    set => this._state[Scintilla._acceptsTabState] = value;
-  }
-
-  public override bool AllowDrop
-  {
-    get => this._allowDrop;
-    set
-    {
-      NativeMethods.DragAcceptFiles(this.Handle, value);
-      this._allowDrop = value;
-    }
-  }
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Category("Behavior")]
-  public AutoComplete AutoComplete => this._autoComplete;
-
-  private bool ShouldSerializeAutoComplete() => this._autoComplete.ShouldSerialize();
-
-  [DefaultValue(typeof (Color), "Window")]
-  public override Color BackColor
-  {
-    get
-    {
-      return this._colorBag.ContainsKey(nameof (BackColor)) ? this._colorBag[nameof (BackColor)] : SystemColors.Window;
-    }
-    set
-    {
-      Color backColor = this.BackColor;
-      if (value == SystemColors.Window)
-        this._colorBag.Remove(nameof (BackColor));
-      else
-        this._colorBag[nameof (BackColor)] = value;
-      if (!this._useBackColor)
-        return;
-      for (int index = 0; index < 128 /*0x80*/; ++index)
-      {
-        if (index != 33)
-          this.Styles[index].BackColor = value;
-      }
-    }
-  }
-
-  [EditorBrowsable(EditorBrowsableState.Never)]
-  [Browsable(false)]
-  public override Image BackgroundImage
-  {
-    get => base.BackgroundImage;
-    set => base.BackgroundImage = value;
-  }
-
-  [EditorBrowsable(EditorBrowsableState.Never)]
-  [Browsable(false)]
-  public override ImageLayout BackgroundImageLayout
-  {
-    get => base.BackgroundImageLayout;
-    set => base.BackgroundImageLayout = value;
-  }
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public CallTip CallTip
-  {
-    get => this._callTip;
-    set => this._callTip = value;
-  }
-
-  private bool ShouldSerializeCallTip() => this._callTip.ShouldSerialize();
-
-  [Description("Win32 Window Caption")]
-  [Category("Behavior")]
-  public string Caption
-  {
-    get => this._caption;
-    set
-    {
-      if (!(this._caption != value))
-        return;
-      this._caption = value;
-      base.Text = value;
-    }
-  }
-
-  private void ResetCaption() => this.Caption = this.GetType().FullName;
-
-  private bool ShouldSerializeCaption() => this.Caption != this.GetType().FullName;
-
-  [Category("Appearance")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public CaretInfo Caret => this._caret;
-
-  private bool ShouldSerializeCaret() => this._caret.ShouldSerialize();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Category("Behavior")]
-  public Clipboard Clipboard => this._clipboard;
-
-  private bool ShouldSerializeClipboard() => this._clipboard.ShouldSerialize();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  [Browsable(false)]
-  public int CurrentPos
-  {
-    get => this.NativeInterface.GetCurrentPos();
-    set => this.NativeInterface.GotoPos(value);
-  }
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public Commands Commands
-  {
-    get => this._commands;
-    set => this._commands = value;
-  }
-
-  private bool ShouldSerializeCommands() => this._commands.ShouldSerialize();
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public ConfigurationManager ConfigurationManager
-  {
-    get => this._configurationManager;
-    set => this._configurationManager = value;
-  }
-
-  private bool ShouldSerializeConfigurationManager()
-  {
-    return this._configurationManager.ShouldSerialize();
-  }
-
-  [Browsable(false)]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  public DocumentHandler DocumentHandler
-  {
-    get => this._documentHandler;
-    set => this._documentHandler = value;
-  }
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Category("Behavior")]
-  public DocumentNavigation DocumentNavigation
-  {
-    get => this._documentNavigation;
-    set => this._documentNavigation = value;
-  }
-
-  private bool ShouldSerializeDocumentNavigation() => this._documentNavigation.ShouldSerialize();
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public DropMarkers DropMarkers => this._dropMarkers;
-
-  private bool ShouldSerializeDropMarkers() => this._dropMarkers.ShouldSerialize();
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public EndOfLine EndOfLine
-  {
-    get => this._endOfLine;
-    set => this._endOfLine = value;
-  }
-
-  private bool ShouldSerializeEndOfLine() => this._endOfLine.ShouldSerialize();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  [Browsable(false)]
-  public Encoding Encoding
-  {
-    get => this._encoding;
-    set
-    {
-      this._encoding = Scintilla.ValidCodePages.Contains(value) ? value : throw new EncoderFallbackException("Scintilla only supports the following Encodings: " + Scintilla.ValidCodePages.ToString());
-      this._ns.SetCodePage(this._encoding.CodePage);
-    }
-  }
-
-  [Category("Behavior")]
-  public FindReplace FindReplace
-  {
-    get => this._findReplace;
-    set => this._findReplace = value;
-  }
-
-  private bool ShouldSerializeFindReplace() => this._findReplace.ShouldSerialize();
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public Folding Folding
-  {
-    get => this._folding;
-    set => this._folding = value;
-  }
-
-  private bool ShouldSerializeFolding() => this._folding.ShouldSerialize();
-
-  public override Font Font
-  {
-    get => base.Font;
-    set
-    {
-      if (value == null && this.Parent != null)
-        value = this.Parent.Font;
-      else if (value == null)
-        value = Control.DefaultFont;
-      Font font = base.Font;
-      if (this._useFont)
-      {
-        for (int index = 0; index < 32 /*0x20*/; ++index)
+        /// <summary>
+        /// Marks the beginning of a set of actions that should be treated as a single undo action.
+        /// </summary>
+        /// <remarks>A call to <see cref="BeginUndoAction" /> should be followed by a call to <see cref="EndUndoAction" />.</remarks>
+        /// <seealso cref="EndUndoAction" />
+        public void BeginUndoAction()
         {
-          if (index != 38)
-            this.Styles[index].Font = value;
+            DirectMessage(NativeMethods.SCI_BEGINUNDOACTION);
         }
-      }
-      if (base.Font.Equals((object) value))
-        return;
-      base.Font = value;
-    }
-  }
 
-  protected override void OnFontChanged(EventArgs e)
-  {
-    this.Font = this.Font;
-    base.OnFontChanged(e);
-  }
-
-  public override void ResetFont()
-  {
-    if (this.Parent != null)
-      this.Font = this.Parent.Font;
-    else
-      this.Font = Control.DefaultFont;
-  }
-
-  private new bool ShouldSerializeFont() => this.Parent == null || this.Font != this.Parent.Font;
-
-  [DefaultValue(typeof (Color), "WindowText")]
-  public override Color ForeColor
-  {
-    get
-    {
-      return this._colorBag.ContainsKey(nameof (ForeColor)) ? this._colorBag[nameof (ForeColor)] : base.ForeColor;
-    }
-    set
-    {
-      Color foreColor = this.ForeColor;
-      if (value == SystemColors.WindowText)
-        this._colorBag.Remove(nameof (ForeColor));
-      else
-        this._colorBag[nameof (ForeColor)] = value;
-      if (this._useForeColor)
-      {
-        for (int index = 0; index < 32 /*0x20*/; ++index)
+        /// <summary>
+        /// Styles the specified character position with the <see cref="Style.BraceBad" /> style when there is an unmatched brace.
+        /// </summary>
+        /// <param name="position">The zero-based document position of the unmatched brace character or <seealso cref="InvalidPosition"/> to remove the highlight.</param>
+        public void BraceBadLight(int position)
         {
-          if (index != 33)
-            this.Styles[index].ForeColor = value;
+            position = Helpers.Clamp(position, -1, TextLength);
+            if (position > 0)
+                position = Lines.CharToBytePosition(position);
+
+            DirectMessage(NativeMethods.SCI_BRACEBADLIGHT, new IntPtr(position));
         }
-      }
-      base.ForeColor = value;
-    }
-  }
 
-  protected override void OnForeColorChanged(EventArgs e)
-  {
-    this.ForeColor = base.ForeColor;
-    base.OnForeColorChanged(e);
-  }
-
-  [Browsable(false)]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  public GoTo GoTo
-  {
-    get => this._goto;
-    set => this._goto = value;
-  }
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Category("Appearance")]
-  public HotspotStyle HotspotStyle
-  {
-    get => this._hotspotStyle;
-    set => this._hotspotStyle = value;
-  }
-
-  private bool ShouldSerializeHotspotStyle() => this._hotspotStyle.ShouldSerialize();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  [Browsable(false)]
-  public IndicatorCollection Indicators => this._indicators;
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Category("Behavior")]
-  public Indentation Indentation
-  {
-    get => this._indentation;
-    set => this._indentation = value;
-  }
-
-  private bool ShouldSerializeIndentation() => this._indentation.ShouldSerialize();
-
-  [Category("Behavior")]
-  [DefaultValue(false)]
-  public bool IsBraceMatching
-  {
-    get => this._isBraceMatching;
-    set => this._isBraceMatching = value;
-  }
-
-  internal int SafeBraceMatch(int position)
-  {
-    int num1 = (int) this.CharAt(position);
-    int textLength = this.TextLength;
-    int num2 = 0;
-    Lexer lexer = this._lexing.Lexer;
-    this._lexing.Colorize(0, -1);
-    bool flag = this.PositionIsOnComment(position, lexer);
-    int num3;
-    int num4;
-    switch (num1)
-    {
-      case 40:
-        num3 = 41;
-        goto label_22;
-      case 41:
-        num4 = 40;
-        break;
-      case 91:
-        num3 = 93;
-        goto label_22;
-      case 93:
-        num4 = 91;
-        break;
-      case 123:
-        num3 = 125;
-        goto label_22;
-      case 125:
-        num4 = 123;
-        break;
-      default:
-        return -1;
-    }
-    while (position >= 0)
-    {
-      --position;
-      int num5 = (int) this.CharAt(position);
-      if (num5 == num1)
-      {
-        if (flag == this.PositionIsOnComment(position, lexer))
-          ++num2;
-      }
-      else if (num5 == num4 && flag == this.PositionIsOnComment(position, lexer))
-      {
-        --num2;
-        if (num2 < 0)
-          return position;
-      }
-    }
-    return -1;
-label_22:
-    while (position < textLength)
-    {
-      ++position;
-      int num6 = (int) this.CharAt(position);
-      if (num6 == num1)
-      {
-        if (flag == this.PositionIsOnComment(position, lexer))
-          ++num2;
-      }
-      else if (num6 == num3 && flag == this.PositionIsOnComment(position, lexer))
-      {
-        --num2;
-        if (num2 < 0)
-          return position;
-      }
-    }
-    return -1;
-  }
-
-  [Category("Behavior")]
-  [DefaultValue(true)]
-  public bool IsCustomPaintingEnabled
-  {
-    get => this._isCustomPaintingEnabled;
-    set => this._isCustomPaintingEnabled = value;
-  }
-
-  [Category("Behavior")]
-  [DefaultValue(false)]
-  public bool IsReadOnly
-  {
-    get => this._ns.GetReadOnly();
-    set => this._ns.SetReadOnly(value);
-  }
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public Lexing Lexing
-  {
-    get => this._lexing;
-    set => this._lexing = value;
-  }
-
-  private bool ShouldSerializeLexing() => this._lexing.ShouldSerialize();
-
-  [Browsable(false)]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  public LinesCollection Lines => this._lines;
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public LineWrap LineWrap
-  {
-    get => this._lineWrap;
-    set => this._lineWrap = value;
-  }
-
-  private bool ShouldSerializeLineWrap() => this.LineWrap.ShouldSerialize();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Category("Behavior")]
-  public LongLines LongLines
-  {
-    get => this._longLines;
-    set => this._longLines = value;
-  }
-
-  private bool ShouldSerializeLongLines() => this._longLines.ShouldSerialize();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  [Browsable(false)]
-  public List<ManagedRange> ManagedRanges => this._managedRanges;
-
-  [Category("Appearance")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Browsable(true)]
-  public MarginCollection Margins => this._margins;
-
-  private bool ShouldSerializeMargins() => this._margins.ShouldSerialize();
-
-  private void ResetMargins() => this._margins.Reset();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Category("Behavior")]
-  public MarkerCollection Markers
-  {
-    get => this._markers;
-    set => this._markers = value;
-  }
-
-  private bool ShouldSerializeMarkers() => this._markers.ShouldSerialize();
-
-  [DefaultValue(true)]
-  [Category("Behavior")]
-  public bool MatchBraces
-  {
-    get => this._matchBraces;
-    set
-    {
-      this._matchBraces = value;
-      if (value)
-        return;
-      this._ns.BraceHighlight(-1, -1);
-    }
-  }
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  [Browsable(false)]
-  public bool Modified
-  {
-    get => this._state[Scintilla._modifiedState];
-    set
-    {
-      if (this._state[Scintilla._modifiedState] == value)
-        return;
-      this._state[Scintilla._modifiedState] = value;
-      if (!value)
-        this._ns.SetSavePoint();
-      this.OnModifiedChanged(EventArgs.Empty);
-    }
-  }
-
-  [DefaultValue(true)]
-  [Category("Behavior")]
-  public bool MouseDownCaptures
-  {
-    get => this.NativeInterface.GetMouseDownCaptures();
-    set => this.NativeInterface.SetMouseDownCaptures(value);
-  }
-
-  [Browsable(false)]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  public INativeScintilla NativeInterface => (INativeScintilla) this;
-
-  [Category("Behavior")]
-  [DefaultValue(false)]
-  public bool OverType
-  {
-    get => this._ns.GetOvertype();
-    set => this._ns.SetOvertype(value);
-  }
-
-  [Category("Layout")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public Printing Printing
-  {
-    get => this._printing;
-    set => this._printing = value;
-  }
-
-  private bool ShouldSerializePrinting() => this._printing.ShouldSerialize();
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  [Browsable(false)]
-  public unsafe byte[] RawText
-  {
-    get
-    {
-      int wParam = this.NativeInterface.GetTextLength() + 1;
-      if (wParam == 1)
-        return new byte[1];
-      byte[] rawText = new byte[wParam];
-      fixed (byte* lParam = rawText)
-      {
-        this._ns.SendMessageDirect(2182U, (IntPtr) wParam, (IntPtr) (void*) lParam);
-        return rawText;
-      }
-    }
-    set
-    {
-      if (value == null || value.Length == 0)
-      {
-        this._ns.ClearAll();
-      }
-      else
-      {
-        if (value[value.Length - 1] != (byte) 0)
+        /// <summary>
+        /// Styles the specified character positions with the <see cref="Style.BraceLight" /> style.
+        /// </summary>
+        /// <param name="position1">The zero-based document position of the open brace character.</param>
+        /// <param name="position2">The zero-based document position of the close brace character.</param>
+        /// <remarks>Brace highlighting can be removed by specifying <see cref="InvalidPosition" /> for <paramref name="position1" /> and <paramref name="position2" />.</remarks>
+        /// <seealso cref="HighlightGuide" />
+        public void BraceHighlight(int position1, int position2)
         {
-          Array.Resize<byte>(ref value, value.Length + 1);
-          value[value.Length - 1] = (byte) 0;
+            var textLength = TextLength;
+
+            position1 = Helpers.Clamp(position1, -1, textLength);
+            if (position1 > 0)
+                position1 = Lines.CharToBytePosition(position1);
+
+            position2 = Helpers.Clamp(position2, -1, textLength);
+            if (position2 > 0)
+                position2 = Lines.CharToBytePosition(position2);
+
+            DirectMessage(NativeMethods.SCI_BRACEHIGHLIGHT, new IntPtr(position1), new IntPtr(position2));
         }
-        fixed (byte* lParam = value)
-          this._ns.SendMessageDirect(2181U, IntPtr.Zero, (IntPtr) (void*) lParam);
-      }
-    }
-  }
 
-  [Category("Layout")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public Scrolling Scrolling
-  {
-    get => this._scrolling;
-    set => this._scrolling = value;
-  }
-
-  private bool ShouldSerializeScrolling() => this._scrolling.ShouldSerialize();
-
-  [Category("Appearance")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public Selection Selection => this._selection;
-
-  private bool ShouldSerializeSelection() => this._selection.ShouldSerialize();
-
-  [DefaultValue(SearchFlags.Empty)]
-  [Editor(typeof (FlagEnumUIEditor), typeof (UITypeEditor))]
-  [Category("Behavior")]
-  public SearchFlags SearchFlags
-  {
-    get => this._searchFlags;
-    set => this._searchFlags = value;
-  }
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public SnippetManager Snippets => this._snippets;
-
-  private bool ShouldSerializeSnippets() => this._snippets.ShouldSerialize();
-
-  [Category("Appearance")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public StyleCollection Styles
-  {
-    get => this._styles;
-    set => this._styles = value;
-  }
-
-  private bool ShouldSerializeStyles() => this._styles.ShouldSerialize();
-
-  [Browsable(false)]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  public bool SupressControlCharacters
-  {
-    get => this._supressControlCharacters;
-    set => this._supressControlCharacters = value;
-  }
-
-  [Editor("System.ComponentModel.Design.MultilineStringEditor, System.Design", typeof (UITypeEditor))]
-  public override string Text
-  {
-    get
-    {
-      string text;
-      this._ns.GetText(this._ns.GetLength() + 1, out text);
-      return text;
-    }
-    set
-    {
-      if (string.IsNullOrEmpty(value))
-        this._ns.ClearAll();
-      else
-        this._ns.SetText(value);
-    }
-  }
-
-  [Browsable(false)]
-  public int TextLength => this.NativeInterface.GetTextLength();
-
-  [Category("Behavior")]
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  public UndoRedo UndoRedo => this._undoRedo;
-
-  public bool ShouldSerializeUndoRedo() => this._undoRedo.ShouldSerialize();
-
-  [DefaultValue(false)]
-  [Category("Appearance")]
-  public bool UseForeColor
-  {
-    get => this._useForeColor;
-    set
-    {
-      this._useForeColor = value;
-      if (!value)
-        return;
-      this.ForeColor = this.ForeColor;
-    }
-  }
-
-  [DefaultValue(false)]
-  [Category("Appearance")]
-  public bool UseFont
-  {
-    get => this._useFont;
-    set
-    {
-      this._useFont = value;
-      if (!value)
-        return;
-      this.Font = this.Font;
-    }
-  }
-
-  [DefaultValue(false)]
-  [Category("Appearance")]
-  public bool UseBackColor
-  {
-    get => this._useBackColor;
-    set
-    {
-      this._useBackColor = value;
-      if (!value)
-        return;
-      this.BackColor = this.BackColor;
-    }
-  }
-
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public new bool UseWaitCursor
-  {
-    get => base.UseWaitCursor;
-    set
-    {
-      base.UseWaitCursor = value;
-      if (value)
-        this.NativeInterface.SetCursor(4);
-      else
-        this.NativeInterface.SetCursor(-1);
-    }
-  }
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-  [Description("The display mode and style of whitespace characters.")]
-  [Category("Appearance")]
-  public Whitespace Whitespace => this._whitespace;
-
-  [DefaultValue(0)]
-  [Description("Defines the current scaling factor of the text display; 0 is normal viewing.")]
-  [Category("Appearance")]
-  public int Zoom
-  {
-    get => this._ns.GetZoom();
-    set => this._ns.SetZoom(value);
-  }
-
-  private void handleFileDrop(IntPtr hDrop)
-  {
-    StringBuilder lpszFile1 = (StringBuilder) null;
-    uint num1 = NativeMethods.DragQueryFile(hDrop, uint.MaxValue, lpszFile1, 0U);
-    List<string> stringList = new List<string>();
-    for (uint iFile = 0; iFile < num1; ++iFile)
-    {
-      StringBuilder lpszFile2 = new StringBuilder(512 /*0x0200*/);
-      int num2 = (int) NativeMethods.DragQueryFile(hDrop, iFile, lpszFile2, 512U /*0x0200*/);
-      stringList.Add(lpszFile2.ToString());
-    }
-    NativeMethods.DragFinish(hDrop);
-    this.OnFileDrop(new FileDropEventArgs(stringList.ToArray()));
-  }
-
-  private List<ManagedRange> managedRangesInRange(int firstPos, int lastPos)
-  {
-    List<ManagedRange> managedRangeList = new List<ManagedRange>();
-    foreach (ManagedRange managedRange in this._managedRanges)
-    {
-      if (managedRange.Start >= firstPos && managedRange.Start <= lastPos)
-        managedRangeList.Add(managedRange);
-    }
-    return managedRangeList;
-  }
-
-  private void paintRanges(Graphics g)
-  {
-    int firstVisibleLine = this._ns.GetFirstVisibleLine();
-    int num = firstVisibleLine + this._ns.LinesOnScreen();
-    int firstPos = this._ns.PositionFromLine(firstVisibleLine);
-    int lastPos = this._ns.PositionFromLine(num + 1) - 1;
-    if (lastPos < 0)
-      lastPos = this._ns.GetLength();
-    List<ManagedRange> managedRangeList = this.managedRangesInRange(firstPos, lastPos);
-    g.SmoothingMode = SmoothingMode.AntiAlias;
-    foreach (ManagedRange managedRange in managedRangeList)
-      managedRange.Paint(g);
-  }
-
-  [Category("Behavior")]
-  [Description("Occurs when the control is first loaded.")]
-  public event EventHandler Load
-  {
-    add => this.Events.AddHandler(Scintilla._loadEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._loadEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnLoad(EventArgs e)
-  {
-    if (!(this.Events[Scintilla._loadEventKey] is EventHandler eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when the text has changed.")]
-  [Category("Scintilla")]
-  public event EventHandler<EventArgs> TextChanged
-  {
-    add => this.Events.AddHandler(Scintilla._textChangedKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._textChangedKey, (Delegate) value);
-  }
-
-  protected virtual void OnTextChanged()
-  {
-    if (!(this.Events[Scintilla._textChangedKey] is EventHandler<EventArgs> eventHandler))
-      return;
-    eventHandler((object) this, EventArgs.Empty);
-  }
-
-  [Description("Occurs when the text or styling of the document changes or is about to change.")]
-  [Category("Scintilla")]
-  public event EventHandler<NativeScintillaEventArgs> DocumentChange
-  {
-    add => this.Events.AddHandler(Scintilla._documentChangeEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._documentChangeEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnDocumentChange(NativeScintillaEventArgs e)
-  {
-    if (!(this.Events[Scintilla._documentChangeEventKey] is EventHandler<NativeScintillaEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when a user clicks on a call tip.")]
-  [Category("Scintilla")]
-  public event EventHandler<CallTipClickEventArgs> CallTipClick
-  {
-    add => this.Events.AddHandler(Scintilla._callTipClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._callTipClickEventKey, (Delegate) value);
-  }
-
-  internal void FireCallTipClick(int arrow)
-  {
-    CallTipArrow callTipArrow = (CallTipArrow) arrow;
-    OverloadList overloadList = this.CallTip.OverloadList;
-    CallTipClickEventArgs e;
-    if (overloadList == null)
-    {
-      e = new CallTipClickEventArgs(callTipArrow, -1, -1, (OverloadList) null, this.CallTip.HighlightStart, this.CallTip.HighlightEnd);
-    }
-    else
-    {
-      int newIndex = overloadList.CurrentIndex;
-      switch (callTipArrow)
-      {
-        case CallTipArrow.Up:
-          if (overloadList.CurrentIndex == 0)
-          {
-            newIndex = overloadList.Count - 1;
-            break;
-          }
-          --newIndex;
-          break;
-        case CallTipArrow.Down:
-          if (overloadList.CurrentIndex == overloadList.Count - 1)
-          {
-            newIndex = 0;
-            break;
-          }
-          ++newIndex;
-          break;
-      }
-      e = new CallTipClickEventArgs(callTipArrow, overloadList.CurrentIndex, newIndex, overloadList, this.CallTip.HighlightStart, this.CallTip.HighlightEnd);
-    }
-    this.OnCallTipClick(e);
-    if (e.Cancel)
-    {
-      this.CallTip.Cancel();
-    }
-    else
-    {
-      if (overloadList != null)
-      {
-        this.CallTip.OverloadList = e.OverloadList;
-        this.CallTip.OverloadList.CurrentIndex = e.NewIndex;
-        this.CallTip.ShowOverloadInternal();
-      }
-      this.CallTip.HighlightStart = e.HighlightStart;
-      this.CallTip.HighlightEnd = e.HighlightEnd;
-    }
-  }
-
-  protected virtual void OnCallTipClick(CallTipClickEventArgs e)
-  {
-    if (!(this.Events[Scintilla._callTipClickEventKey] is EventHandler<CallTipClickEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when the user makes a selection from the auto-complete list.")]
-  public event EventHandler<AutoCompleteAcceptedEventArgs> AutoCompleteAccepted
-  {
-    add => this.Events.AddHandler(Scintilla._autoCompleteAcceptedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._autoCompleteAcceptedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnAutoCompleteAccepted(AutoCompleteAcceptedEventArgs e)
-  {
-    if (this.Events[Scintilla._autoCompleteAcceptedEventKey] is EventHandler<AutoCompleteAcceptedEventArgs> eventHandler)
-      eventHandler((object) this, e);
-    if (!e.Cancel)
-      return;
-    this.AutoComplete.Cancel();
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when text has been inserted into the document.")]
-  public event EventHandler<TextModifiedEventArgs> TextInserted
-  {
-    add => this.Events.AddHandler(Scintilla._textInsertedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._textInsertedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnTextInserted(TextModifiedEventArgs e)
-  {
-    if (!(this.Events[Scintilla._textInsertedEventKey] is EventHandler<TextModifiedEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when text has been removed from the document.")]
-  [Category("Scintilla")]
-  public event EventHandler<TextModifiedEventArgs> TextDeleted
-  {
-    add => this.Events.AddHandler(Scintilla._textDeletedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._textDeletedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnTextDeleted(TextModifiedEventArgs e)
-  {
-    if (!(this.Events[Scintilla._textDeletedEventKey] is EventHandler<TextModifiedEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when text is about to be inserted into the document.")]
-  [Category("Scintilla")]
-  public event EventHandler<TextModifiedEventArgs> BeforeTextInsert
-  {
-    add => this.Events.AddHandler(Scintilla._beforeTextInsertEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._beforeTextInsertEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnBeforeTextInsert(TextModifiedEventArgs e)
-  {
-    List<ManagedRange> managedRangeList = new List<ManagedRange>();
-    foreach (ManagedRange managedRange in this._managedRanges)
-    {
-      if (managedRange.Start == e.Position && managedRange.PendingDeletion)
-      {
-        managedRange.PendingDeletion = false;
-        ManagedRange lmr = managedRange;
-        this.BeginInvoke((Delegate) (() => lmr.Change(e.Position, e.Position + e.Length)));
-      }
-      if (managedRange.IsPoint)
-      {
-        if (managedRange.Start >= e.Position)
-          managedRange.Change(managedRange.Start + e.Length, managedRange.End + e.Length);
-        else if (managedRange.End >= e.Position)
-          managedRange.Change(managedRange.Start, managedRange.End + e.Length);
-      }
-      else if (managedRange.Start > e.Position)
-        managedRange.Change(managedRange.Start + e.Length, managedRange.End + e.Length);
-      else if (managedRange.End >= e.Position)
-        managedRange.Change(managedRange.Start, managedRange.End + e.Length);
-    }
-    if (!(this.Events[Scintilla._beforeTextInsertEventKey] is EventHandler<TextModifiedEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when text is about to be removed from the document.")]
-  public event EventHandler<TextModifiedEventArgs> BeforeTextDelete
-  {
-    add => this.Events.AddHandler(Scintilla._beforeTextDeleteEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._beforeTextDeleteEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnBeforeTextDelete(TextModifiedEventArgs e)
-  {
-    int position = e.Position;
-    int num = position + e.Length;
-    List<ManagedRange> managedRangeList = new List<ManagedRange>();
-    foreach (ManagedRange managedRange in this._managedRanges)
-    {
-      if (managedRange.Start >= position && managedRange.End <= num)
-      {
-        if (!managedRange.IsPoint && e.Position == managedRange.Start && e.Position + e.Length == managedRange.End)
+        /// <summary>
+        /// Finds a corresponding matching brace starting at the position specified.
+        /// The brace characters handled are '(', ')', '[', ']', '{', '}', '&lt;', and '&gt;'.
+        /// </summary>
+        /// <param name="position">The zero-based document position of a brace character to start the search from for a matching brace character.</param>
+        /// <returns>The zero-based document position of the corresponding matching brace or <paramref name="InvalidPosition" /> it no matching brace could be found.</returns>
+        /// <remarks>A match only occurs if the style of the matching brace is the same as the starting brace. Nested braces are handled correctly.</remarks>
+        public int BraceMatch(int position)
         {
-          managedRange.Change(managedRange.Start, managedRange.Start);
+            position = Helpers.Clamp(position, 0, TextLength);
+            position = Lines.CharToBytePosition(position);
+            
+            var match = DirectMessage(NativeMethods.SCI_BRACEMATCH, new IntPtr(position), IntPtr.Zero).ToInt32();
+            if (match > 0)
+                match = Lines.ByteToCharPosition(match);
+
+            return match;
         }
-        else
+
+        /// <summary>
+        /// Cancels the display of a call tip window.
+        /// </summary>
+        public void CallTipCancel()
         {
-          managedRange.Change(-1, -1);
-          managedRangeList.Add(managedRange);
+            DirectMessage(NativeMethods.SCI_CALLTIPCANCEL);
         }
-      }
-      else if (managedRange.Start >= num)
-        managedRange.Change(managedRange.Start - e.Length, managedRange.End - e.Length);
-      else if (managedRange.Start >= position && managedRange.Start <= num)
-        managedRange.Change(position, managedRange.End - e.Length);
-      else if (managedRange.Start < position && managedRange.End >= position && managedRange.End >= num)
-        managedRange.Change(managedRange.Start, managedRange.End - e.Length);
-      else if (managedRange.Start < position && managedRange.End >= position && managedRange.End < num)
-        managedRange.Change(managedRange.Start, position);
-    }
-    foreach (ScintillaHelperBase scintillaHelperBase in managedRangeList)
-      scintillaHelperBase.Dispose();
-    if (!(this.Events[Scintilla._beforeTextDeleteEventKey] is EventHandler<TextModifiedEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
 
-  [Description("Occurs when a folding change has occurred.")]
-  [Category("Scintilla")]
-  public event EventHandler<FoldChangedEventArgs> FoldChanged
-  {
-    add => this.Events.AddHandler(Scintilla._foldChangedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._foldChangedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnFoldChanged(FoldChangedEventArgs e)
-  {
-    if (!(this.Events[Scintilla._foldChangedEventKey] is EventHandler<FoldChangedEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when one or more markers has changed in a line of text.")]
-  [Category("Scintilla")]
-  public event EventHandler<MarkerChangedEventArgs> MarkerChanged
-  {
-    add => this.Events.AddHandler(Scintilla._markerChangedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._markerChangedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnMarkerChanged(MarkerChangedEventArgs e)
-  {
-    if (!(this.Events[Scintilla._markerChangedEventKey] is EventHandler<MarkerChangedEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when the a clicks or releases the mouse on text that has an indicator.")]
-  public event EventHandler<ScintillaMouseEventArgs> IndicatorClick
-  {
-    add => this.Events.AddHandler(Scintilla._indicatorClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._indicatorClickEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnIndicatorClick(ScintillaMouseEventArgs e)
-  {
-    if (!(this.Events[Scintilla._indicatorClickEventKey] is EventHandler<ScintillaMouseEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when the mouse was clicked inside a margin that was marked as sensitive.")]
-  public event EventHandler<MarginClickEventArgs> MarginClick
-  {
-    add => this.Events.AddHandler(Scintilla._marginClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._marginClickEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnMarginClick(MarginClickEventArgs e)
-  {
-    if (this.Events[Scintilla._marginClickEventKey] is EventHandler<MarginClickEventArgs> eventHandler)
-      eventHandler((object) this, e);
-    if (e.ToggleMarkerNumber >= 0)
-    {
-      int num = (int) Math.Pow(2.0, (double) e.ToggleMarkerNumber);
-      if ((e.Line.GetMarkerMask() & num) == num)
-        e.Line.DeleteMarker(e.ToggleMarkerNumber);
-      else
-        e.Line.AddMarker(e.ToggleMarkerNumber);
-    }
-    if (!e.ToggleFold)
-      return;
-    e.Line.ToggleFoldExpanded();
-  }
-
-  internal void FireMarginClick(SCNotification n)
-  {
-    ScintillaNet.Margin margin = this.Margins[n.margin];
-    Keys modifiers = Keys.None;
-    if ((n.modifiers & 4) == 4)
-      modifiers |= Keys.Alt;
-    if ((n.modifiers & 2) == 2)
-      modifiers |= Keys.Control;
-    if ((n.modifiers & 1) == 1)
-      modifiers |= Keys.Shift;
-    this.OnMarginClick(new MarginClickEventArgs(modifiers, n.position, this.Lines.FromPosition(n.position), margin, margin.AutoToggleMarkerNumber, margin.IsFoldMargin));
-  }
-
-  [Description("Occurs when the control is about to display or print text that requires styling.")]
-  [Category("Scintilla")]
-  public event EventHandler<StyleNeededEventArgs> StyleNeeded
-  {
-    add => this.Events.AddHandler(Scintilla._styleNeededEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._styleNeededEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnStyleNeeded(StyleNeededEventArgs e)
-  {
-    if (!(this.Events[Scintilla._styleNeededEventKey] is EventHandler<StyleNeededEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when the user types a text character.")]
-  public event EventHandler<CharAddedEventArgs> CharAdded
-  {
-    add => this.Events.AddHandler(Scintilla._charAddedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._charAddedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnCharAdded(CharAddedEventArgs e)
-  {
-    if (this.Events[Scintilla._charAddedEventKey] is EventHandler<CharAddedEventArgs> eventHandler)
-      eventHandler((object) this, e);
-    if (this._indentation.SmartIndentType == SmartIndent.None)
-      return;
-    this._indentation.CheckSmartIndent(e.Ch);
-  }
-
-  [Description("Occurs when the value of the Modified property changes.")]
-  [Category("Property Changed")]
-  public event EventHandler ModifiedChanged
-  {
-    add => this.Events.AddHandler(Scintilla._modifiedChangedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._modifiedChangedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnModifiedChanged(EventArgs e)
-  {
-    if (!(this.Events[Scintilla._modifiedChangedEventKey] is EventHandler eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when a user tries to modifiy text when in read-only mode.")]
-  public event EventHandler ReadOnlyModifyAttempt
-  {
-    add => this.Events.AddHandler(Scintilla._readOnlyModifyAttemptEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._readOnlyModifyAttemptEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnReadOnlyModifyAttempt(EventArgs e)
-  {
-    if (!(this.Events[Scintilla._readOnlyModifyAttemptEventKey] is EventHandler eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when the selection has changed.")]
-  public event EventHandler SelectionChanged
-  {
-    add => this.Events.AddHandler(Scintilla._selectionChangedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._selectionChangedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnSelectionChanged(EventArgs e)
-  {
-    if (this.Events[Scintilla._selectionChangedEventKey] is EventHandler eventHandler)
-      eventHandler((object) this, e);
-    if (!this._isBraceMatching || this._selection.Length != 0)
-      return;
-    int num = this.CurrentPos - 1;
-    int pos1 = -1;
-    int pos2 = -1;
-    switch (this.CharAt(num))
-    {
-      case '(':
-      case ')':
-      case '[':
-      case ']':
-      case '{':
-      case '}':
-        if (!this.PositionIsOnComment(num))
+        /// <summary>
+        /// Sets the color of highlighted text in a call tip.
+        /// </summary>
+        /// <param name="color">The new highlight text Color. The default is dark blue.</param>
+        public void CallTipSetForeHlt(Color color)
         {
-          pos1 = num;
-          pos2 = this._ns.BraceMatch(num, 0);
-          break;
+            var colour = ColorTranslator.ToWin32(color);
+            DirectMessage(NativeMethods.SCI_CALLTIPSETFOREHLT, new IntPtr(colour));
         }
-        break;
-      default:
-        this.CharAt(this.CurrentPos);
-        break;
+
+        /// <summary>
+        /// Sets the specified range of the call tip text to display in a highlighted style.
+        /// </summary>
+        /// <param name="hlStart">The zero-based index in the call tip text to start highlighting.</param>
+        /// <param name="hlEnd">The zero-based index in the call tip text to stop highlighting (exclusive).</param>
+        public void CallTipSetHlt(int hlStart, int hlEnd)
+        {
+            // Call tips are ASCII only so (fortunately) we don't need to adjust these positions
+            DirectMessage(NativeMethods.SCI_CALLTIPSETHLT, new IntPtr(hlStart), new IntPtr(hlEnd));
+        }
+
+        /// <summary>
+        /// Determines whether to display a call tip above or below text.
+        /// </summary>
+        /// <param name="above">true to display above text; otherwise, false. The default is false.</param>
+        public void CallTipSetPosition(bool above)
+        {
+            var val = (above ? new IntPtr(1) : IntPtr.Zero);
+            DirectMessage(NativeMethods.SCI_CALLTIPSETPOSITION, val);
+        }
+
+        /// <summary>
+        /// Displays a call tip window.
+        /// </summary>
+        /// <param name="posStart">The zero-based document position where the call tip window should be aligned.</param>
+        /// <param name="definition">The call tip text.</param>
+        /// <remarks>
+        /// A call tip <paramref name="definition" /> should be limited to printable ASCII characters,
+        /// line feed '\n' characters, and tab '\t' characters. Any other characters will likely display incorrectly.
+        /// </remarks>
+        public unsafe void CallTipShow(int posStart, string definition)
+        {
+            posStart = Helpers.Clamp(posStart, 0, TextLength);
+            if (definition == null)
+                return;
+
+            posStart = Lines.CharToBytePosition(posStart);
+            var bytes = Helpers.GetBytes(definition, Encoding.ASCII, zeroTerminated: true);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_CALLTIPSHOW, new IntPtr(posStart), new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Sets the call tip tab size in pixels.
+        /// </summary>
+        /// <param name="tabSize">The width in pixels of a tab '\t' character in a call tip. Specifying 0 disables special treatment of tabs.</param>
+        public void CallTipTabSize(int tabSize)
+        {
+            // To support the STYLE_CALLTIP style we call SCI_CALLTIPUSESTYLE when the control is created. At
+            // this point we're only adjusting the tab size. This breaks a bit with Scintilla convention, but
+            // that's okay because the Scintilla convention is lame.
+
+            tabSize = Helpers.ClampMin(tabSize, 0);
+            DirectMessage(NativeMethods.SCI_CALLTIPUSESTYLE, new IntPtr(tabSize));
+        }
+
+        /// <summary>
+        /// Indicates to the current <see cref="Lexer" /> that the internal lexer state has changed in the specified
+        /// range and therefore may need to be redrawn.
+        /// </summary>
+        /// <param name="startPos">The zero-based document position at which the lexer state change starts.</param>
+        /// <param name="endPos">The zero-based document position at which the lexer state change ends.</param>
+        public void ChangeLexerState(int startPos, int endPos)
+        {
+            var textLength = TextLength;
+            startPos = Helpers.Clamp(startPos, 0, textLength);
+            endPos = Helpers.Clamp(endPos, 0, textLength);
+
+            startPos = Lines.CharToBytePosition(startPos);
+            endPos = Lines.CharToBytePosition(endPos);
+
+            DirectMessage(NativeMethods.SCI_CHANGELEXERSTATE, new IntPtr(startPos), new IntPtr(endPos));
+        }
+
+        /// <summary>
+        /// Removes the selected text from the document.
+        /// </summary>
+        public void Clear()
+        {
+            DirectMessage(NativeMethods.SCI_CLEAR);
+        }
+
+        /// <summary>
+        /// Deletes all document text, unless the document is read-only.
+        /// </summary>
+        public void ClearAll()
+        {
+            DirectMessage(NativeMethods.SCI_CLEARALL);
+        }
+
+        /// <summary>
+        /// Makes the specified key definition do nothing.
+        /// </summary>
+        /// <param name="keyDefinition">The key combination to bind.</param>
+        /// <remarks>This is equivalent to binding the keys to <see cref="Command.Null" />.</remarks>
+        public void ClearCmdKey(Keys keyDefinition)
+        {
+            DirectMessage(NativeMethods.SCI_CLEARCMDKEY, new IntPtr((int)keyDefinition), IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// Removes all the key definition command mappings.
+        /// </summary>
+        public void ClearAllCmdKeys()
+        {
+            DirectMessage(NativeMethods.SCI_CLEARALLCMDKEYS);
+        }
+
+        /// <summary>
+        /// Removes all styling from the document and resets the folding state.
+        /// </summary>
+        public void ClearDocumentStyle()
+        {
+            DirectMessage(NativeMethods.SCI_CLEARDOCUMENTSTYLE);
+        }
+
+        /// <summary>
+        /// Removes all images registered for autocompletion lists.
+        /// </summary>
+        public void ClearRegisteredImages()
+        {
+            DirectMessage(NativeMethods.SCI_CLEARREGISTEREDIMAGES);
+        }
+
+        /// <summary>
+        /// Sets a single empty selection at the start of the document.
+        /// </summary>
+        public void ClearSelections()
+        {
+            DirectMessage(NativeMethods.SCI_CLEARSELECTIONS);
+        }
+
+        /// <summary>
+        /// Requests that the current lexer restyle the specified range.
+        /// </summary>
+        /// <param name="startPos">The zero-based document position at which to start styling.</param>
+        /// <param name="endPos">The zero-based document position at which to stop styling (exclusive).</param>
+        /// <remarks>This will also cause fold levels in the range specified to be reset.</remarks>
+        public void Colorize(int startPos, int endPos)
+        {
+            var textLength = TextLength;
+            startPos = Helpers.Clamp(startPos, 0, textLength);
+            endPos = Helpers.Clamp(endPos, 0, textLength);
+
+            startPos = Lines.CharToBytePosition(startPos);
+            endPos = Lines.CharToBytePosition(endPos);
+
+            DirectMessage(NativeMethods.SCI_COLOURISE, new IntPtr(startPos), new IntPtr(endPos));
+        }
+
+        /// <summary>
+        /// Copies the selected text from the document and places it on the clipboard.
+        /// </summary>
+        public void Copy()
+        {
+            DirectMessage(NativeMethods.SCI_COPY);
+        }
+
+        /// <summary>
+        /// Copies the selected text from the document and places it on the clipboard.
+        /// If the selection is empty the current line is copied.
+        /// </summary>
+        /// <remarks>
+        /// If the selection is empty and the current line copied, an extra "MSDEVLineSelect" marker is added to the
+        /// clipboard which is then used in <see cref="Paste" /> to paste the whole line before the current line.
+        /// </remarks>
+        public void CopyAllowLine()
+        {
+            DirectMessage(NativeMethods.SCI_COPYALLOWLINE);
+        }
+
+        /// <summary>
+        /// Copies the specified range of text to the clipboard.
+        /// </summary>
+        /// <param name="start">The zero-based character position in the document to start copying.</param>
+        /// <param name="end">The zero-based character position (exclusive) in the document to stop copying.</param>
+        public void CopyRange(int start, int end)
+        {
+            var textLength = TextLength;
+            start = Helpers.Clamp(start, 0, textLength);
+            end = Helpers.Clamp(end, 0, textLength);
+
+            // Convert to byte positions
+            start = Lines.CharToBytePosition(start);
+            end = Lines.CharToBytePosition(end);
+
+            DirectMessage(NativeMethods.SCI_COPYRANGE, new IntPtr(start), new IntPtr(end));
+        }
+
+        /// <summary>
+        /// Create a new, empty document.
+        /// </summary>
+        /// <returns>A new <see cref="Document" /> with a reference count of 1.</returns>
+        /// <remarks>You are responsible for ensuring the reference count eventually reaches 0 or memory leaks will occur.</remarks>
+        public Document CreateDocument()
+        {
+            var ptr = DirectMessage(NativeMethods.SCI_CREATEDOCUMENT);
+            return new Document { Value = ptr };
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ILoader" /> object capable of loading a <see cref="Document" /> on a background (non-UI) thread.
+        /// </summary>
+        /// <param name="length">The initial number of characters to allocate.</param>
+        /// <returns>A new <see cref="ILoader" /> object, or null if the loader could not be created.</returns>
+        public ILoader CreateLoader(int length)
+        {
+            length = Helpers.ClampMin(length, 0);
+            var ptr = DirectMessage(NativeMethods.SCI_CREATELOADER, new IntPtr(length));
+            if (ptr == IntPtr.Zero)
+                return null;
+
+            return new Loader(ptr, Encoding);
+        }
+
+        /// <summary>
+        /// Cuts the selected text from the document and places it on the clipboard.
+        /// </summary>
+        public void Cut()
+        {
+            DirectMessage(NativeMethods.SCI_CUT);
+        }
+
+        /// <summary>
+        /// Deletes a range of text from the document.
+        /// </summary>
+        /// <param name="position">The zero-based character position to start deleting.</param>
+        /// <param name="length">The number of characters to delete.</param>
+        public void DeleteRange(int position, int length)
+        {
+            var textLength = TextLength;
+            position = Helpers.Clamp(position, 0, textLength);
+            length = Helpers.Clamp(length, 0, textLength - position);
+
+            // Convert to byte position/length
+            var byteStartPos = Lines.CharToBytePosition(position);
+            var byteEndPos = Lines.CharToBytePosition(position + length);
+
+            DirectMessage(NativeMethods.SCI_DELETERANGE, new IntPtr(byteStartPos), new IntPtr(byteEndPos - byteStartPos));
+        }
+
+        /// <summary>
+        /// Retrieves a description of keyword sets supported by the current <see cref="Lexer" />.
+        /// </summary>
+        /// <returns>A String describing each keyword set separated by line breaks for the current lexer.</returns>
+        public unsafe string DescribeKeywordSets()
+        {
+            var length = DirectMessage(NativeMethods.SCI_DESCRIBEKEYWORDSETS).ToInt32();
+            var bytes = new byte[length + 1];
+
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_DESCRIBEKEYWORDSETS, IntPtr.Zero, new IntPtr(bp));
+
+            var str = Encoding.ASCII.GetString(bytes, 0, length);
+            return str;
+        }
+
+        /// <summary>
+        /// Retrieves a brief description of the specified property name for the current <see cref="Lexer" />.
+        /// </summary>
+        /// <param name="name">A property name supported by the current <see cref="Lexer" />.</param>
+        /// <returns>A String describing the lexer property name if found; otherwise, String.Empty.</returns>
+        /// <remarks>A list of supported property names for the current <see cref="Lexer" /> can be obtained by calling <see cref="PropertyNames" />.</remarks>
+        public unsafe string DescribeProperty(string name)
+        {
+            if (String.IsNullOrEmpty(name))
+                return String.Empty;
+
+            var nameBytes = Helpers.GetBytes(name, Encoding.ASCII, zeroTerminated: true);
+            fixed (byte* nb = nameBytes)
+            {
+                var length = DirectMessage(NativeMethods.SCI_DESCRIBEPROPERTY, new IntPtr(nb), IntPtr.Zero).ToInt32();
+                if (length == 0)
+                    return string.Empty;
+
+                var descriptionBytes = new byte[length + 1];
+                fixed (byte* db = descriptionBytes)
+                {
+                    DirectMessage(NativeMethods.SCI_DESCRIBEPROPERTY, new IntPtr(nb), new IntPtr(db));
+                    return Helpers.GetString(new IntPtr(db), length, Encoding.ASCII);
+                }
+            }
+        }
+
+        internal IntPtr DirectMessage(int msg)
+        {
+            return DirectMessage(msg, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        internal IntPtr DirectMessage(int msg, IntPtr wParam)
+        {
+            return DirectMessage(msg, wParam, IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// Sends the specified message directly to the native Scintilla window,
+        /// bypassing any managed APIs.
+        /// </summary>
+        /// <param name="msg">The message ID.</param>
+        /// <param name="wParam">The message <c>wparam</c> field.</param>
+        /// <param name="lParam">The message <c>lparam</c> field.</param>
+        /// <returns>An <see cref="IntPtr"/> representing the result of the message request.</returns>
+        /// <remarks>This API supports the Scintilla infrastructure and is not intended to be used directly from your code.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public virtual IntPtr DirectMessage(int msg, IntPtr wParam, IntPtr lParam)
+        {
+            // If the control handle, ptr, direct function, etc... hasn't been created yet, it will be now.
+            var result = DirectMessage(SciPointer, msg, wParam, lParam);
+            return result;
+        }
+
+        private static IntPtr DirectMessage(IntPtr sciPtr, int msg, IntPtr wParam, IntPtr lParam)
+        {
+            // Like Win32 SendMessage but directly to Scintilla
+            var result = directFunction(sciPtr, msg, wParam, lParam);
+            return result;
+        }
+
+        /// <summary>
+        /// If there are multiple selections, removes the specified selection.
+        /// </summary>
+        /// <param name="selection">The zero-based selection index.</param>
+        /// <seealso cref="Selections" />
+        public void DropSelection(int selection)
+        {
+            selection = Helpers.ClampMin(selection, 0);
+            DirectMessage(NativeMethods.SCI_DROPSELECTIONN, new IntPtr(selection));
+        }
+
+        /// <summary>
+        /// Clears any undo or redo history.
+        /// </summary>
+        /// <remarks>This will also cause <see cref="SetSavePoint" /> to be called but will not raise the <see cref="SavePointReached" /> event.</remarks>
+        public void EmptyUndoBuffer()
+        {
+            DirectMessage(NativeMethods.SCI_EMPTYUNDOBUFFER);
+        }
+
+        /// <summary>
+        /// Marks the end of a set of actions that should be treated as a single undo action.
+        /// </summary>
+        /// <seealso cref="BeginUndoAction" />
+        public void EndUndoAction()
+        {
+            DirectMessage(NativeMethods.SCI_ENDUNDOACTION);
+        }
+
+        /// <summary>
+        /// Performs the specified <see cref="Scintilla" />command.
+        /// </summary>
+        /// <param name="sciCommand">The command to perform.</param>
+        public void ExecuteCmd(Command sciCommand)
+        {
+            var cmd = (int)sciCommand;
+            DirectMessage(cmd);
+        }
+
+        /// <summary>
+        /// Returns the character as the specified document position.
+        /// </summary>
+        /// <param name="position">The zero-based document position of the character to get.</param>
+        /// <returns>The character at the specified <paramref name="position" />.</returns>
+        public unsafe int GetCharAt(int position)
+        {
+            position = Helpers.Clamp(position, 0, TextLength);
+            position = Lines.CharToBytePosition(position);
+
+            var nextPosition = DirectMessage(NativeMethods.SCI_POSITIONAFTER, new IntPtr(position)).ToInt32();
+            var length = (nextPosition - position);
+            if (length <= 1)
+            {
+                // Position is at single-byte character
+                return DirectMessage(NativeMethods.SCI_GETCHARAT, new IntPtr(position)).ToInt32();
+            }
+
+            // Position is at multibyte character
+            var bytes = new byte[length + 1];
+            fixed (byte* bp = bytes)
+            {
+                NativeMethods.Sci_TextRange* range = stackalloc NativeMethods.Sci_TextRange[1];
+                range->chrg.cpMin = position;
+                range->chrg.cpMax = nextPosition;
+                range->lpstrText = new IntPtr(bp);
+
+                DirectMessage(NativeMethods.SCI_GETTEXTRANGE, IntPtr.Zero, new IntPtr(range));
+                var str = Helpers.GetString(new IntPtr(bp), length, Encoding);
+                return str[0];
+            }
+        }
+
+        /// <summary>
+        /// Returns the column number of the specified document position, taking the width of tabs into account.
+        /// </summary>
+        /// <param name="position">The zero-based document position to get the column for.</param>
+        /// <returns>The number of columns from the start of the line to the specified document <paramref name="position" />.</returns>
+        public int GetColumn(int position)
+        {
+            position = Helpers.Clamp(position, 0, TextLength);
+            position = Lines.CharToBytePosition(position);
+            return DirectMessage(NativeMethods.SCI_GETCOLUMN, new IntPtr(position)).ToInt32();
+        }
+
+        /// <summary>
+        /// Returns the last document position likely to be styled correctly.
+        /// </summary>
+        /// <returns>The zero-based document position of the last styled character.</returns>
+        public int GetEndStyled()
+        {
+            var pos = DirectMessage(NativeMethods.SCI_GETENDSTYLED).ToInt32();
+            return Lines.ByteToCharPosition(pos);
+        }
+
+        private static string GetModulePath()
+        {
+            // UI thread...
+            if (modulePath == null)
+            {
+                // Extract the embedded SciLexer DLL
+                // http://stackoverflow.com/a/768429/2073621
+                var version = typeof(Scintilla).Assembly.GetName().Version.ToString(3);
+                modulePath = Path.Combine(Path.GetTempPath(), "ScintillaNET", version, (IntPtr.Size == 4 ? "x86" : "x64"), "SciLexer.dll");
+                modulePath = AppDomain.CurrentDomain.BaseDirectory.Replace('\\', '/') + "SciLexer_x64.dll";
+
+                if (!File.Exists(modulePath))
+                {
+                    // http://stackoverflow.com/a/229567/2073621
+                    // Synchronize access to the file across processes
+                    var guid = ((GuidAttribute)typeof(Scintilla).Assembly.GetCustomAttributes(typeof(GuidAttribute), false).GetValue(0)).Value.ToString();
+                    var name = string.Format(CultureInfo.InvariantCulture, "Global\\{{{0}}}", guid);
+                    using (var mutex = new Mutex(false, name))
+                    {
+                        var access = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), MutexRights.FullControl, AccessControlType.Allow);
+                        var security = new MutexSecurity();
+                        security.AddAccessRule(access);
+                        mutex.SetAccessControl(security);
+
+                        var ownsHandle = false;
+                        try
+                        {
+                            try
+                            {
+                                ownsHandle = mutex.WaitOne(5000, false); // 5 sec
+                                if (ownsHandle == false)
+                                {
+                                    var timeoutMessage = string.Format(CultureInfo.InvariantCulture, "Timeout waiting for exclusive access to '{0}'.", modulePath);
+                                    throw new TimeoutException(timeoutMessage);
+                                }
+                            }
+                            catch (AbandonedMutexException)
+                            {
+                                // Previous process terminated abnormally
+                                ownsHandle = true;
+                            }
+
+                            // Double-checked (process) lock
+                            if (!File.Exists(modulePath))
+                            {
+                                // Write the embedded file to disk
+                                var directory = Path.GetDirectoryName(modulePath);
+                                if (!Directory.Exists(directory))
+                                    Directory.CreateDirectory(directory);
+
+                                var resource = string.Format(CultureInfo.InvariantCulture, "ScintillaNET.{0}.SciLexer.dll", (IntPtr.Size == 4 ? "x86" : "x64"));
+                                var resourceStream = typeof(Scintilla).Assembly.GetManifestResourceStream(resource); // Don't close the resource stream
+                                using (var fileStream = File.Create(modulePath))
+                                    resourceStream.CopyTo(fileStream);
+                            }
+                        }
+                        finally
+                        {
+                            if (ownsHandle)
+                                mutex.ReleaseMutex();
+                        }
+                    }
+                }
+            }
+
+            return modulePath;
+        }
+
+        /// <summary>
+        /// Lookup a property value for the current <see cref="Lexer" />.
+        /// </summary>
+        /// <param name="name">The property name to lookup.</param>
+        /// <returns>
+        /// A String representing the property value if found; otherwise, String.Empty.
+        /// Any embedded property name macros as described in <see cref="SetProperty" /> will not be replaced (expanded).
+        /// </returns>
+        /// <seealso cref="GetPropertyExpanded" />
+        public unsafe string GetProperty(string name)
+        {
+            if (String.IsNullOrEmpty(name))
+                return String.Empty;
+
+            var nameBytes = Helpers.GetBytes(name, Encoding.ASCII, zeroTerminated: true);
+            fixed (byte* nb = nameBytes)
+            {
+                var length = DirectMessage(NativeMethods.SCI_GETPROPERTY, new IntPtr(nb)).ToInt32();
+                if (length == 0)
+                    return String.Empty;
+
+                var valueBytes = new byte[length + 1];
+                fixed (byte* vb = valueBytes)
+                {
+                    DirectMessage(NativeMethods.SCI_GETPROPERTY, new IntPtr(nb), new IntPtr(vb));
+                    return Helpers.GetString(new IntPtr(vb), length, Encoding.ASCII);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Lookup a property value for the current <see cref="Lexer" /> and expand any embedded property macros.
+        /// </summary>
+        /// <param name="name">The property name to lookup.</param>
+        /// <returns>
+        /// A String representing the property value if found; otherwise, String.Empty.
+        /// Any embedded property name macros as described in <see cref="SetProperty" /> will be replaced (expanded).
+        /// </returns>
+        /// <seealso cref="GetProperty" />
+        public unsafe string GetPropertyExpanded(string name)
+        {
+            if (String.IsNullOrEmpty(name))
+                return String.Empty;
+
+            var nameBytes = Helpers.GetBytes(name, Encoding.ASCII, zeroTerminated: true);
+            fixed (byte* nb = nameBytes)
+            {
+                var length = DirectMessage(NativeMethods.SCI_GETPROPERTYEXPANDED, new IntPtr(nb)).ToInt32();
+                if (length == 0)
+                    return String.Empty;
+
+                var valueBytes = new byte[length + 1];
+                fixed (byte* vb = valueBytes)
+                {
+                    DirectMessage(NativeMethods.SCI_GETPROPERTYEXPANDED, new IntPtr(nb), new IntPtr(vb));
+                    return Helpers.GetString(new IntPtr(vb), length, Encoding.ASCII);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Lookup a property value for the current <see cref="Lexer" /> and convert it to an integer.
+        /// </summary>
+        /// <param name="name">The property name to lookup.</param>
+        /// <param name="defaultValue">A default value to return if the property name is not found or has no value.</param>
+        /// <returns>
+        /// An Integer representing the property value if found;
+        /// otherwise, <paramref name="defaultValue" /> if not found or the property has no value;
+        /// otherwise, 0 if the property is not a number.
+        /// </returns>
+        public unsafe int GetPropertyInt(string name, int defaultValue)
+        {
+            if (String.IsNullOrEmpty(name))
+                return defaultValue;
+
+            var bytes = Helpers.GetBytes(name, Encoding.ASCII, zeroTerminated: true);
+            fixed (byte* bp = bytes)
+                return DirectMessage(NativeMethods.SCI_GETPROPERTYINT, new IntPtr(bp), new IntPtr(defaultValue)).ToInt32();
+        }
+
+        /// <summary>
+        /// Gets the style of the specified document position.
+        /// </summary>
+        /// <param name="position">The zero-based document position of the character to get the style for.</param>
+        /// <returns>The zero-based <see cref="Style" /> index used at the specified <paramref name="position" />.</returns>
+        public int GetStyleAt(int position)
+        {
+            position = Helpers.Clamp(position, 0, TextLength);
+            position = Lines.CharToBytePosition(position);
+
+            return DirectMessage(NativeMethods.SCI_GETSTYLEAT, new IntPtr(position)).ToInt32();
+        }
+
+        /// <summary>
+        /// Gets a range of text from the document.
+        /// </summary>
+        /// <param name="position">The zero-based starting character position of the range to get.</param>
+        /// <param name="length">The number of characters to get.</param>
+        /// <returns>A string representing the text range.</returns>
+        public unsafe string GetTextRange(int position, int length)
+        {
+            var textLength = TextLength;
+            position = Helpers.Clamp(position, 0, textLength);
+            length = Helpers.Clamp(length, 0, textLength - position);
+
+            // Convert to byte position/length
+            var byteStartPos = Lines.CharToBytePosition(position);
+            var byteEndPos = Lines.CharToBytePosition(position + length);
+
+            var ptr = DirectMessage(NativeMethods.SCI_GETRANGEPOINTER, new IntPtr(byteStartPos), new IntPtr(byteEndPos - byteStartPos));
+            if (ptr == IntPtr.Zero)
+                return string.Empty;
+
+            return Helpers.GetString(ptr, (byteEndPos - byteStartPos), Encoding);
+        }
+
+        /// <summary>
+        /// Returns the version information of the native Scintilla library.
+        /// </summary>
+        /// <returns>An object representing the version information of the native Scintilla library.</returns>
+        public FileVersionInfo GetVersionInfo()
+        {
+            var path = GetModulePath();
+            var version = FileVersionInfo.GetVersionInfo(path);
+
+            return version;
+        }
+
+        /// <summary>
+        /// Navigates the caret to the document position specified.
+        /// </summary>
+        /// <param name="position">The zero-based document character position to navigate to.</param>
+        /// <remarks>Any selection is discarded.</remarks>
+        public void GotoPosition(int position)
+        {
+            position = Helpers.Clamp(position, 0, TextLength);
+            position = Lines.CharToBytePosition(position);
+            DirectMessage(NativeMethods.SCI_GOTOPOS, new IntPtr(position));
+        }
+
+        /// <summary>
+        /// Removes the <see cref="IndicatorCurrent" /> indicator (and user-defined value) from the specified range of text.
+        /// </summary>
+        /// <param name="position">The zero-based character position within the document to start clearing.</param>
+        /// <param name="length">The number of characters to clear.</param>
+        public void IndicatorClearRange(int position, int length)
+        {
+            var textLength = TextLength;
+            position = Helpers.Clamp(position, 0, textLength);
+            length = Helpers.Clamp(length, 0, textLength - position);
+
+            var startPos = Lines.CharToBytePosition(position);
+            var endPos = Lines.CharToBytePosition(position + length);
+
+            DirectMessage(NativeMethods.SCI_INDICATORCLEARRANGE, new IntPtr(startPos), new IntPtr(endPos - startPos));
+        }
+
+        /// <summary>
+        /// Adds the <see cref="IndicatorCurrent" /> indicator and <see cref="IndicatorValue" /> value to the specified range of text.
+        /// </summary>
+        /// <param name="position">The zero-based character position within the document to start filling.</param>
+        /// <param name="length">The number of characters to fill.</param>
+        public void IndicatorFillRange(int position, int length)
+        {
+            var textLength = TextLength;
+            position = Helpers.Clamp(position, 0, textLength);
+            length = Helpers.Clamp(length, 0, textLength - position);
+
+            var startPos = Lines.CharToBytePosition(position);
+            var endPos = Lines.CharToBytePosition(position + length);
+
+            DirectMessage(NativeMethods.SCI_INDICATORFILLRANGE, new IntPtr(startPos), new IntPtr(endPos - startPos));
+        }
+
+        /// <summary>
+        /// Inserts text at the specified position.
+        /// </summary>
+        /// <param name="position">The zero-based character position to insert the text. Specify -1 to use the current caret position.</param>
+        /// <param name="text">The text to insert into the document.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="position" /> less than zero and not equal to -1. -or-
+        /// <paramref name="position" /> is greater than the document length.
+        /// </exception>
+        /// <remarks>No scrolling is performed.</remarks>
+        public unsafe void InsertText(int position, string text)
+        {
+            if (position < -1)
+                throw new ArgumentOutOfRangeException("position", "Position must be greater or equal to zero, or -1.");
+
+            if (position != -1)
+            {
+                var textLength = TextLength;
+                if (position > textLength)
+                    throw new ArgumentOutOfRangeException("position", "Position cannot exceed document length.");
+
+                position = Lines.CharToBytePosition(position);
+            }
+
+            fixed (byte* bp = Helpers.GetBytes(text ?? string.Empty, Encoding, zeroTerminated: true))
+                DirectMessage(NativeMethods.SCI_INSERTTEXT, new IntPtr(position), new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Returns the line that contains the document position specified.
+        /// </summary>
+        /// <param name="position">The zero-based document character position.</param>
+        /// <returns>The zero-based document line index containing the character <paramref name="position" />.</returns>
+        public int LineFromPosition(int position)
+        {
+            position = Helpers.Clamp(position, 0, TextLength);
+            return Lines.LineFromCharPosition(position);
+        }
+
+        /// <summary>
+        /// Scrolls the display the number of lines and columns specified.
+        /// </summary>
+        /// <param name="lines">The number of lines to scroll.</param>
+        /// <param name="columns">The number of columns to scroll.</param>
+        /// <remarks>
+        /// Negative values scroll in the opposite direction.
+        /// A column is the width in pixels of a space character in the <see cref="Style.Default" /> style.
+        /// </remarks>
+        public void LineScroll(int lines, int columns)
+        {
+            DirectMessage(NativeMethods.SCI_LINESCROLL, new IntPtr(columns), new IntPtr(lines));
+        }
+
+        /// <summary>
+        /// Loads a <see cref="Scintilla" /> compatible lexer from an external DLL.
+        /// </summary>
+        /// <param name="path">The path to the external lexer DLL.</param>
+        public unsafe void LoadLexerLibrary(string path)
+        {
+            if (String.IsNullOrEmpty(path))
+                return;
+
+            var bytes = Helpers.GetBytes(path, Encoding.Default, zeroTerminated: true);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_LOADLEXERLIBRARY, IntPtr.Zero, new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Removes the specified marker from all lines.
+        /// </summary>
+        /// <param name="marker">The zero-based <see cref="Marker" /> index to remove from all lines, or -1 to remove all markers from all lines.</param>
+        public void MarkerDeleteAll(int marker)
+        {
+            marker = Helpers.Clamp(marker, -1, Markers.Count - 1);
+            DirectMessage(NativeMethods.SCI_MARKERDELETEALL, new IntPtr(marker));
+        }
+
+        /// <summary>
+        /// Searches the document for the marker handle and deletes the marker if found.
+        /// </summary>
+        /// <param name="markerHandle">The <see cref="MarkerHandle" /> created by a previous call to <see cref="Line.MarkerAdd" /> of the marker to delete.</param>
+        public void MarkerDeleteHandle(MarkerHandle markerHandle)
+        {
+            DirectMessage(NativeMethods.SCI_MARKERDELETEHANDLE, markerHandle.Value);
+        }
+
+        /// <summary>
+        /// Searches the document for the marker handle and returns the line number containing the marker if found.
+        /// </summary>
+        /// <param name="markerHandle">The <see cref="MarkerHandle" /> created by a previous call to <see cref="Line.MarkerAdd" /> of the marker to search for.</param>
+        /// <returns>If found, the zero-based line index containing the marker; otherwise, -1.</returns>
+        public int MarkerLineFromHandle(MarkerHandle markerHandle)
+        {
+            return DirectMessage(NativeMethods.SCI_MARKERLINEFROMHANDLE, markerHandle.Value).ToInt32();
+        }
+
+        /// <summary>
+        /// Raises the <see cref="AutoCCancelled" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="EventArgs" /> that contains the event data.</param>
+        protected virtual void OnAutoCCancelled(EventArgs e)
+        {
+            var handler = Events[autoCCancelledEventKey] as EventHandler<EventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="AutoCCharDeleted" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="EventArgs" /> that contains the event data.</param>
+        protected virtual void OnAutoCCharDeleted(EventArgs e)
+        {
+            var handler = Events[autoCCharDeletedEventKey] as EventHandler<EventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="AutoCSelection" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="AutoCSelectionEventArgs" /> that contains the event data.</param>
+        protected virtual void OnAutoCSelection(AutoCSelectionEventArgs e)
+        {
+            var handler = Events[autoCSelectionEventKey] as EventHandler<AutoCSelectionEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="BeforeDelete" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="BeforeModificationEventArgs" /> that contains the event data.</param>
+        protected virtual void OnBeforeDelete(BeforeModificationEventArgs e)
+        {
+            var handler = Events[beforeDeleteEventKey] as EventHandler<BeforeModificationEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="BeforeInsert" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="BeforeModificationEventArgs" /> that contains the event data.</param>
+        protected virtual void OnBeforeInsert(BeforeModificationEventArgs e)
+        {
+            var handler = Events[beforeInsertEventKey] as EventHandler<BeforeModificationEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="BorderStyleChanged" /> event.
+        /// </summary>
+        /// <param name="e">An EventArgs that contains the event data.</param>
+        protected virtual void OnBorderStyleChanged(EventArgs e)
+        {
+            var handler = Events[borderStyleChangedEventKey] as EventHandler;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="ChangeAnnotation" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="ChangeAnnotationEventArgs" /> that contains the event data.</param>
+        protected virtual void OnChangeAnnotation(ChangeAnnotationEventArgs e)
+        {
+            var handler = Events[changeAnnotationEventKey] as EventHandler<ChangeAnnotationEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="CharAdded" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="CharAddedEventArgs" /> that contains the event data.</param>
+        protected virtual void OnCharAdded(CharAddedEventArgs e)
+        {
+            var handler = Events[charAddedEventKey] as EventHandler<CharAddedEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="Delete" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="ModificationEventArgs" /> that contains the event data.</param>
+        protected virtual void OnDelete(ModificationEventArgs e)
+        {
+            var handler = Events[deleteEventKey] as EventHandler<ModificationEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="DwellEnd" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="DwellEventArgs" /> that contains the event data.</param>
+        protected virtual void OnDwellEnd(DwellEventArgs e)
+        {
+            var handler = Events[dwellEndEventKey] as EventHandler<DwellEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="DwellStart" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="DwellEventArgs" /> that contains the event data.</param>
+        protected virtual void OnDwellStart(DwellEventArgs e)
+        {
+            var handler = Events[dwellStartEventKey] as EventHandler<DwellEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the HandleCreated event.
+        /// </summary>
+        /// <param name="e">An EventArgs that contains the event data.</param>
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            // Set more intelligent defaults...
+
+            // I would like to see all of my text please
+            DirectMessage(NativeMethods.SCI_SETSCROLLWIDTHTRACKING, new IntPtr(1));
+
+            // It's pointless to do any encoding other than UTF-8 in Scintilla
+            DirectMessage(NativeMethods.SCI_SETCODEPAGE, new IntPtr(NativeMethods.SC_CP_UTF8));
+
+            // The default tab width of 8 is crazy big
+            DirectMessage(NativeMethods.SCI_SETTABWIDTH, new IntPtr(4));
+
+            // Enable support for the call tip style and tabs
+            DirectMessage(NativeMethods.SCI_CALLTIPUSESTYLE, new IntPtr(16));
+
+            base.OnHandleCreated(e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="Insert" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="ModificationEventArgs" /> that contains the event data.</param>
+        protected virtual void OnInsert(ModificationEventArgs e)
+        {
+            var handler = Events[insertEventKey] as EventHandler<ModificationEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="InsertCheck" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="InsertCheckEventArgs" /> that contains the event data.</param>
+        protected virtual void OnInsertCheck(InsertCheckEventArgs e)
+        {
+            var handler = Events[insertCheckEventKey] as EventHandler<InsertCheckEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="MarginClick" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="MarginClickEventArgs" /> that contains the event data.</param>
+        protected virtual void OnMarginClick(MarginClickEventArgs e)
+        {
+            var handler = Events[marginClickEventKey] as EventHandler<MarginClickEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="ModifyAttempt" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="EventArgs" /> that contains the event data.</param>
+        protected virtual void OnModifyAttempt(EventArgs e)
+        {
+            var handler = Events[modifyAttemptEventKey] as EventHandler<EventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="SavePointLeft" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="EventArgs" /> that contains the event data.</param>
+        protected virtual void OnSavePointLeft(EventArgs e)
+        {
+            var handler = Events[savePointLeftEventKey] as EventHandler<EventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="SavePointReached" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="EventArgs" /> that contains the event data.</param>
+        protected virtual void OnSavePointReached(EventArgs e)
+        {
+            var handler = Events[savePointReachedEventKey] as EventHandler<EventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="StyleNeeded" /> event.
+        /// </summary>
+        /// <param name="e">A <see cref="StyleNeededEventArgs" /> that contains the event data.</param>
+        protected virtual void OnStyleNeeded(StyleNeededEventArgs e)
+        {
+            var handler = Events[styleNeededEventKey] as EventHandler<StyleNeededEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="UpdateUI" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="UpdateUIEventArgs" /> that contains the event data.</param>
+        protected virtual void OnUpdateUI(UpdateUIEventArgs e)
+        {
+            EventHandler<UpdateUIEventArgs> handler = Events[updateUIEventKey] as EventHandler<UpdateUIEventArgs>;
+            if (handler != null)
+                handler(this, e);
+        }
+
+        /// <summary>
+        /// Pastes the contents of the clipboard into the current selection.
+        /// </summary>
+        public void Paste()
+        {
+            DirectMessage(NativeMethods.SCI_PASTE);
+        }
+
+        /// <summary>
+        /// Retrieves a list of property names that can be set for the current <see cref="Lexer" />.
+        /// </summary>
+        /// <returns>A String of property names separated by line breaks.</returns>
+        public unsafe string PropertyNames()
+        {
+            var length = DirectMessage(NativeMethods.SCI_PROPERTYNAMES).ToInt32();
+            if (length == 0)
+                return string.Empty;
+
+            var bytes = new byte[length + 1];
+            fixed (byte* bp = bytes)
+            {
+                DirectMessage(NativeMethods.SCI_PROPERTYNAMES, IntPtr.Zero, new IntPtr(bp));
+                return Helpers.GetString(new IntPtr(bp), length, Encoding.ASCII);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the data type of the specified property name for the current <see cref="Lexer" />.
+        /// </summary>
+        /// <param name="name">A property name supported by the current <see cref="Lexer" />.</param>
+        /// <returns>One of the <see cref="PropertyType" /> enumeration values. The default is <see cref="ScintillaNET.PropertyType.Boolean" />.</returns>
+        /// <remarks>A list of supported property names for the current <see cref="Lexer" /> can be obtained by calling <see cref="PropertyNames" />.</remarks>
+        public unsafe PropertyType PropertyType(string name)
+        {
+            if (String.IsNullOrEmpty(name))
+                return ScintillaNET.PropertyType.Boolean;
+
+            var bytes = Helpers.GetBytes(name, Encoding.ASCII, zeroTerminated: true);
+            fixed (byte* bp = bytes)
+                return (PropertyType)DirectMessage(NativeMethods.SCI_PROPERTYTYPE, new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Redoes the effect of an <see cref="Undo" /> operation.
+        /// </summary>
+        public void Redo()
+        {
+            DirectMessage(NativeMethods.SCI_REDO);
+        }
+
+        /// <summary>
+        /// Maps the specified image to a type identifer for use in an autocompletion list.
+        /// </summary>
+        /// <param name="type">The numeric identifier for this image.</param>
+        /// <param name="image">The Bitmap to use in an autocompletion list.</param>
+        /// <remarks>
+        /// The <paramref name="image" /> registered can be referenced by its <paramref name="type" /> identifer in an autocompletion
+        /// list by suffixing a word with the <see cref="AutoCTypeSeparator" /> character and the <paramref name="type" /> value. e.g.
+        /// "int?2 long?3 short?1" etc....
+        /// </remarks>
+        /// <seealso cref="AutoCTypeSeparator" />
+        public unsafe void RegisterRgbaImage(int type, Bitmap image)
+        {
+            // TODO Clamp type?
+            if (image == null)
+                return;
+
+            DirectMessage(NativeMethods.SCI_RGBAIMAGESETWIDTH, new IntPtr(image.Width));
+            DirectMessage(NativeMethods.SCI_RGBAIMAGESETHEIGHT, new IntPtr(image.Height));
+
+            var bytes = Helpers.BitmapToArgb(image);
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_REGISTERRGBAIMAGE, new IntPtr(type), new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Decreases the reference count of the specified document by 1.
+        /// </summary>
+        /// <param name="document">
+        /// The document reference count to decrease.
+        /// When a document's reference count reaches 0 it is destroyed and any associated memory released.
+        /// </param>
+        public void ReleaseDocument(Document document)
+        {
+            var ptr = document.Value;
+            DirectMessage(NativeMethods.SCI_RELEASEDOCUMENT, IntPtr.Zero, ptr);
+        }
+
+        /// <summary>
+        /// Replaces the current selection with the specified text.
+        /// </summary>
+        /// <param name="text">The text that should replace the current selection.</param>
+        /// <remarks>
+        /// If there is not a current selection, the text will be inserted at the current caret position.
+        /// Following the operation the caret is placed at the end of the inserted text and scrolled into view.
+        /// </remarks>
+        public unsafe void ReplaceSelection(string text)
+        {
+            // TODO I don't like how using a null/empty string does nothing
+
+            fixed (byte* bp = Helpers.GetBytes(text ?? string.Empty, Encoding, zeroTerminated: true))
+                DirectMessage(NativeMethods.SCI_REPLACESEL, IntPtr.Zero, new IntPtr(bp));
+        }
+
+        private void ResetAdditionalCaretForeColor()
+        {
+            AdditionalCaretForeColor = Color.FromArgb(127, 127, 127);
+        }
+
+        private void ScnMarginClick(ref NativeMethods.SCNotification scn)
+        {
+            var keys = Keys.Modifiers & (Keys)(scn.modifiers << 16);
+            var eventArgs = new MarginClickEventArgs(this, keys, scn.position, scn.margin);
+            OnMarginClick(eventArgs);
+        }
+
+        private void ScnModified(ref NativeMethods.SCNotification scn)
+        {
+            // The InsertCheck, BeforeInsert, BeforeDelete, Insert, and Delete events can all potentially require
+            // the same conversions: byte to char position, char* to string, etc.... To avoid doing the same work
+            // multiple times we share that data between events.
+
+            if ((scn.modificationType & NativeMethods.SC_MOD_INSERTCHECK) > 0)
+            {
+                var eventArgs = new InsertCheckEventArgs(this, scn.position, scn.length, scn.text);
+                OnInsertCheck(eventArgs);
+
+                cachedPosition = eventArgs.CachedPosition;
+                cachedText = eventArgs.CachedText;
+            }
+
+            const int sourceMask = (NativeMethods.SC_PERFORMED_USER | NativeMethods.SC_PERFORMED_UNDO | NativeMethods.SC_PERFORMED_REDO);
+
+            if ((scn.modificationType & (NativeMethods.SC_MOD_BEFOREDELETE | NativeMethods.SC_MOD_BEFOREINSERT)) > 0)
+            {
+                var source = (ModificationSource)(scn.modificationType & sourceMask);
+                var eventArgs = new BeforeModificationEventArgs(this, source, scn.position, scn.length, scn.text);
+
+                eventArgs.CachedPosition = cachedPosition;
+                eventArgs.CachedText = cachedText;
+
+                if ((scn.modificationType & NativeMethods.SC_MOD_BEFOREINSERT) > 0)
+                {
+                    OnBeforeInsert(eventArgs);
+                }
+                else
+                {
+                    OnBeforeDelete(eventArgs);
+                }
+
+                cachedPosition = eventArgs.CachedPosition;
+                cachedText = eventArgs.CachedText;
+            }
+
+            if ((scn.modificationType & (NativeMethods.SC_MOD_DELETETEXT | NativeMethods.SC_MOD_INSERTTEXT)) > 0)
+            {
+                var source = (ModificationSource)(scn.modificationType & sourceMask);
+                var eventArgs = new ModificationEventArgs(this, source, scn.position, scn.length, scn.text, scn.linesAdded);
+
+                eventArgs.CachedPosition = cachedPosition;
+                eventArgs.CachedText = cachedText;
+
+                if ((scn.modificationType & NativeMethods.SC_MOD_INSERTTEXT) > 0)
+                {
+                    OnInsert(eventArgs);
+                }
+                else
+                {
+                    OnDelete(eventArgs);
+                }
+
+                // Always clear the cache
+                cachedPosition = null;
+                cachedText = null;
+
+                // For backward compatibility.... Of course this means that we'll raise two
+                // TextChanged events for replace (insert/delete) operations, but that's life.
+                OnTextChanged(EventArgs.Empty);
+            }
+
+            if ((scn.modificationType & NativeMethods.SC_MOD_CHANGEANNOTATION) > 0)
+            {
+                var eventArgs = new ChangeAnnotationEventArgs(scn.line);
+                OnChangeAnnotation(eventArgs);
+            }
+        }
+
+        /// <summary>
+        /// Scrolls the current position into view, if it is not already visible.
+        /// </summary>
+        public void ScrollCaret()
+        {
+            DirectMessage(NativeMethods.SCI_SCROLLCARET);
+        }
+
+        /// <summary>
+        /// Scrolls the specified range into view.
+        /// </summary>
+        /// <param name="start">The zero-based document start position to scroll to.</param>
+        /// <param name="end">
+        /// The zero-based document end position to scroll to if doing so does not cause the <paramref name="start" />
+        /// position to scroll out of view.
+        /// </param>
+        /// <remarks>This may be used to make a search match visible.</remarks>
+        public void ScrollRange(int start, int end)
+        {
+            var textLength = TextLength;
+            start = Helpers.Clamp(start, 0, textLength);
+            end = Helpers.Clamp(end, 0, textLength);
+
+            // Convert to byte positions
+            start = Lines.CharToBytePosition(start);
+            end = Lines.CharToBytePosition(end);
+
+            DirectMessage(NativeMethods.SCI_SCROLLRANGE, new IntPtr(end), new IntPtr(start));
+        }
+
+        /// <summary>
+        /// Searches for the first occurrence of the specified pattern in the target defined by <see cref="TargetStart" /> and <see cref="TargetEnd" />.
+        /// </summary>
+        /// <param name="pattern">The text pattern to search for. The interpretation of the pattern is defined by the <see cref="SearchFlags" />.</param>
+        /// <returns>The zero-based start position of the matched text within the document if successful; otherwise, -1.</returns>
+        /// <remarks>If successful, the <see cref="TargetStart" /> and <see cref="TargetEnd" /> properties will be updated to start and end positions of the matched text.</remarks>
+        public unsafe int SearchInTarget(string pattern)
+        {
+            int bytePos = 0;
+            var bytes = Helpers.GetBytes(pattern ?? string.Empty, Encoding, zeroTerminated: false);
+            fixed (byte* bp = bytes)
+                bytePos = DirectMessage(NativeMethods.SCI_SEARCHINTARGET, new IntPtr(bytes.Length), new IntPtr(bp)).ToInt32();
+
+            if (bytePos == -1)
+                return bytePos;
+
+            return Lines.ByteToCharPosition(bytePos);
+        }
+
+        /// <summary>
+        /// Sets the background color of additional selections.
+        /// </summary>
+        /// <param name="color">Additional selections background color.</param>
+        /// <remarks>Calling <see cref="SetSelectionBackColor" /> will reset the <paramref name="color" /> specified.</remarks>
+        public void SetAdditionalSelBack(Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            DirectMessage(NativeMethods.SCI_SETADDITIONALSELBACK, new IntPtr(colour));
+        }
+
+        /// <summary>
+        /// Sets the foreground color of additional selections.
+        /// </summary>
+        /// <param name="color">Additional selections foreground color.</param>
+        /// <remarks>Calling <see cref="SetSelectionForeColor" /> will reset the <paramref name="color" /> specified.</remarks>
+        public void SetAdditionalSelFore(Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            DirectMessage(NativeMethods.SCI_SETADDITIONALSELFORE, new IntPtr(colour));
+        }
+
+        /// <summary>
+        /// Updates a keyword set used by the current <see cref="Lexer" />.
+        /// </summary>
+        /// <param name="set">The zero-based index of the keyword set to update.</param>
+        /// <param name="keywords">
+        /// A list of keywords pertaining to the current <see cref="Lexer" /> separated by whitespace (space, tab, '\n', '\r') characters.
+        /// </param>
+        /// <remarks>The keywords specified will be styled according to the current <see cref="Lexer" />.</remarks>
+        /// <seealso cref="DescribeKeywordSets" />
+        public unsafe void SetKeywords(int set, string keywords)
+        {
+            set = Helpers.Clamp(set, 0, NativeMethods.KEYWORDSET_MAX);
+            var bytes = Helpers.GetBytes(keywords ?? string.Empty, Encoding.ASCII, zeroTerminated: true);
+
+            fixed (byte* bp = bytes)
+                DirectMessage(NativeMethods.SCI_SETKEYWORDS, new IntPtr(set), new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Sets the application-wide default module path of the native Scintilla library.
+        /// </summary>
+        /// <param name="modulePath">The native Scintilla module path.</param>
+        /// <remarks>
+        /// This method must be called prior to the first <see cref="Scintilla" /> control being created.
+        /// The <paramref name="modulePath" /> can be relative or absolute.
+        /// </remarks>
+        public static void SetModulePath(string modulePath)
+        {
+            if (Scintilla.modulePath == null)
+            {
+                Scintilla.modulePath = modulePath;
+            }
+        }
+
+        /// <summary>
+        /// Passes the specified property name-value pair to the current <see cref="Lexer" />.
+        /// </summary>
+        /// <param name="name">The property name to set.</param>
+        /// <param name="value">
+        /// The property value. Values can refer to other property names using the syntax $(name), where 'name' is another property
+        /// name for the current <see cref="Lexer" />. When the property value is retrieved by a call to <see cref="GetPropertyExpanded" />
+        /// the embedded property name macro will be replaced (expanded) with that current property value.
+        /// </param>
+        /// <remarks>Property names are case-sensitive.</remarks>
+        public unsafe void SetProperty(string name, string value)
+        {
+            if (String.IsNullOrEmpty(name))
+                return;
+
+            var nameBytes = Helpers.GetBytes(name, Encoding.ASCII, zeroTerminated: true);
+            var valueBytes = Helpers.GetBytes(value ?? string.Empty, Encoding.ASCII, zeroTerminated: true);
+
+            fixed (byte* nb = nameBytes)
+            fixed (byte* vb = valueBytes)
+            {
+                DirectMessage(NativeMethods.SCI_SETPROPERTY, new IntPtr(nb), new IntPtr(vb));
+            }
+        }
+
+        /// <summary>
+        /// Marks the document as unmodified.
+        /// </summary>
+        /// <seealso cref="Modified" />
+        public void SetSavePoint()
+        {
+            DirectMessage(NativeMethods.SCI_SETSAVEPOINT);
+        }
+
+        /// <summary>
+        /// Sets a single selection from anchor to caret.
+        /// </summary>
+        /// <param name="caret">The zero-based document position to end the selection.</param>
+        /// <param name="anchor">The zero-based document position to start the selection.</param>
+        public void SetSelection(int caret, int anchor)
+        {
+            var textLength = TextLength;
+            caret = Helpers.Clamp(caret, 0, textLength);
+            anchor = Helpers.Clamp(anchor, 0, textLength);
+
+            caret = Lines.CharToBytePosition(caret);
+            anchor = Lines.CharToBytePosition(anchor);
+
+            DirectMessage(NativeMethods.SCI_SETSELECTION, new IntPtr(caret), new IntPtr(anchor));
+        }
+
+        /// <summary>
+        /// Sets a global override to the selection background color.
+        /// </summary>
+        /// <param name="use">true to override the selection background color; otherwise, false.</param>
+        /// <param name="color">The global selection background color.</param>
+        /// <seealso cref="SetSelectionForeColor" />
+        public void SetSelectionBackColor(bool use, Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            var useSelectionForeColour = (use ? new IntPtr(1) : IntPtr.Zero);
+
+            DirectMessage(NativeMethods.SCI_SETSELBACK, useSelectionForeColour, new IntPtr(colour));
+        }
+
+        /// <summary>
+        /// Sets a global override to the selection foreground color.
+        /// </summary>
+        /// <param name="use">true to override the selection foreground color; otherwise, false.</param>
+        /// <param name="color">The global selection foreground color.</param>
+        /// <seealso cref="SetSelectionBackColor" />
+        public void SetSelectionForeColor(bool use, Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            var useSelectionForeColour = (use ? new IntPtr(1) : IntPtr.Zero);
+
+            DirectMessage(NativeMethods.SCI_SETSELFORE, useSelectionForeColour, new IntPtr(colour));
+        }
+
+        /// <summary>
+        /// Styles the specified length of characters.
+        /// </summary>
+        /// <param name="length">The number of characters to style.</param>
+        /// <param name="style">The <see cref="Style" /> definition index to assign each character.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="length" /> or <paramref name="style" /> is less than zero. -or-
+        /// The sum of a preceeding call to <see cref="StartStyling" /> or <see name="SetStyling" /> and <paramref name="length" /> is greater than the document length. -or-
+        /// <paramref name="style" /> is greater than or equal to the number of style definitions.
+        /// </exception>
+        /// <remarks>
+        /// The styling position is advanced by <paramref name="length" /> after each call allowing multiple
+        /// calls to <see cref="SetStyling" /> for a single call to <see cref="StartStyling" />.
+        /// </remarks>
+        /// <seealso cref="StartStyling" />
+        public void SetStyling(int length, int style)
+        {
+            var textLength = TextLength;
+
+            if (length < 0)
+                throw new ArgumentOutOfRangeException("length", "Length cannot be less than zero.");
+            if (stylingPosition + length > textLength)
+                throw new ArgumentOutOfRangeException("length", "Position and length must refer to a range within the document.");
+            if (style < 0 || style >= Styles.Count)
+                throw new ArgumentOutOfRangeException("style", "Style must be non-negative and less than the size of the collection.");
+
+            var endPos = stylingPosition + length;
+            var endBytePos = Lines.CharToBytePosition(endPos);
+            DirectMessage(NativeMethods.SCI_SETSTYLING, new IntPtr(endBytePos - stylingBytePosition), new IntPtr(style));
+
+            // Track this for the next call
+            stylingPosition = endPos;
+            stylingBytePosition = endBytePos;
+        }
+
+        /// <summary>
+        /// Sets the <see cref="TargetStart" /> and <see cref="TargetEnd" /> properties
+        /// </summary>
+        /// <param name="start">The zero-based character position within the document to start a search or replace operation.</param>
+        /// <param name="end">The zero-based character position within the document to end a search or replace operation.</param>
+        /// <seealso cref="TargetStart" />
+        /// <seealso cref="TargetEnd" />
+        public void SetTargetRange(int start, int end)
+        {
+            var textLength = TextLength;
+            start = Helpers.Clamp(start, 0, textLength);
+            end = Helpers.Clamp(end, 0, textLength);
+
+            start = Lines.CharToBytePosition(start);
+            end = Lines.CharToBytePosition(end);
+
+            DirectMessage(NativeMethods.SCI_SETTARGETRANGE, new IntPtr(start), new IntPtr(end));
+        }
+
+        /// <summary>
+        /// Sets a global override to the whitespace background color.
+        /// </summary>
+        /// <param name="use">true to override the whitespace background color; otherwise, false.</param>
+        /// <param name="color">The global whitespace background color.</param>
+        /// <remarks>When not overridden globally, the whitespace background color is determined by the current lexer.</remarks>
+        /// <seealso cref="ViewWhitespace" />
+        /// <seealso cref="SetWhitespaceForeColor" />
+        public void SetWhitespaceBackColor(bool use, Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            var useWhitespaceBackColour = (use ? new IntPtr(1) : IntPtr.Zero);
+
+            DirectMessage(NativeMethods.SCI_SETWHITESPACEBACK, useWhitespaceBackColour, new IntPtr(colour));
+        }
+
+        /// <summary>
+        /// Sets a global override to the whitespace foreground color.
+        /// </summary>
+        /// <param name="use">true to override the whitespace foreground color; otherwise, false.</param>
+        /// <param name="color">The global whitespace foreground color.</param>
+        /// <remarks>When not overridden globally, the whitespace foreground color is determined by the current lexer.</remarks>
+        /// <seealso cref="ViewWhitespace" />
+        /// <seealso cref="SetWhitespaceBackColor" />
+        public void SetWhitespaceForeColor(bool use, Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            var useWhitespaceForeColour = (use ? new IntPtr(1) : IntPtr.Zero);
+
+            DirectMessage(NativeMethods.SCI_SETWHITESPACEFORE, useWhitespaceForeColour, new IntPtr(colour));
+        }
+
+        private bool ShouldSerializeAdditionalCaretForeColor()
+        {
+            return AdditionalCaretForeColor != Color.FromArgb(127, 127, 127);
+        }
+
+        /// <summary>
+        /// Prepares for styling by setting the styling <paramref name="position" /> to start at.
+        /// </summary>
+        /// <param name="position">The zero-based character position in the document to start styling.</param>
+        /// <remarks>
+        /// After preparing the document for styling, use successive calls to <see cref="SetStyling" />
+        /// to style the document.
+        /// </remarks>
+        /// <seealso cref="SetStyling" />
+        public void StartStyling(int position)
+        {
+            position = Helpers.Clamp(position, 0, TextLength);
+            var pos = Lines.CharToBytePosition(position);
+            DirectMessage(NativeMethods.SCI_STARTSTYLING, new IntPtr(pos));
+
+            // Track this so we can validate calls to SetStyling
+            stylingPosition = position;
+            stylingBytePosition = pos;
+        }
+
+        /// <summary>
+        /// Resets all style properties to those currently configured for the <see cref="Style.Default" /> style.
+        /// </summary>
+        /// <seealso cref="StyleResetDefault" />
+        public void StyleClearAll()
+        {
+            DirectMessage(NativeMethods.SCI_STYLECLEARALL);
+        }
+
+        /// <summary>
+        /// Resets the <see cref="Style.Default" /> style to its initial state.
+        /// </summary>
+        /// <seealso cref="StyleClearAll" />
+        public void StyleResetDefault()
+        {
+            DirectMessage(NativeMethods.SCI_STYLERESETDEFAULT);
+        }
+
+        /// <summary>
+        /// Sets the <see cref="TargetStart" /> and <see cref="TargetEnd" /> to the start and end positions of the selection.
+        /// </summary>
+        public void TargetFromSelection()
+        {
+            DirectMessage(NativeMethods.SCI_TARGETFROMSELECTION);
+        }
+
+        /// <summary>
+        /// Measures the width in pixels of the specified string when rendered in the specified style.
+        /// </summary>
+        /// <param name="style">The index of the <see cref="Style" /> to use when rendering the text to measure.</param>
+        /// <param name="text">The text to measure.</param>
+        /// <returns>The width in pixels.</returns>
+        public unsafe int TextWidth(int style, string text)
+        {
+            style = Helpers.Clamp(style, 0, Styles.Count - 1);
+            var bytes = Helpers.GetBytes(text ?? string.Empty, Encoding, zeroTerminated: true);
+
+            fixed (byte* bp = bytes)
+            {
+                return DirectMessage(NativeMethods.SCI_TEXTWIDTH, new IntPtr(style), new IntPtr(bp)).ToInt32();
+            }
+        }
+
+        /// <summary>
+        /// Undoes the previous action.
+        /// </summary>
+        public void Undo()
+        {
+            DirectMessage(NativeMethods.SCI_UNDO);
+        }
+
+        private void WmReflectNotify(ref Message m)
+        {
+            // A standard Windows notification and a Scintilla notification header are compatible
+            NativeMethods.SCNotification scn = (NativeMethods.SCNotification)Marshal.PtrToStructure(m.LParam, typeof(NativeMethods.SCNotification));
+            if (scn.nmhdr.code >= NativeMethods.SCN_STYLENEEDED && scn.nmhdr.code <= NativeMethods.SCN_FOCUSOUT)
+            {
+                var handler = Events[scNotificationEventKey] as EventHandler<SCNotificationEventArgs>;
+                if (handler != null)
+                    handler(this, new SCNotificationEventArgs(scn));
+
+                switch (scn.nmhdr.code)
+                {
+                    case NativeMethods.SCN_MODIFIED:
+                        ScnModified(ref scn);
+                        break;
+
+                    case NativeMethods.SCN_MODIFYATTEMPTRO:
+                        OnModifyAttempt(EventArgs.Empty);
+                        break;
+
+                    case NativeMethods.SCN_STYLENEEDED:
+                        OnStyleNeeded(new StyleNeededEventArgs(this, scn.position));
+                        break;
+
+                    case NativeMethods.SCN_SAVEPOINTLEFT:
+                        OnSavePointLeft(EventArgs.Empty);
+                        break;
+
+                    case NativeMethods.SCN_SAVEPOINTREACHED:
+                        OnSavePointReached(EventArgs.Empty);
+                        break;
+
+                    case NativeMethods.SCN_MARGINCLICK:
+                        ScnMarginClick(ref scn);
+                        break;
+
+                    case NativeMethods.SCN_UPDATEUI:
+                        OnUpdateUI(new UpdateUIEventArgs((UpdateChange)scn.updated));
+                        break;
+
+                    case NativeMethods.SCN_CHARADDED:
+                        OnCharAdded(new CharAddedEventArgs(scn.ch));
+                        break;
+
+                    case NativeMethods.SCN_AUTOCSELECTION:
+                        OnAutoCSelection(new AutoCSelectionEventArgs(this, scn.position, scn.text));
+                        break;
+
+                    case NativeMethods.SCN_AUTOCCANCELLED:
+                        OnAutoCCancelled(EventArgs.Empty);
+                        break;
+
+                    case NativeMethods.SCN_AUTOCCHARDELETED:
+                        OnAutoCCharDeleted(EventArgs.Empty);
+                        break;
+
+                    case NativeMethods.SCN_DWELLSTART:
+                        OnDwellStart(new DwellEventArgs(this, scn.position, scn.x, scn.y));
+                        break;
+
+                    case NativeMethods.SCN_DWELLEND:
+                        OnDwellEnd(new DwellEventArgs(this, scn.position, scn.x, scn.y));
+                        break;
+
+                    default:
+                        // Not our notification
+                        base.WndProc(ref m);
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Processes Windows messages.
+        /// </summary>
+        /// <param name="m">The Windows Message to process.</param>
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case (NativeMethods.WM_REFLECT + NativeMethods.WM_NOTIFY):
+                    WmReflectNotify(ref m);
+                    break;
+
+                default:
+                    base.WndProc(ref m);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Returns the position where a word ends, searching forward from the position specified.
+        /// </summary>
+        /// <param name="position">The zero-based document position to start searching from.</param>
+        /// <param name="onlyWordCharacters">
+        /// true to stop searching at the first non-word character regardless of whether the search started at a word or non-word character.
+        /// false to use the first character in the search as a word or non-word indicator and then search for that word or non-word boundary.
+        /// </param>
+        /// <returns>The zero-based document postion of the word boundary.</returns>
+        /// <seealso cref="WordStartPosition" />
+        public int WordEndPosition(int position, bool onlyWordCharacters)
+        {
+            var onlyWordChars = (onlyWordCharacters ? new IntPtr(1) : IntPtr.Zero);
+            position = Helpers.Clamp(position, 0, TextLength);
+            position = Lines.CharToBytePosition(position);
+            position = DirectMessage(NativeMethods.SCI_WORDENDPOSITION, new IntPtr(position), onlyWordChars).ToInt32();
+            return Lines.ByteToCharPosition(position);
+        }
+
+        /// <summary>
+        /// Returns the position where a word starts, searching backward from the position specified.
+        /// </summary>
+        /// <param name="position">The zero-based document position to start searching from.</param>
+        /// <param name="onlyWordCharacters">
+        /// true to stop searching at the first non-word character regardless of whether the search started at a word or non-word character.
+        /// false to use the first character in the search as a word or non-word indicator and then search for that word or non-word boundary.
+        /// </param>
+        /// <returns>The zero-based document postion of the word boundary.</returns>
+        /// <seealso cref="WordEndPosition" />
+        public int WordStartPosition(int position, bool onlyWordCharacters)
+        {
+            var onlyWordChars = (onlyWordCharacters ? new IntPtr(1) : IntPtr.Zero);
+            position = Helpers.Clamp(position, 0, TextLength);
+            position = Lines.CharToBytePosition(position);
+            position = DirectMessage(NativeMethods.SCI_WORDSTARTPOSITION, new IntPtr(position), onlyWordChars).ToInt32();
+            return Lines.ByteToCharPosition(position);
+        }
+
+        /// <summary>
+        /// Increases the zoom factor by 1 until it reaches 20 points.
+        /// </summary>
+        /// <seealso cref="Zoom" />
+        public void ZoomIn()
+        {
+            DirectMessage(NativeMethods.SCI_ZOOMIN);
+        }
+
+        /// <summary>
+        /// Decreases the zoom factor by 1 until it reaches -10 points.
+        /// </summary>
+        /// <seealso cref="Zoom" />
+        public void ZoomOut()
+        {
+            DirectMessage(NativeMethods.SCI_ZOOMOUT);
+        }
+
+        #endregion Methods
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or sets the caret foreground color for additional selections.
+        /// </summary>
+        /// <returns>The caret foreground color in additional selections. The default is (127, 127, 127).</returns>
+        [Category("Multiple Selection")]
+        [Description("The additional caret foreground color.")]
+        public Color AdditionalCaretForeColor
+        {
+            get
+            {
+                var color = DirectMessage(NativeMethods.SCI_GETADDITIONALCARETFORE).ToInt32();
+                return ColorTranslator.FromWin32(color);
+            }
+            set
+            {
+                var color = ColorTranslator.ToWin32(value);
+                DirectMessage(NativeMethods.SCI_SETADDITIONALCARETFORE, new IntPtr(color));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the carets in additional selections will blink.
+        /// </summary>
+        /// <returns>true if additional selection carets should blink; otherwise, false. The default is true.</returns>
+        [DefaultValue(true)]
+        [Category("Multiple Selection")]
+        [Description("Whether the carets in additional selections should blink.")]
+        public bool AdditionalCaretsBlink
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETADDITIONALCARETSBLINK) != IntPtr.Zero;
+            }
+            set
+            {
+                var additionalCaretsBlink = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETADDITIONALCARETSBLINK, additionalCaretsBlink);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the carets in additional selections are visible.
+        /// </summary>
+        /// <returns>true if additional selection carets are visible; otherwise, false. The default is true.</returns>
+        [DefaultValue(true)]
+        [Category("Multiple Selection")]
+        [Description("Whether the carets in additional selections are visible.")]
+        public bool AdditionalCaretsVisible
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETADDITIONALCARETSVISIBLE) != IntPtr.Zero;
+            }
+            set
+            {
+                var additionalCaretsBlink = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETADDITIONALCARETSVISIBLE, additionalCaretsBlink);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the alpha transparency of additional multiple selections.
+        /// </summary>
+        /// <returns>
+        /// The alpha transparency ranging from 0 (completely transparent) to 255 (completely opaque).
+        /// The value 256 will disable alpha transparency. The default is 256.
+        /// </returns>
+        [DefaultValue(256)]
+        [Category("Multiple Selection")]
+        [Description("The transparency of additional selections.")]
+        public int AdditionalSelAlpha
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETADDITIONALSELALPHA).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, NativeMethods.SC_ALPHA_NOALPHA);
+                DirectMessage(NativeMethods.SCI_SETADDITIONALSELALPHA, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether additional typing affects multiple selections.
+        /// </summary>
+        /// <returns>true if typing will affect multiple selections instead of just the main selection; otherwise, false. The default is false.</returns>
+        [DefaultValue(false)]
+        [Category("Multiple Selection")]
+        [Description("Whether typing, backspace, or delete works with multiple selection simultaneously.")]
+        public bool AdditionalSelectionTyping
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETADDITIONALSELECTIONTYPING) != IntPtr.Zero;
+            }
+            set
+            {
+                var additionalSelectionTyping = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETADDITIONALSELECTIONTYPING, additionalSelectionTyping);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current anchor position.
+        /// </summary>
+        /// <returns>The zero-based character position of the anchor.</returns>
+        /// <remarks>
+        /// Setting the current anchor position will create a selection between it and the <see cref="CurrentPosition" />.
+        /// The caret is not scrolled into view.
+        /// </remarks>
+        /// <seealso cref="ScrollCaret" />
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int AnchorPosition
+        {
+            get
+            {
+                var bytePos = DirectMessage(NativeMethods.SCI_GETANCHOR).ToInt32();
+                return Lines.ByteToCharPosition(bytePos);
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, TextLength);
+                var bytePos = Lines.CharToBytePosition(value);
+                DirectMessage(NativeMethods.SCI_SETANCHOR, new IntPtr(bytePos));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the display of annotations.
+        /// </summary>
+        /// <returns>One of the <see cref="Annotation" /> enumeration values. The default is <see cref="Annotation.Hidden" />.</returns>
+        [DefaultValue(Annotation.Hidden)]
+        [Category("Appearance")]
+        [Description("Display and location of annotations.")]
+        public Annotation AnnotationVisible
+        {
+            get
+            {
+                return (Annotation)DirectMessage(NativeMethods.SCI_ANNOTATIONGETVISIBLE).ToInt32();
+            }
+            set
+            {
+                var visible = (int)value;
+                DirectMessage(NativeMethods.SCI_ANNOTATIONSETVISIBLE, new IntPtr(visible));
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether there is an autocompletion list displayed.
+        /// </summary>
+        /// <returns>true if there is an active autocompletion list; otherwise, false.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool AutoCActive
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCACTIVE) != IntPtr.Zero;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to automatically cancel autocompletion when there are no viable matches.
+        /// </summary>
+        /// <returns>
+        /// true to automatically cancel autocompletion when there is no possible match; otherwise, false.
+        /// The default is true.
+        /// </returns>
+        [DefaultValue(true)]
+        [Category("Autocompletion")]
+        [Description("Whether to automatically cancel autocompletion when no match is possible.")]
+        public bool AutoCAutoHide
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETAUTOHIDE) != IntPtr.Zero;
+            }
+            set
+            {
+                var autoHide = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_AUTOCSETAUTOHIDE, autoHide);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to cancel an autocompletion if the caret moves from its initial location,
+        /// or is allowed to move to the word start.
+        /// </summary>
+        /// <returns>
+        /// true to cancel autocompletion when the caret moves.
+        /// false to allow the caret to move to the beginning of the word without cancelling autocompletion.
+        /// </returns>
+        [DefaultValue(true)]
+        [Category("Autocompletion")]
+        [Description("Whether to cancel an autocompletion if the caret moves from its initial location, or is allowed to move to the word start.")]
+        public bool AutoCCancelAtStart
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETCANCELATSTART) != IntPtr.Zero;
+            }
+            set
+            {
+                var cancel = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_AUTOCSETCANCELATSTART, cancel);
+            }
+        }
+
+        /// <summary>
+        /// Gets the index of the current autocompletion list selection.
+        /// </summary>
+        /// <returns>The zero-based index of the current autocompletion selection.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public int AutoCCurrent
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETCURRENT).ToInt32();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to automatically select an item when it is the only one in an autocompletion list.
+        /// </summary>
+        /// <returns>
+        /// true to automatically choose the only autocompletion item and not display the list; otherwise, false.
+        /// The default is false.
+        /// </returns>
+        [DefaultValue(false)]
+        [Category("Autocompletion")]
+        [Description("Whether to automatically choose an autocompletion item when it is the only one in the list.")]
+        public bool AutoCChooseSingle
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETCHOOSESINGLE) != IntPtr.Zero;
+            }
+            set
+            {
+                var chooseSingle = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_AUTOCSETCHOOSESINGLE, chooseSingle);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to delete any word characters following the caret after an autocompletion.
+        /// </summary>
+        /// <returns>
+        /// true to delete any word characters following the caret after autocompletion; otherwise, false.
+        /// The default is false.</returns>
+        [DefaultValue(false)]
+        [Category("Autocompletion")]
+        [Description("Whether to delete any existing word characters following the caret after autocompletion.")]
+        public bool AutoCDropRestOfWord
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETDROPRESTOFWORD) != IntPtr.Zero;
+            }
+            set
+            {
+                var dropRestOfWord = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_AUTOCSETDROPRESTOFWORD, dropRestOfWord);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether matching characters to an autocompletion list is case-insensitive.
+        /// </summary>
+        /// <returns>true to use case-insensitive matching; otherwise, false. The default is false.</returns>
+        [DefaultValue(false)]
+        [Category("Autocompletion")]
+        [Description("Whether autocompletion word matching can ignore case.")]
+        public bool AutoCIgnoreCase
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETIGNORECASE) != IntPtr.Zero;
+            }
+            set
+            {
+                var ignoreCase = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_AUTOCSETIGNORECASE, ignoreCase);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum height of the autocompletion list measured in rows.
+        /// </summary>
+        /// <returns>The max number of rows to display in an autocompletion window. The default is 5.</returns>
+        /// <remarks>If there are more items in the list than max rows, a vertical scrollbar is shown.</remarks>
+        [DefaultValue(5)]
+        [Category("Autocompletion")]
+        [Description("The maximum number of rows to display in an autocompletion list.")]
+        public int AutoCMaxHeight
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETMAXHEIGHT).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_AUTOCSETMAXHEIGHT, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the width in characters of the autocompletion list.
+        /// </summary>
+        /// <returns>
+        /// The width of the autocompletion list expressed in characters, or 0 to automatically set the width
+        /// to the longest item. The default is 0.
+        /// </returns>
+        /// <remarks>Any items that cannot be fully displayed will be indicated with ellipsis.</remarks>
+        [DefaultValue(0)]
+        [Category("Autocompletion")]
+        [Description("The width of the autocompletion list measured in characters.")]
+        public int AutoCMaxWidth
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_AUTOCGETMAXWIDTH).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_AUTOCSETMAXWIDTH, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the autocompletion list sort order to expect when calling <see cref="AutoCShow" />.
+        /// </summary>
+        /// <returns>One of the <see cref="Order" /> enumeration values. The default is <see cref="Order.Presorted" />.</returns>
+        [DefaultValue(Order.Presorted)]
+        [Category("Autocompletion")]
+        [Description("The order of words in an autocompletion list.")]
+        public Order AutoCOrder
+        {
+            get
+            {
+                return (Order)DirectMessage(NativeMethods.SCI_AUTOCGETORDER).ToInt32();
+            }
+            set
+            {
+                var order = (int)value;
+                DirectMessage(NativeMethods.SCI_AUTOCSETORDER, new IntPtr(order));
+            }
+        }
+
+        /// <summary>
+        /// Gets the document position at the time <see cref="AutoCShow" /> was called.
+        /// </summary>
+        /// <returns>The zero-based document position at the time <see cref="AutoCShow" /> was called.</returns>
+        /// <seealso cref="AutoCShow" />
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public int AutoCPosStart
+        {
+            get
+            {
+                var pos = DirectMessage(NativeMethods.SCI_AUTOCPOSSTART).ToInt32();
+                pos = Lines.ByteToCharPosition(pos);
+
+                return pos;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the delimiter character used to separate words in an autocompletion list.
+        /// </summary>
+        /// <returns>The separator character used when calling <see cref="AutoCShow" />. The default is the space character.</returns>
+        /// <remarks>The <paramref name="value" /> specified should be limited to printable ASCII characters.</remarks>
+        [DefaultValue(' ')]
+        [Category("Autocompletion")]
+        [Description("The autocompletion list word delimiter. The default is a space character.")]
+        public Char AutoCSeparator
+        {
+            get
+            {
+                var separator = DirectMessage(NativeMethods.SCI_AUTOCGETSEPARATOR).ToInt32();
+                return (Char)separator;
+            }
+            set
+            {
+                // The autocompletion separator character is stored as a byte within Scintilla,
+                // not a character. Thus it's possible for a user to supply a character that does
+                // not fit within a single byte. The likelyhood of this, however, seems so remote that
+                // I'm willing to risk a possible conversion error to provide a better user experience.
+                var separator = (byte)value;
+                DirectMessage(NativeMethods.SCI_AUTOCSETSEPARATOR, new IntPtr(separator));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the delimiter character used to separate words and image type identifiers in an autocompletion list.
+        /// </summary>
+        /// <returns>The separator character used to reference an image registered with <see cref="RegisterRgbaImage" />. The default is '?'.</returns>
+        /// <remarks>The <paramref name="value" /> specified should be limited to printable ASCII characters.</remarks>
+        [DefaultValue('?')]
+        [Category("Autocompletion")]
+        [Description("The autocompletion list image type delimiter.")]
+        public Char AutoCTypeSeparator
+        {
+            get
+            {
+                var separatorCharacter = DirectMessage(NativeMethods.SCI_AUTOCGETTYPESEPARATOR).ToInt32();
+                return (Char)separatorCharacter;
+            }
+            set
+            {
+                // The autocompletion type separator character is stored as a byte within Scintilla,
+                // not a character. Thus it's possible for a user to supply a character that does
+                // not fit within a single byte. The likelyhood of this, however, seems so remote that
+                // I'm willing to risk a possible conversion error to provide a better user experience.
+                var separatorCharacter = (byte)value;
+                DirectMessage(NativeMethods.SCI_AUTOCSETTYPESEPARATOR, new IntPtr(separatorCharacter));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the automatic folding flags.
+        /// </summary>
+        /// <returns>
+        /// A bitwise combination of the <see cref="ScintillaNET.AutomaticFold" /> enumeration.
+        /// The default is <see cref="ScintillaNET.AutomaticFold.None" />.
+        /// </returns>
+        [DefaultValue(AutomaticFold.None)]
+        [Category("Behavior")]
+        [Description("Options for allowing the control to automatically handle folding.")]
+        [TypeConverter(typeof(FlagsEnumTypeConverter.FlagsEnumConverter))]
+        public AutomaticFold AutomaticFold
+        {
+            get
+            {
+                return (AutomaticFold)DirectMessage(NativeMethods.SCI_GETAUTOMATICFOLD);
+            }
+            set
+            {
+                var automaticFold = (int)value;
+                DirectMessage(NativeMethods.SCI_SETAUTOMATICFOLD, new IntPtr(automaticFold));
+            }
+        }
+
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override Color BackColor
+        {
+            get
+            {
+                return base.BackColor;
+            }
+            set
+            {
+                base.BackColor = value;
+            }
+        }
+
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override Image BackgroundImage
+        {
+            get
+            {
+                return base.BackgroundImage;
+            }
+            set
+            {
+                base.BackgroundImage = value;
+            }
+        }
+
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override ImageLayout BackgroundImageLayout
+        {
+            get
+            {
+                return base.BackgroundImageLayout;
+            }
+            set
+            {
+                base.BackgroundImageLayout = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the border type of the <see cref="Scintilla" /> control.
+        /// </summary>
+        /// <returns>A BorderStyle enumeration value that represents the border type of the control. The default is Fixed3D.</returns>
+        /// <exception cref="InvalidEnumArgumentException">A value that is not within the range of valid values for the enumeration was assigned to the property.</exception>
+        [DefaultValue(BorderStyle.Fixed3D)]
+        [Category("Appearance")]
+        [Description("Indicates whether the control should have a border.")]
+        public BorderStyle BorderStyle
+        {
+            get
+            {
+                return borderStyle;
+            }
+            set
+            {
+                if (borderStyle != value)
+                {
+                    if (!Enum.IsDefined(typeof(BorderStyle), value))
+                        throw new InvalidEnumArgumentException("value", (int)value, typeof(BorderStyle));
+
+                    borderStyle = value;
+                    UpdateStyles();
+                    OnBorderStyleChanged(EventArgs.Empty);
+                }
+            }
+        }
+
+        /*
+        /// <summary>
+        /// Gets or sets the current position of a call tip.
+        /// </summary>
+        /// <returns>The zero-based document position indicated when <see cref="CallTipShow" /> was called to display a call tip.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public int CallTipPosStart
+        {
+            get
+            {
+                var pos = DirectMessage(NativeMethods.SCI_CALLTIPPOSSTART).ToInt32();
+                if (pos < 0)
+                    return pos;
+
+                return Lines.ByteToCharPosition(pos);
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, TextLength);
+                value = Lines.CharToBytePosition(value);
+                DirectMessage(NativeMethods.SCI_CALLTIPSETPOSSTART, new IntPtr(value));
+            }
+        }
+        */
+
+        /// <summary>
+        /// Gets a value indicating whether there is a call tip window displayed.
+        /// </summary>
+        /// <returns>true if there is an active call tip window; otherwise, false.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool CallTipActive
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_CALLTIPACTIVE) != IntPtr.Zero;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether there is text on the clipboard that can be pasted into the document.
+        /// </summary>
+        /// <returns>true when there is text on the clipboard to paste; otherwise, false.</returns>
+        /// <remarks>The document cannot be <see cref="ReadOnly" />  and the selection cannot contain protected text.</remarks>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool CanPaste
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_CANPASTE) != IntPtr.Zero);
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether there is an undo action to redo.
+        /// </summary>
+        /// <returns>true when there is something to redo; otherwise, false.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool CanRedo
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_CANREDO) != IntPtr.Zero);
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether there is an action to undo.
+        /// </summary>
+        /// <returns>true when there is something to undo; otherwise, false.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool CanUndo
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_CANUNDO) != IntPtr.Zero);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the caret foreground color.
+        /// </summary>
+        /// <returns>The caret foreground color. The default is black.</returns>
+        [DefaultValue(typeof(Color), "Black")]
+        [Category("Caret")]
+        [Description("The caret foreground color.")]
+        public Color CaretForeColor
+        {
+            get
+            {
+                var color = DirectMessage(NativeMethods.SCI_GETCARETFORE).ToInt32();
+                return ColorTranslator.FromWin32(color);
+            }
+            set
+            {
+                var color = ColorTranslator.ToWin32(value);
+                DirectMessage(NativeMethods.SCI_SETCARETFORE, new IntPtr(color));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the caret line background color.
+        /// </summary>
+        /// <returns>The caret line background color. The default is yellow.</returns>
+        [DefaultValue(typeof(Color), "Yellow")]
+        [Category("Caret")]
+        [Description("The background color of the current line.")]
+        public Color CaretLineBackColor
+        {
+            get
+            {
+                var color = DirectMessage(NativeMethods.SCI_GETCARETLINEBACK).ToInt32();
+                return ColorTranslator.FromWin32(color);
+            }
+            set
+            {
+                var color = ColorTranslator.ToWin32(value);
+                DirectMessage(NativeMethods.SCI_SETCARETLINEBACK, new IntPtr(color));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the alpha transparency of the <see cref="CaretLineBackColor" />.
+        /// </summary>
+        /// <returns>
+        /// The alpha transparency ranging from 0 (completely transparent) to 255 (completely opaque).
+        /// The value 256 will disable alpha transparency. The default is 256.
+        /// </returns>
+        [DefaultValue(256)]
+        [Category("Caret")]
+        [Description("The transparency of the current line background color.")]
+        public int CaretLineBackColorAlpha
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETCARETLINEBACKALPHA).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, NativeMethods.SC_ALPHA_NOALPHA);
+                DirectMessage(NativeMethods.SCI_SETCARETLINEBACKALPHA, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the caret line is visible (highlighted).
+        /// </summary>
+        /// <returns>true if the caret line is visible; otherwise, false. The default is false.</returns>
+        [DefaultValue(false)]
+        [Category("Caret")]
+        [Description("Determines whether to highlight the current caret line.")]
+        public bool CaretLineVisible
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETCARETLINEVISIBLE) != IntPtr.Zero);
+            }
+            set
+            {
+                var visible = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETCARETLINEVISIBLE, visible);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the caret blink rate in milliseconds.
+        /// </summary>
+        /// <returns>The caret blink rate measured in milliseconds. The default is 530.</returns>
+        /// <remarks>A value of 0 will stop the caret blinking.</remarks>
+        [DefaultValue(530)]
+        [Category("Caret")]
+        [Description("The caret blink rate in milliseconds.")]
+        public int CaretPeriod
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETCARETPERIOD).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETCARETPERIOD, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the caret display style.
+        /// </summary>
+        /// <returns>
+        /// One of the <see cref="ScintillaNET.CaretStyle" /> enumeration values.
+        /// The default is <see cref="ScintillaNET.CaretStyle.Line" />.
+        /// </returns>
+        [DefaultValue(CaretStyle.Line)]
+        [Category("Caret")]
+        [Description("The caret display style.")]
+        public CaretStyle CaretStyle
+        {
+            get
+            {
+                return (CaretStyle)DirectMessage(NativeMethods.SCI_GETCARETSTYLE).ToInt32();
+            }
+            set
+            {
+                var style = (int)value;
+                DirectMessage(NativeMethods.SCI_SETCARETSTYLE, new IntPtr(style));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the width in pixels of the caret.
+        /// </summary>
+        /// <returns>The width of the caret in pixels. The default is 1 pixel.</returns>
+        /// <remarks>
+        /// The caret width can only be set to a value of 0, 1, 2 or 3 pixels and is only effective
+        /// when the <see cref="CaretStyle" /> property is set to <see cref="ScintillaNET.CaretStyle.Line" />.
+        /// </remarks>
+        [DefaultValue(1)]
+        [Category("Caret")]
+        [Description("The width of the caret line measured in pixels (between 0 and 3).")]
+        public int CaretWidth
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETCARETWIDTH).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, 3);
+                DirectMessage(NativeMethods.SCI_SETCARETWIDTH, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets the required creation parameters when the control handle is created.
+        /// </summary>
+        /// <returns>A CreateParams that contains the required creation parameters when the handle to the control is created.</returns>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                if (moduleHandle == IntPtr.Zero)
+                {
+                    var path = GetModulePath();
+
+                    // Load the native Scintilla library
+                    moduleHandle = NativeMethods.LoadLibrary(path);
+                    if (moduleHandle == IntPtr.Zero)
+                    {
+                        var message = string.Format(CultureInfo.InvariantCulture, "Could not load the Scintilla module at the path '{0}'.", path);
+                        throw new Win32Exception(message, new Win32Exception()); // Will GetLastError
+                    }
+
+                    // Get the native Scintilla direct function -- the only function the library exports
+                    var directFunctionPointer = NativeMethods.GetProcAddress(new HandleRef(this, moduleHandle), "Scintilla_DirectFunction");
+                    if (directFunctionPointer == IntPtr.Zero)
+                    {
+                        var message = "The Scintilla module has no export for the 'Scintilla_DirectFunction' procedure.";
+                        throw new Win32Exception(message, new Win32Exception()); // Will GetLastError
+                    }
+
+                    // Create a managed callback
+                    directFunction = (NativeMethods.Scintilla_DirectFunction)Marshal.GetDelegateForFunctionPointer(
+                        directFunctionPointer,
+                        typeof(NativeMethods.Scintilla_DirectFunction));
+                }
+
+                CreateParams cp = base.CreateParams;
+                cp.ClassName = "Scintilla";
+
+                // The border effect is achieved through a native Windows style
+                cp.ExStyle &= (~NativeMethods.WS_EX_CLIENTEDGE);
+                cp.Style &= (~NativeMethods.WS_BORDER);
+                switch (borderStyle)
+                {
+                    case BorderStyle.Fixed3D:
+                        cp.ExStyle |= NativeMethods.WS_EX_CLIENTEDGE;
+                        break;
+                    case BorderStyle.FixedSingle:
+                        cp.Style |= NativeMethods.WS_BORDER;
+                        break;
+                }
+
+                return cp;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current caret position.
+        /// </summary>
+        /// <returns>The zero-based character position of the caret.</returns>
+        /// <remarks>
+        /// Setting the current caret position will create a selection between it and the current <see cref="AnchorPosition" />.
+        /// The caret is not scrolled into view.
+        /// </remarks>
+        /// <seealso cref="ScrollCaret" />
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int CurrentPosition
+        {
+            get
+            {
+                var bytePos = DirectMessage(NativeMethods.SCI_GETCURRENTPOS).ToInt32();
+                return Lines.ByteToCharPosition(bytePos);
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, TextLength);
+                var bytePos = Lines.CharToBytePosition(value);
+                DirectMessage(NativeMethods.SCI_SETCURRENTPOS, new IntPtr(bytePos));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the default cursor for the control.
+        /// </summary>
+        /// <returns>An object of type Cursor representing the current default cursor.</returns>
+        protected override Cursor DefaultCursor
+        {
+            get
+            {
+                return Cursors.IBeam;
+            }
+        }
+
+        /// <summary>
+        /// Gets the default size of the control.
+        /// </summary>
+        /// <returns>The default Size of the control.</returns>
+        protected override Size DefaultSize
+        {
+            get
+            {
+                // I've discovered that using a DefaultSize property other than 'empty' triggers a flaw (IMO)
+                // in Windows Forms that will cause CreateParams to be called in the base constructor.
+                // That's too early. It makes it impossible to use the Site or DesignMode properties during
+                // handle creation because they haven't been set yet. Since we don't currently depend on those
+                // properties it's okay, but if we need them this is the place to start fixing things.
+
+                return new Size(200, 100);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current document used by the control.
+        /// </summary>
+        /// <returns>The current <see cref="Document" />.</returns>
+        /// <remarks>
+        /// Setting this property is equivalent to calling <see cref="ReleaseDocument" /> on the current document, and
+        /// calling <see cref="CreateDocument" /> if the new <paramref name="value" /> is <see cref="ScintillaNET.Document.Empty" /> or
+        /// <see cref="AddRefDocument" /> if the new <paramref name="value" /> is not <see cref="ScintillaNET.Document.Empty" />.
+        /// </remarks>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Document Document
+        {
+            get
+            {
+                var ptr = DirectMessage(NativeMethods.SCI_GETDOCPOINTER);
+                return new Document { Value = ptr };
+            }
+            set
+            {
+                var ptr = value.Value;
+                DirectMessage(NativeMethods.SCI_SETDOCPOINTER, IntPtr.Zero, ptr);
+
+                // Rebuild the line cache
+                Lines.RebuildLineData();
+            }
+        }
+
+        internal Encoding Encoding
+        {
+            get
+            {
+                // Should always be UTF-8 unless someone has done an end run around us
+                int codePage = (int)DirectMessage(NativeMethods.SCI_GETCODEPAGE);
+                return (codePage == 0 ? Encoding.Default : Encoding.GetEncoding(codePage));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether vertical scrolling ends at the last line or can scroll past.
+        /// </summary>
+        /// <returns>true if the maximum vertical scroll position ends at the last line; otherwise, false. The default is true.</returns>
+        [DefaultValue(true)]
+        [Category("Scrolling")]
+        [Description("Determines whether the maximum vertical scroll position ends at the last line or can scroll past.")]
+        public bool EndAtLastLine
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETENDATLASTLINE) != IntPtr.Zero);
+            }
+            set
+            {
+                var endAtLastLine = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETENDATLASTLINE, endAtLastLine);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the background color to use when indicating long lines with
+        /// <see cref="ScintillaNET.EdgeMode.Background" />.
+        /// </summary>
+        /// <returns>The background Color. The default is Silver.</returns>
+        [DefaultValue(typeof(Color), "Silver")]
+        [Category("Long Lines")]
+        [Description("The background color to use when indicating long lines.")]
+        public Color EdgeColor
+        {
+            get
+            {
+                var color = DirectMessage(NativeMethods.SCI_GETEDGECOLOUR).ToInt32();
+                return ColorTranslator.FromWin32(color);
+            }
+            set
+            {
+                var color = ColorTranslator.ToWin32(value);
+                DirectMessage(NativeMethods.SCI_SETEDGECOLOUR, new IntPtr(color));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the column number at which to begin indicating long lines.
+        /// </summary>
+        /// <returns>The number of columns in a long line. The default is 0.</returns>
+        /// <remarks>
+        /// When using <see cref="ScintillaNET.EdgeMode.Line"/>, a column is defined as the width of a space character in the <see cref="Style.Default" /> style.
+        /// When using <see cref="ScintillaNET.EdgeMode.Background" /> a column is equal to a character (including tabs).
+        /// </remarks>
+        [DefaultValue(0)]
+        [Category("Long Lines")]
+        [Description("The number of columns at which to display long line indicators.")]
+        public int EdgeColumn
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETEDGECOLUMN).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETEDGECOLUMN, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the mode for indicating long lines.
+        /// </summary>
+        /// <returns>
+        /// One of the <see cref="ScintillaNET.EdgeMode" /> enumeration values.
+        /// The default is <see cref="ScintillaNET.EdgeMode.None" />.
+        /// </returns>
+        [DefaultValue(EdgeMode.None)]
+        [Category("Long Lines")]
+        [Description("Determines how long lines are indicated.")]
+        public EdgeMode EdgeMode
+        {
+            get
+            {
+                return (EdgeMode)DirectMessage(NativeMethods.SCI_GETEDGEMODE);
+            }
+            set
+            {
+                var edgeMode = (int)value;
+                DirectMessage(NativeMethods.SCI_SETEDGEMODE, new IntPtr(edgeMode));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of whitespace added to the ascent (top) of each line.
+        /// </summary>
+        /// <returns>The extra line ascent. The default is zero.</returns>
+        [DefaultValue(0)]
+        [Category("Whitespace")]
+        [Description("Extra whitespace added to the ascent (top) of each line.")]
+        public int ExtraAscent
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETEXTRAASCENT).ToInt32();
+            }
+            set
+            {
+                DirectMessage(NativeMethods.SCI_SETEXTRAASCENT, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of whitespace added to the descent (bottom) of each line.
+        /// </summary>
+        /// <returns>The extra line descent. The default is zero.</returns>
+        [DefaultValue(0)]
+        [Category("Whitespace")]
+        [Description("Extra whitespace added to the descent (bottom) of each line.")]
+        public int ExtraDescent
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETEXTRADESCENT).ToInt32();
+            }
+            set
+            {
+                DirectMessage(NativeMethods.SCI_SETEXTRADESCENT, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the first visible line on screen.
+        /// </summary>
+        /// <returns>The zero-based index of the first visible screen line.</returns>
+        /// <remarks>The value is a visible line, not a document line.</remarks>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int FirstVisibleLine
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETFIRSTVISIBLELINE).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETFIRSTVISIBLELINE, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override Font Font
+        {
+            get
+            {
+                return base.Font;
+            }
+            set
+            {
+                base.Font = value;
+            }
+        }
+
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override Color ForeColor
+        {
+            get
+            {
+                return base.ForeColor;
+            }
+            set
+            {
+                base.ForeColor = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the column number of the indentation guide to highlight.
+        /// </summary>
+        /// <returns>The column number of the indentation guide to highlight or 0 if disabled.</returns>
+        /// <remarks>Guides are highlighted in the <see cref="Style.BraceLight" /> style. Column numbers can be determined by calling <see cref="GetColumn" />.</remarks>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int HighlightGuide
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETHIGHLIGHTGUIDE).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETHIGHLIGHTGUIDE, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to display the horizontal scroll bar.
+        /// </summary>
+        /// <returns>true to display the horizontal scroll bar when needed; otherwise, false. The default is true.</returns>
+        [DefaultValue(true)]
+        [Category("Scrolling")]
+        [Description("Determines whether to show the horizontal scroll bar if needed.")]
+        public bool HScrollBar
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETHSCROLLBAR) != IntPtr.Zero);
+            }
+            set
+            {
+                var visible = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETHSCROLLBAR, visible);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the size of indentation in terms of space characters.
+        /// </summary>
+        /// <returns>The indentation size measured in characters. The default is 0.</returns>
+        /// <remarks> A value of 0 will make the indent width the same as the tab width.</remarks>
+        [DefaultValue(0)]
+        [Category("Indentation")]
+        [Description("The indentation size in characters or 0 to make it the same as the tab width.")]
+        public int IndentWidth
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETINDENT).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETINDENT, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to display indentation guides.
+        /// </summary>
+        /// <returns>One of the <see cref="IndentView" /> enumeration values. The default is <see cref="IndentView.None" />.</returns>
+        /// <remarks>The <see cref="Style.IndentGuide" /> style can be used to specify the foreground and background color of indentation guides.</remarks>
+        [DefaultValue(IndentView.None)]
+        [Category("Indentation")]
+        [Description("Indicates whether indentation guides are displayed.")]
+        public IndentView IndentationGuides
+        {
+            get
+            {
+                return (IndentView)DirectMessage(NativeMethods.SCI_GETINDENTATIONGUIDES);
+            }
+            set
+            {
+                var indentView = (int)value;
+                DirectMessage(NativeMethods.SCI_SETINDENTATIONGUIDES, new IntPtr(indentView));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the indicator used in a subsequent call to <see cref="IndicatorFillRange" /> or <see cref="IndicatorClearRange" />.
+        /// </summary>
+        /// <returns>The zero-based indicator index to apply when calling <see cref="IndicatorFillRange" /> or remove when calling <see cref="IndicatorClearRange" />.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int IndicatorCurrent
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETINDICATORCURRENT).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, Indicators.Count - 1);
+                DirectMessage(NativeMethods.SCI_SETINDICATORCURRENT, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets a collection of objects for working with indicators.
+        /// </summary>
+        /// <returns>A collection of <see cref="Indicator" /> objects.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public IndicatorCollection Indicators { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the user-defined value used in a subsequent call to <see cref="IndicatorFillRange" />.
+        /// </summary>
+        /// <returns>The indicator value to apply when calling <see cref="IndicatorFillRange" />.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int IndicatorValue
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETINDICATORVALUE).ToInt32();
+            }
+            set
+            {
+                DirectMessage(NativeMethods.SCI_SETINDICATORVALUE, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current lexer.
+        /// </summary>
+        /// <returns>One of the <see cref="Lexer" /> enumeration values. The default is <see cref="ScintillaNET.Lexer.Container" />.</returns>
+        [DefaultValue(Lexer.Container)]
+        [Category("Lexing")]
+        [Description("The current lexer.")]
+        public Lexer Lexer
+        {
+            get
+            {
+                return (Lexer)DirectMessage(NativeMethods.SCI_GETLEXER);
+            }
+            set
+            {
+                var lexer = (int)value;
+                DirectMessage(NativeMethods.SCI_SETLEXER, new IntPtr(lexer));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current lexer by name.
+        /// </summary>
+        /// <returns>A String representing the current lexer.</returns>
+        /// <remarks>Lexer names are case-sensitive.</remarks>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public unsafe string LexerLanguage
+        {
+            get
+            {
+                var length = DirectMessage(NativeMethods.SCI_GETLEXERLANGUAGE).ToInt32();
+                if (length == 0)
+                    return string.Empty;
+
+                var bytes = new byte[length + 1];
+                fixed (byte* bp = bytes)
+                {
+                    DirectMessage(NativeMethods.SCI_GETLEXERLANGUAGE, IntPtr.Zero, new IntPtr(bp));
+                    return Helpers.GetString(new IntPtr(bp), length, Encoding.ASCII);
+                }
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    DirectMessage(NativeMethods.SCI_SETLEXERLANGUAGE, IntPtr.Zero, IntPtr.Zero);
+                }
+                else
+                {
+                    var bytes = Helpers.GetBytes(value, Encoding.ASCII, zeroTerminated: true);
+                    fixed (byte* bp = bytes)
+                        DirectMessage(NativeMethods.SCI_SETLEXERLANGUAGE, IntPtr.Zero, new IntPtr(bp));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a collection representing lines of text in the <see cref="Scintilla" /> control.
+        /// </summary>
+        /// <returns>A collection of text lines.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public LineCollection Lines { get; private set; }
+
+        /// <summary>
+        /// Gets the number of lines that can be shown on screen given a constant
+        /// line height and the space available.
+        /// </summary>
+        /// <returns>
+        /// The number of screen lines which could be displayed (including any partial lines).
+        /// </returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int LinesOnScreen
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_LINESONSCREEN).ToInt32();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the main selection when their are multiple selections.
+        /// </summary>
+        /// <returns>The zero-based main selection index.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int MainSelection
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETMAINSELECTION).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETMAINSELECTION, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets a collection representing margins in a <see cref="Scintilla" /> control.
+        /// </summary>
+        /// <returns>A collection of margins.</returns>
+        [Category("Collections")]
+        [Description("The margins collection.")]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        public MarginCollection Margins { get; private set; }
+
+        /// <summary>
+        /// Gets a collection representing markers in a <see cref="Scintilla" /> control.
+        /// </summary>
+        /// <returns>A collection of markers.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public MarkerCollection Markers { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the document has been modified (is dirty)
+        /// since the last call to <see cref="SetSavePoint" />.
+        /// </summary>
+        /// <returns>true if the document has been modified; otherwise, false.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool Modified
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETMODIFY) != IntPtr.Zero);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the time in milliseconds the mouse must linger to generate a <see cref="DwellStart" /> event.
+        /// </summary>
+        /// <returns>
+        /// The time in milliseconds the mouse must linger to generate a <see cref="DwellStart" /> event
+        /// or <see cref="Scintilla.TimeForever" /> if dwell events are disabled.
+        /// </returns>
+        [DefaultValue(TimeForever)]
+        [Category("Behavior")]
+        [Description("The time in milliseconds the mouse must linger to generate a dwell start event. A value of 10000000 disables dwell events.")]
+        public int MouseDwellTime
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETMOUSEDWELLTIME).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETMOUSEDWELLTIME, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the ability to switch to rectangular selection mode while making a selection with the mouse.
+        /// </summary>
+        /// <returns>
+        /// true if the current mouse selection can be switched to a rectangular selection by pressing the ALT key; otherwise, false.
+        /// The default is false.
+        /// </returns>
+        [DefaultValue(false)]
+        [Category("Multiple Selection")]
+        [Description("Enable or disable the ability to switch to rectangular selection mode while making a selection with the mouse.")]
+        public bool MouseSelectionRectangularSwitch
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETMOUSESELECTIONRECTANGULARSWITCH) != IntPtr.Zero;
+            }
+            set
+            {
+                var mouseSelectionRectangularSwitch = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETMOUSESELECTIONRECTANGULARSWITCH, mouseSelectionRectangularSwitch);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether multiple selection is enabled.
+        /// </summary>
+        /// <returns>
+        /// true if multiple selections can be made by holding the CTRL key and dragging the mouse; otherwise, false.
+        /// The default is false.
+        /// </returns>
+        [DefaultValue(false)]
+        [Category("Multiple Selection")]
+        [Description("Enable or disable multiple selection with the CTRL key.")]
+        public bool MultipleSelection
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETMULTIPLESELECTION) != IntPtr.Zero;
+            }
+            set
+            {
+                var multipleSelection = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETMULTIPLESELECTION, multipleSelection);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the behavior when pasting text into multiple selections.
+        /// </summary>
+        /// <returns>One of the <see cref="ScintillaNET.MultiPaste" /> enumeration values. The default is <see cref="ScintillaNET.MultiPaste.Once" />.</returns>
+        [DefaultValue(MultiPaste.Once)]
+        [Category("Multiple Selection")]
+        [Description("Determines how pasted text is applied to multiple selections.")]
+        public MultiPaste MultiPaste
+        {
+            get
+            {
+                return (MultiPaste)DirectMessage(NativeMethods.SCI_GETMULTIPASTE);
+            }
+            set
+            {
+                var multiPaste = (int)value;
+                DirectMessage(NativeMethods.SCI_SETMULTIPASTE, new IntPtr(multiPaste));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to write over text rather than insert it.
+        /// </summary>
+        /// <return>true to write over text; otherwise, false. The default is false.</return>
+        [DefaultValue(false)]
+        [Category("Behavior")]
+        [Description("Puts the caret into overtype mode.")]
+        public bool Overtype
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETOVERTYPE) != IntPtr.Zero);
+            }
+            set
+            {
+                var overtype = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETOVERTYPE, overtype);
+            }
+        }
+
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public new Padding Padding
+        {
+            get
+            {
+                return base.Padding;
+            }
+            set
+            {
+                base.Padding = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether line breaks in pasted text are convereted to the documents <see cref="EolMode" />.
+        /// </summary>
+        /// <returns>true to convert line breaks in pasted text; otherwise, false. The default is true.</returns>
+        [DefaultValue(true)]
+        [Category("Behavior")]
+        [Description("Whether line breaks in pasted text are converted to match the document EOL mode.")]
+        public bool PasteConvertEndings
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETPASTECONVERTENDINGS) != IntPtr.Zero);
+            }
+            set
+            {
+                var convert = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETPASTECONVERTENDINGS, convert);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the document is read-only.
+        /// </summary>
+        /// <returns>true if the document is read-only; otherwise, false. The default is false.</returns>
+        /// <seealso cref="ModifyAttempt" />
+        [DefaultValue(false)]
+        [Category("Behavior")]
+        [Description("Controls whether the document text can be modified.")]
+        public bool ReadOnly
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETREADONLY) != IntPtr.Zero);
+            }
+            set
+            {
+                var readOnly = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETREADONLY, readOnly);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the anchor position of the rectangular selection.
+        /// </summary>
+        /// <returns>The zero-based document position of the rectangular selection anchor.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int RectangularSelectionAnchor
+        {
+            get
+            {
+                var pos = DirectMessage(NativeMethods.SCI_GETRECTANGULARSELECTIONANCHOR).ToInt32();
+                if (pos <= 0)
+                    return pos;
+
+                return Lines.ByteToCharPosition(pos);
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, TextLength);
+                value = Lines.CharToBytePosition(value);
+                DirectMessage(NativeMethods.SCI_SETRECTANGULARSELECTIONANCHOR, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of anchor virtual space in a rectangular selection.
+        /// </summary>
+        /// <returns>The amount of virtual space past the end of the line offsetting the rectangular selection anchor.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int RectangularSelectionAnchorVirtualSpace
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETRECTANGULARSELECTIONANCHORVIRTUALSPACE).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETRECTANGULARSELECTIONANCHORVIRTUALSPACE, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the caret position of the rectangular selection.
+        /// </summary>
+        /// <returns>The zero-based document position of the rectangular selection caret.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int RectangularSelectionCaret
+        {
+            get
+            {
+                var pos = DirectMessage(NativeMethods.SCI_GETRECTANGULARSELECTIONCARET).ToInt32();
+                if (pos <= 0)
+                    return 0;
+
+                return Lines.ByteToCharPosition(pos);
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, TextLength);
+                value = Lines.CharToBytePosition(value);
+                DirectMessage(NativeMethods.SCI_SETRECTANGULARSELECTIONCARET, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of caret virtual space in a rectangular selection.
+        /// </summary>
+        /// <returns>The amount of virtual space past the end of the line offsetting the rectangular selection caret.</returns>
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int RectangularSelectionCaretVirtualSpace
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETRECTANGULARSELECTIONCARETVIRTUALSPACE).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETRECTANGULARSELECTIONCARETVIRTUALSPACE, new IntPtr(value));
+            }
+        }
+
+        private IntPtr SciPointer
+        {
+            get
+            {
+                // Enforce illegal cross-thread calls the way the Handle property does
+                if (Control.CheckForIllegalCrossThreadCalls && InvokeRequired)
+                {
+                    string message = string.Format(CultureInfo.InvariantCulture, "Control '{0}' accessed from a thread other than the thread it was created on.", Name);
+                    throw new InvalidOperationException(message);
+                }
+
+                if (sciPtr == IntPtr.Zero)
+                {
+                    // Get a pointer to the native Scintilla object (i.e. C++ 'this') to use with the
+                    // direct function. This will happen for each Scintilla control instance.
+                    sciPtr = NativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.SCI_GETDIRECTPOINTER, IntPtr.Zero, IntPtr.Zero);
+                }
+
+                return sciPtr;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the range of the horizontal scroll bar.
+        /// </summary>
+        /// <returns>The range in pixels of the horizontal scroll bar. The default is 2000.</returns>
+        /// <remarks>The width will automatically increase as needed when <see cref="ScrollWidthTracking" /> is enabled.</remarks>
+        [DefaultValue(2000)]
+        [Category("Scrolling")]
+        [Description("The range in pixels of the horizontal scroll bar.")]
+        public int ScrollWidth
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETSCROLLWIDTH).ToInt32();
+            }
+            set
+            {
+                DirectMessage(NativeMethods.SCI_SETSCROLLWIDTH, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the <see cref="ScrollWidth" /> is automatically increased as needed.
+        /// </summary>
+        /// <returns>
+        /// true to automatically increase the horizontal scroll width as needed; otherwise, false.
+        /// The default is true.
+        /// </returns>
+        [DefaultValue(true)]
+        [Category("Scrolling")]
+        [Description("Determines whether to increase the horizontal scroll width as needed.")]
+        public bool ScrollWidthTracking
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETSCROLLWIDTHTRACKING) != IntPtr.Zero);
+            }
+            set
+            {
+                var tracking = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETSCROLLWIDTHTRACKING, tracking);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the search flags used when searching text.
+        /// </summary>
+        /// <returns>A bitwise combination of <see cref="ScintillaNET.SearchFlags" /> values. The default is <see cref="ScintillaNET.SearchFlags.None" />.</returns>
+        /// <seealso cref="SearchInTarget" />
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public SearchFlags SearchFlags
+        {
+            get
+            {
+                return (SearchFlags)DirectMessage(NativeMethods.SCI_GETSEARCHFLAGS).ToInt32();
+            }
+            set
+            {
+                var searchFlags = (int)value;
+                DirectMessage(NativeMethods.SCI_SETSEARCHFLAGS, new IntPtr(searchFlags));
+            }
+        }
+
+        /// <summary>
+        /// Gets the selected text.
+        /// </summary>
+        /// <returns>The selected text if there is any; otherwise, an empty string.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public unsafe string SelectedText
+        {
+            get
+            {
+                // NOTE: For some reason the length returned by this API includes the terminating NULL
+                var length = DirectMessage(NativeMethods.SCI_GETSELTEXT).ToInt32() - 1;
+                if (length <= 0)
+                    return string.Empty;
+
+                var bytes = new byte[length + 1];
+                fixed (byte* bp = bytes)
+                {
+                    DirectMessage(NativeMethods.SCI_GETSELTEXT, IntPtr.Zero, new IntPtr(bp));
+                    return Helpers.GetString(new IntPtr(bp), length, Encoding);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to fill past the end of a line with the selection background color.
+        /// </summary>
+        /// <returns>true to fill past the end of the line; otherwise, false. The default is false.</returns>
+        [DefaultValue(false)]
+        [Category("Selection")]
+        [Description("Determines whether a selection should fill past the end of the line.")]
+        public bool SelectionEolFilled
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETSELEOLFILLED) != IntPtr.Zero);
+            }
+            set
+            {
+                var eolFilled = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETSELEOLFILLED, eolFilled);
+            }
+        }
+
+        /// <summary>
+        /// Gets a collection representing multiple selections in a <see cref="Scintilla" /> control.
+        /// </summary>
+        /// <returns>A collection of selections.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public SelectionCollection Selections { get; private set; }
+
+        /// <summary>
+        /// Gets a collection representing style definitions in a <see cref="Scintilla" /> control.
+        /// </summary>
+        /// <returns>A collection of style definitions.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public StyleCollection Styles { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the width of a tab as a multiple of a space character.
+        /// </summary>
+        /// <returns>The width of a tab measured in characters. The default is 4.</returns>
+        [DefaultValue(4)]
+        [Category("Indentation")]
+        [Description("The tab size in characters.")]
+        public int TabWidth
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETTABWIDTH).ToInt32();
+            }
+            set
+            {
+                DirectMessage(NativeMethods.SCI_SETTABWIDTH, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the end position used when performing a search or replace.
+        /// </summary>
+        /// <returns>The zero-based character position within the document to end a search or replace operation.</returns>
+        /// <seealso cref="TargetStart"/>
+        /// <seealso cref="SearchInTarget" />
+        /// <seealso cref="ReplaceInTarget" />
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int TargetEnd
+        {
+            get
+            {
+                // The position can become stale. If it's beyond the end of the document
+                // report the end of the document; otherwise, we can't convert it.
+                var bytePos = DirectMessage(NativeMethods.SCI_GETTARGETEND).ToInt32();
+                var byteLength = DirectMessage(NativeMethods.SCI_GETTEXTLENGTH).ToInt32();
+                if (bytePos >= byteLength)
+                    return TextLength;
+
+                return Lines.ByteToCharPosition(bytePos);
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, TextLength);
+
+                var bytePos = Lines.CharToBytePosition(value);
+                DirectMessage(NativeMethods.SCI_SETTARGETEND, new IntPtr(bytePos));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the start position used when performing a search or replace.
+        /// </summary>
+        /// <returns>The zero-based character position within the document to start a search or replace operation.</returns>
+        /// <seealso cref="TargetEnd"/>
+        /// <seealso cref="SearchInTarget" />
+        /// <seealso cref="ReplaceInTarget" />
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int TargetStart
+        {
+            get
+            {
+                // See above
+                var bytePos = DirectMessage(NativeMethods.SCI_GETTARGETSTART).ToInt32();
+                var byteLength = DirectMessage(NativeMethods.SCI_GETTEXTLENGTH).ToInt32();
+                if (bytePos >= byteLength)
+                    return TextLength;
+
+                return Lines.ByteToCharPosition(bytePos);
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, TextLength);
+
+                var bytePos = Lines.CharToBytePosition(value);
+                DirectMessage(NativeMethods.SCI_SETTARGETSTART, new IntPtr(bytePos));
+            }
+        }
+
+        /// <summary>
+        /// Gets the current target text.
+        /// </summary>
+        /// <returns>A String representing the text between <see cref="TargetStart" /> and <see cref="TargetEnd" />.</returns>
+        /// <remarks>Targets which have a start position equal or greater to the end position will return an empty String.</remarks>
+        /// <seealso cref="TargetStart" />
+        /// <seealso cref="TargetEnd" />
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public unsafe string TargetText
+        {
+            get
+            {
+                // I'm unsure whether it's better to use the actual SCI_GETTARGETTEXT call which creates a intermediate buffer or
+                // implement our own equivalent using SCI_GETTARGETSTART, SCI_GETTARGETEND, and SCI_GETRANGEPOINTER. For now we'll
+                // stick SCI_GETTARGETTEXT because there is a lot of work in range checking the target start and end that we don't
+                // have to do if we use that.
+
+                var length = DirectMessage(NativeMethods.SCI_GETTARGETTEXT).ToInt32();
+                if (length == 0)
+                    return string.Empty;
+
+                var bytes = new byte[length + 1];
+                fixed (byte* bp = bytes)
+                {
+                    DirectMessage(NativeMethods.SCI_GETTARGETTEXT, IntPtr.Zero, new IntPtr(bp));
+                    return Helpers.GetString(new IntPtr(bp), length, Encoding);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current document text in the <see cref="Scintilla" /> control.
+        /// </summary>
+        /// <returns>The text displayed in the control.</returns>
+        /// <remarks>Depending on the length of text get or set, this operation can be expensive.</remarks>
+        [Editor("System.ComponentModel.Design.MultilineStringEditor, System.Design", typeof(UITypeEditor))]
+        public unsafe override string Text
+        {
+            get
+            {
+                var length = DirectMessage(NativeMethods.SCI_GETTEXTLENGTH).ToInt32();
+                var ptr = DirectMessage(NativeMethods.SCI_GETRANGEPOINTER, new IntPtr(0), new IntPtr(length));
+                if (ptr == IntPtr.Zero)
+                    return string.Empty;
+
+                // Assumption is that moving the gap will always be equal to or less expensive
+                // than using one of the APIs which requires an intermediate buffer.
+                var text = new string((sbyte*)ptr, 0, length, Encoding);
+                return text;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    DirectMessage(NativeMethods.SCI_CLEARALL);
+                }
+                else
+                {
+                    fixed (byte* bp = Helpers.GetBytes(value, Encoding, zeroTerminated: true))
+                        DirectMessage(NativeMethods.SCI_SETTEXT, IntPtr.Zero, new IntPtr(bp));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the length of the text in the control.
+        /// </summary>
+        /// <returns>The number of characters in the document.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int TextLength
+        {
+            get
+            {
+                return Lines.TextLength;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to collect undo and redo information.
+        /// </summary>
+        /// <returns>true to collect undo and redo information; otherwise, false. The default is true.</returns>
+        /// <remarks>Disabling undo collection will also empty the undo buffer. See <see cref="EmptyUndoBuffer" />.</remarks>
+        [DefaultValue(true)]
+        [Category("Behavior")]
+        [Description("Determines whether to collect undo and redo information.")]
+        public bool UndoCollection
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETUNDOCOLLECTION) != IntPtr.Zero);
+            }
+            set
+            {
+                var collectUndo = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETUNDOCOLLECTION, collectUndo);
+                if (!value)
+                {
+                    // Scintilla documentation makes it clear that if you fail to empty the undo buffer
+                    // when you disable collection the buffer could become unsynchronized with the document.
+                    // Seems like something we should do automatically.
+                    DirectMessage(NativeMethods.SCI_EMPTYUNDOBUFFER);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to use a mixture of tabs and spaces for indentation or purely spaces.
+        /// </summary>
+        /// <returns>true to use tab characters; otherwise, false. The default is true.</returns>
+        [DefaultValue(true)]
+        [Category("Indentation")]
+        [Description("Determines whether indentation allows tab characters or purely space characters.")]
+        public bool UseTabs
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETUSETABS) != IntPtr.Zero);
+            }
+            set
+            {
+                var useTabs = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETUSETABS, useTabs);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets how to display whitespace characters.
+        /// </summary>
+        /// <returns>One of the <see cref="WhitespaceMode" /> enumeration values. The default is <see cref="WhitespaceMode.Invisible" />.</returns>
+        /// <seealso cref="SetWhitespaceForeColor" />
+        /// <seealso cref="SetWhitespaceBackColor" />
+        [DefaultValue(WhitespaceMode.Invisible)]
+        [Category("Whitespace")]
+        [Description("Options for displaying whitespace characters.")]
+        public WhitespaceMode ViewWhitespace
+        {
+            get
+            {
+                return (WhitespaceMode)DirectMessage(NativeMethods.SCI_GETVIEWWS);
+            }
+            set
+            {
+                var wsMode = (int)value;
+                DirectMessage(NativeMethods.SCI_SETVIEWWS, new IntPtr(wsMode));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the ability for the caret to move into an area beyond the end of each line, otherwise known as virtual space.
+        /// </summary>
+        /// <returns>
+        /// A bitwise combination of the <see cref="VirtualSpace" /> enumeration.
+        /// The default is <see cref="VirtualSpace.None" />.
+        /// </returns>
+        [DefaultValue(VirtualSpace.None)]
+        [Category("Behavior")]
+        [Description("Options for allowing the caret to move beyond the end of each line.")]
+        [TypeConverter(typeof(FlagsEnumTypeConverter.FlagsEnumConverter))]
+        public VirtualSpace VirtualSpaceOptions
+        {
+            get
+            {
+                return (VirtualSpace)DirectMessage(NativeMethods.SCI_GETVIRTUALSPACEOPTIONS);
+            }
+            set
+            {
+                var virtualSpace = (int)value;
+                DirectMessage(NativeMethods.SCI_SETVIRTUALSPACEOPTIONS, new IntPtr(virtualSpace));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to display the vertical scroll bar.
+        /// </summary>
+        /// <returns>true to display the vertical scroll bar when needed; otherwise, false. The default is true.</returns>
+        [DefaultValue(true)]
+        [Category("Scrolling")]
+        [Description("Determines whether to show the vertical scroll bar when needed.")]
+        public bool VScrollBar
+        {
+            get
+            {
+                return (DirectMessage(NativeMethods.SCI_GETVSCROLLBAR) != IntPtr.Zero);
+            }
+            set
+            {
+                var visible = (value ? new IntPtr(1) : IntPtr.Zero);
+                DirectMessage(NativeMethods.SCI_SETVSCROLLBAR, visible);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the size of the dots used to mark whitespace.
+        /// </summary>
+        /// <returns>The size of the dots used to mark whitespace. The default is 1.</returns>
+        /// <seealso cref="ViewWhitespace" />
+        [DefaultValue(1)]
+        [Category("Whitespace")]
+        [Description("The size of whitespace dots.")]
+        public int WhitespaceSize
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETWHITESPACESIZE).ToInt32();
+            }
+            set
+            {
+                DirectMessage(NativeMethods.SCI_SETWHITESPACESIZE, new IntPtr(value));
+            }
+        }
+
+        /*
+        /// <summary>
+        /// Gets or sets the characters considered 'word' characters when using any word-based logic.
+        /// </summary>
+        /// <returns>A String of word characters.</returns>
+        public unsafe string WordChars
+        {
+            get
+            {
+                var length = DirectMessage(NativeMethods.SCI_GETWORDCHARS, IntPtr.Zero, IntPtr.Zero).ToInt32();
+                var bytes = new byte[length + 1];
+                fixed (byte* bp = bytes)
+                {
+                    DirectMessage(NativeMethods.SCI_GETWORDCHARS, IntPtr.Zero, new IntPtr(bp));
+                    return Helpers.GetString(new IntPtr(bp), length, Encoding.UTF8);
+                }
+            }
+            set
+            {
+                if (value == null)
+                {
+                    DirectMessage(NativeMethods.SCI_SETWORDCHARS, IntPtr.Zero, IntPtr.Zero);
+                    return;
+                }
+
+                // Scintilla stores each of the characters specified in a char array which it then
+                // uses as a lookup for word matching logic. Thus, any multibyte chars wouldn't work.
+                var bytes = Helpers.GetBytes(value, Encoding.ASCII, zeroTerminated: true);
+                fixed (byte* bp = bytes)
+                    DirectMessage(NativeMethods.SCI_SETWORDCHARS, IntPtr.Zero, new IntPtr(bp));
+            }
+        }
+        */
+
+        /// <summary>
+        /// Gets or sets the line wrapping indent mode.
+        /// </summary>
+        /// <returns>
+        /// One of the <see cref="ScintillaNET.WrapIndentMode" /> enumeration values. 
+        /// The default is <see cref="ScintillaNET.WrapIndentMode.Fixed" />.
+        /// </returns>
+        [DefaultValue(WrapIndentMode.Fixed)]
+        [Category("Line Wrapping")]
+        [Description("Determines how wrapped sublines are indented.")]
+        public WrapIndentMode WrapIndentMode
+        {
+            get
+            {
+                return (WrapIndentMode)DirectMessage(NativeMethods.SCI_GETWRAPINDENTMODE);
+            }
+            set
+            {
+                var wrapIndentMode = (int)value;
+                DirectMessage(NativeMethods.SCI_SETWRAPINDENTMODE, new IntPtr(wrapIndentMode));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the line wrapping mode.
+        /// </summary>
+        /// <returns>
+        /// One of the <see cref="ScintillaNET.WrapMode" /> enumeration values. 
+        /// The default is <see cref="ScintillaNET.WrapMode.None" />.
+        /// </returns>
+        [DefaultValue(WrapMode.None)]
+        [Category("Line Wrapping")]
+        [Description("The line wrapping strategy.")]
+        public WrapMode WrapMode
+        {
+            get
+            {
+                return (WrapMode)DirectMessage(NativeMethods.SCI_GETWRAPMODE);
+            }
+            set
+            {
+                var wrapMode = (int)value;
+                DirectMessage(NativeMethods.SCI_SETWRAPMODE, new IntPtr(wrapMode));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the indented size in pixels of wrapped sublines.
+        /// </summary>
+        /// <returns>The indented size of wrapped sublines measured in pixels. The default is 0.</returns>
+        /// <remarks>
+        /// Setting <see cref="WrapVisualFlags" /> to <see cref="ScintillaNET.WrapVisualFlags.Start" /> will add an
+        /// additional 1 pixel to the value specified.
+        /// </remarks>
+        [DefaultValue(0)]
+        [Category("Line Wrapping")]
+        [Description("The amount of pixels to indent wrapped sublines.")]
+        public int WrapStartIndent
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETWRAPSTARTINDENT).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETWRAPSTARTINDENT, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the wrap visual flags.
+        /// </summary>
+        /// <returns>
+        /// A bitwise combination of the <see cref="ScintillaNET.WrapVisualFlags" /> enumeration.
+        /// The default is <see cref="ScintillaNET.WrapVisualFlags.None" />.
+        /// </returns>
+        [DefaultValue(WrapVisualFlags.None)]
+        [Category("Line Wrapping")]
+        [Description("The visual indicator displayed on a wrapped line.")]
+        [TypeConverter(typeof(FlagsEnumTypeConverter.FlagsEnumConverter))]
+        public WrapVisualFlags WrapVisualFlags
+        {
+            get
+            {
+                return (WrapVisualFlags)DirectMessage(NativeMethods.SCI_GETWRAPVISUALFLAGS);
+            }
+            set
+            {
+                int wrapVisualFlags = (int)value;
+                DirectMessage(NativeMethods.SCI_SETWRAPVISUALFLAGS, new IntPtr(wrapVisualFlags));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets additional location options when displaying wrap visual flags.
+        /// </summary>
+        /// <returns>
+        /// One of the <see cref="ScintillaNET.WrapVisualFlagLocation" /> enumeration values.
+        /// The default is <see cref="ScintillaNET.WrapVisualFlagLocation.Default" />.
+        /// </returns>
+        [DefaultValue(WrapVisualFlagLocation.Default)]
+        [Category("Line Wrapping")]
+        [Description("The location of wrap visual flags in relation to the line text.")]
+        public WrapVisualFlagLocation WrapVisualFlagLocation
+        {
+            get
+            {
+                return (WrapVisualFlagLocation)DirectMessage(NativeMethods.SCI_GETWRAPVISUALFLAGSLOCATION);
+            }
+            set
+            {
+                var location = (int)value;
+                DirectMessage(NativeMethods.SCI_SETWRAPVISUALFLAGSLOCATION, new IntPtr(location));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the horizontal scroll offset.
+        /// </summary>
+        /// <returns>The horizontal scroll offset in pixels.</returns>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int XOffset
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETXOFFSET).ToInt32();
+            }
+            set
+            {
+                value = Helpers.ClampMin(value, 0);
+                DirectMessage(NativeMethods.SCI_SETXOFFSET, new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the zoom factor.
+        /// </summary>
+        /// <returns>The zoom factor measured in points.</returns>
+        /// <remarks>For best results, values should range from -10 to 20 points.</remarks>
+        /// <seealso cref="ZoomIn" />
+        /// <seealso cref="ZoomOut" />
+        [DefaultValue(0)]
+        [Category("Appearance")]
+        [Description("Zoom factor in points applied to the displayed text.")]
+        public int Zoom
+        {
+            get
+            {
+                return DirectMessage(NativeMethods.SCI_GETZOOM).ToInt32();
+            }
+            set
+            {
+                DirectMessage(NativeMethods.SCI_SETZOOM, new IntPtr(value));
+            }
+        }
+
+        #endregion Properties
+
+        #region Events
+
+        /// <summary>
+        /// Occurs when an autocompletion list is cancelled.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when an autocompletion list is cancelled.")]
+        public event EventHandler<EventArgs> AutoCCancelled
+        {
+            add
+            {
+                Events.AddHandler(autoCCancelledEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(autoCCancelledEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the user deletes a character while an autocompletion list is active.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when the user deletes a character while an autocompletion list is active.")]
+        public event EventHandler<EventArgs> AutoCCharDeleted
+        {
+            add
+            {
+                Events.AddHandler(autoCCharDeletedEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(autoCCharDeletedEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when a user has selected an item in an autocompletion list.
+        /// </summary>
+        /// <remarks>Automatic insertion can be cancelled by calling <see cref="AutoCCancel" /> from the event handler.</remarks>
+        [Category("Notifications")]
+        [Description("Occurs when a user has selected an item in an autocompletion list.")]
+        public event EventHandler<AutoCSelectionEventArgs> AutoCSelection
+        {
+            add
+            {
+                Events.AddHandler(autoCSelectionEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(autoCSelectionEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when text is about to be deleted.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs before text is deleted.")]
+        public event EventHandler<BeforeModificationEventArgs> BeforeDelete
+        {
+            add
+            {
+                Events.AddHandler(beforeDeleteEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(beforeDeleteEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when text is about to be inserted.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs before text is inserted.")]
+        public event EventHandler<BeforeModificationEventArgs> BeforeInsert
+        {
+            add
+            {
+                Events.AddHandler(beforeInsertEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(beforeInsertEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the value of the <see cref="Scintilla.BorderStyle" /> property has changed.
+        /// </summary>
+        [Category("Property Changed")]
+        [Description("Occurs when the value of the BorderStyle property changes.")]
+        public event EventHandler BorderStyleChanged
+        {
+            add
+            {
+                Events.AddHandler(borderStyleChangedEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(borderStyleChangedEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when an annotation has changed.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when an annotation has changed.")]
+        public event EventHandler<ChangeAnnotationEventArgs> ChangeAnnotation
+        {
+            add
+            {
+                Events.AddHandler(changeAnnotationEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(changeAnnotationEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the user enters a text character.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when the user types a character.")]
+        public event EventHandler<CharAddedEventArgs> CharAdded
+        {
+            add
+            {
+                Events.AddHandler(charAddedEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(charAddedEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when text has been deleted from the document.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when text is deleted.")]
+        public event EventHandler<ModificationEventArgs> Delete
+        {
+            add
+            {
+                Events.AddHandler(deleteEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(deleteEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the mouse moves or another activity such as a key press ends a <see cref="DwellStart" /> event.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when the mouse moves from its dwell start position.")]
+        public event EventHandler<DwellEventArgs> DwellEnd
+        {
+            add
+            {
+                Events.AddHandler(dwellEndEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(dwellEndEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the mouse is kept in one position (hovers) for the <see cref="MouseDwellTime" />.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when the mouse is kept in one position (hovers) for a period of time.")]
+        public event EventHandler<DwellEventArgs> DwellStart
+        {
+            add
+            {
+                Events.AddHandler(dwellStartEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(dwellStartEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when text has been inserted into the document.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when text is inserted.")]
+        public event EventHandler<ModificationEventArgs> Insert
+        {
+            add
+            {
+                Events.AddHandler(insertEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(insertEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when text is about to be inserted. The inserted text can be changed.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs before text is inserted. Permits changing the inserted text.")]
+        public event EventHandler<InsertCheckEventArgs> InsertCheck
+        {
+            add
+            {
+                Events.AddHandler(insertCheckEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(insertCheckEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the mouse was clicked inside a margin that was marked as sensitive.
+        /// </summary>
+        /// <remarks>The <see cref="Margin.Sensitive" /> property must be set for a margin to raise this event.</remarks>
+        [Category("Notifications")]
+        [Description("Occurs when the mouse is clicked in a sensitive margin.")]
+        public event EventHandler<MarginClickEventArgs> MarginClick
+        {
+            add
+            {
+                Events.AddHandler(marginClickEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(marginClickEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when a user attempts to change text while the document is in read-only mode.
+        /// </summary>
+        /// <seealso cref="ReadOnly" />
+        [Category("Notifications")]
+        [Description("Occurs when an attempt is made to change text in read-only mode.")]
+        public event EventHandler<EventArgs> ModifyAttempt
+        {
+            add
+            {
+                Events.AddHandler(modifyAttemptEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(modifyAttemptEventKey, value);
+            }
+        }
+
+        internal event EventHandler<SCNotificationEventArgs> SCNotification
+        {
+            add
+            {
+                Events.AddHandler(scNotificationEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(scNotificationEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the document becomes 'dirty'.
+        /// </summary>
+        /// <remarks>The document 'dirty' state can be checked with the <see cref="Modified" /> property and reset by calling <see cref="SetSavePoint" />.</remarks>
+        /// <seealso cref="SetSavePoint" />
+        /// <seealso cref="SavePointReached" />
+        [Category("Notifications")]
+        [Description("Occurs when a save point is left and the document becomes dirty.")]
+        public event EventHandler<EventArgs> SavePointLeft
+        {
+            add
+            {
+                Events.AddHandler(savePointLeftEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(savePointLeftEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the document 'dirty' flag is reset.
+        /// </summary>
+        /// <remarks>The document 'dirty' state can be reset by calling <see cref="SetSavePoint" /> or undoing an action that modified the document.</remarks>
+        /// <seealso cref="SetSavePoint" />
+        /// <seealso cref="SavePointLeft" />
+        [Category("Notifications")]
+        [Description("Occurs when a save point is reached and the document is no longer dirty.")]
+        public event EventHandler<EventArgs> SavePointReached
+        {
+            add
+            {
+                Events.AddHandler(savePointReachedEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(savePointReachedEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the control is about to display or print text and requires styling.
+        /// </summary>
+        /// <remarks>
+        /// This event is only raised when <see cref="Lexer" /> is set to <see cref="ScintillaNET.Lexer.Container" />.
+        /// The last position styled correctly can be determined by calling <see cref="GetEndStyled" />.
+        /// </remarks>
+        /// <seealso cref="GetEndStyled" />
+        [Category("Notifications")]
+        [Description("Occurs when the text needs styling.")]
+        public event EventHandler<StyleNeededEventArgs> StyleNeeded
+        {
+            add
+            {
+                Events.AddHandler(styleNeededEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(styleNeededEventKey, value);
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the control UI is updated as a result of changes to text (including styling),
+        /// selection, and/or scroll positions.
+        /// </summary>
+        [Category("Notifications")]
+        [Description("Occurs when the control UI is updated.")]
+        public event EventHandler<UpdateUIEventArgs> UpdateUI
+        {
+            add
+            {
+                Events.AddHandler(updateUIEventKey, value);
+            }
+            remove
+            {
+                Events.RemoveHandler(updateUIEventKey, value);
+            }
+        }
+
+        #endregion Events
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Scintilla" /> class.
+        /// </summary>
+        public Scintilla()
+        {
+            // We don't want .NET to use GetWindowText because we manage ('cache') our own text
+            base.SetStyle(ControlStyles.CacheText, true);
+
+            // Necessary control styles (see TextBoxBase)
+            base.SetStyle(ControlStyles.StandardClick |
+                     ControlStyles.StandardDoubleClick |
+                     ControlStyles.UseTextForAccessibility |
+                     ControlStyles.UserPaint,
+                     false);
+
+            this.borderStyle = BorderStyle.Fixed3D;
+
+            Lines = new LineCollection(this);
+            Styles = new StyleCollection(this);
+            Indicators = new IndicatorCollection(this);
+            Margins = new MarginCollection(this);
+            Markers = new MarkerCollection(this);
+            Selections = new SelectionCollection(this);
+        }
+
+        #endregion Constructors
     }
-    this._ns.BraceHighlight(pos1, pos2);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when a range of lines that is currently invisible should be made visible.")]
-  public event EventHandler<LinesNeedShownEventArgs> LinesNeedShown
-  {
-    add => this.Events.AddHandler(Scintilla._linesNeedShownEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._linesNeedShownEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnLinesNeedShown(LinesNeedShownEventArgs e)
-  {
-    if (!(this.Events[Scintilla._linesNeedShownEventKey] is EventHandler<LinesNeedShownEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when the user hovers the mouse (dwells) in one position for the dwell period.")]
-  public event EventHandler<ScintillaMouseEventArgs> DwellStart
-  {
-    add => this.Events.AddHandler(Scintilla._dwellStartEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._dwellStartEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnDwellStart(ScintillaMouseEventArgs e)
-  {
-    if (!(this.Events[Scintilla._dwellStartEventKey] is EventHandler<ScintillaMouseEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when a dwell (hover) activity has ended.")]
-  public event EventHandler<ScintillaMouseEventArgs> DwellEnd
-  {
-    add => this.Events.AddHandler(Scintilla._dwellEndEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._dwellEndEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnDwellEnd(ScintillaMouseEventArgs e)
-  {
-    if (!(this.Events[Scintilla._dwellEndEventKey] is EventHandler<ScintillaMouseEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when the user zooms the display using the keyboard or the Zoom property is set.")]
-  public event EventHandler ZoomChanged
-  {
-    add => this.Events.AddHandler(Scintilla._zoomChangedEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._zoomChangedEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnZoomChanged(EventArgs e)
-  {
-    if (!(this.Events[Scintilla._zoomChangedEventKey] is EventHandler eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when a user clicks on text with the hotspot style.")]
-  [Category("Scintilla")]
-  public event EventHandler<ScintillaMouseEventArgs> HotspotClick
-  {
-    add => this.Events.AddHandler(Scintilla._hotSpotClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._hotSpotClickEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnHotspotClick(ScintillaMouseEventArgs e)
-  {
-    if (!(this.Events[Scintilla._hotSpotClickEventKey] is EventHandler<ScintillaMouseEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when a user double-clicks on text with the hotspot style.")]
-  [Category("Scintilla")]
-  public event EventHandler<ScintillaMouseEventArgs> HotspotDoubleClick
-  {
-    add => this.Events.AddHandler(Scintilla._hotSpotDoubleClickEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._hotSpotDoubleClickEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnHotspotDoubleClick(ScintillaMouseEventArgs e)
-  {
-    if (!(this.Events[Scintilla._hotSpotDoubleClickEventKey] is EventHandler<ScintillaMouseEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs when a DropMarker is about to be collected.")]
-  public event EventHandler<DropMarkerCollectEventArgs> DropMarkerCollect
-  {
-    add => this.Events.AddHandler(Scintilla._dropMarkerCollectEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._dropMarkerCollectEventKey, (Delegate) value);
-  }
-
-  protected internal virtual void OnDropMarkerCollect(DropMarkerCollectEventArgs e)
-  {
-    if (!(this.Events[Scintilla._dropMarkerCollectEventKey] is EventHandler<DropMarkerCollectEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Action")]
-  [Description("Occurs when the control is scrolled.")]
-  public event EventHandler<ScrollEventArgs> Scroll
-  {
-    add => this.Events.AddHandler(Scintilla._scrollEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._scrollEventKey, (Delegate) value);
-  }
-
-  internal void FireScroll(ref Message m)
-  {
-    ScrollEventType type = (ScrollEventType) Utilities.SignedLoWord(m.WParam);
-    ScrollOrientation scroll;
-    int oldValue;
-    int newValue;
-    if (m.Msg == 276)
-    {
-      scroll = ScrollOrientation.HorizontalScroll;
-      oldValue = this._ns.GetXOffset();
-      base.WndProc(ref m);
-      newValue = this._ns.GetXOffset();
-    }
-    else
-    {
-      scroll = ScrollOrientation.VerticalScroll;
-      oldValue = this._ns.GetFirstVisibleLine();
-      base.WndProc(ref m);
-      newValue = this._ns.GetFirstVisibleLine();
-    }
-    this.OnScroll(new ScrollEventArgs(type, oldValue, newValue, scroll));
-  }
-
-  protected virtual void OnScroll(ScrollEventArgs e)
-  {
-    if (!(this.Events[Scintilla._scrollEventKey] is EventHandler<ScrollEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Category("Scintilla")]
-  [Description("Occurs each time a recordable change occurs.")]
-  public event EventHandler<MacroRecordEventArgs> MacroRecord
-  {
-    add => this.Events.AddHandler(Scintilla._macroRecordEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._macroRecordEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnMacroRecord(MacroRecordEventArgs e)
-  {
-    if (!(this.Events[Scintilla._macroRecordEventKey] is EventHandler<MacroRecordEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  [Description("Occurs when a user drops a file on the control.")]
-  [Category("Scintilla")]
-  public event EventHandler<FileDropEventArgs> FileDrop
-  {
-    add => this.Events.AddHandler(Scintilla._fileDropEventKey, (Delegate) value);
-    remove => this.Events.RemoveHandler(Scintilla._fileDropEventKey, (Delegate) value);
-  }
-
-  protected virtual void OnFileDrop(FileDropEventArgs e)
-  {
-    if (!(this.Events[Scintilla._fileDropEventKey] is EventHandler<FileDropEventArgs> eventHandler))
-      return;
-    eventHandler((object) this, e);
-  }
-
-  public Range AppendText(string text)
-  {
-    int textLength = this.TextLength;
-    this.NativeInterface.AppendText(text.Length, text);
-    return this.GetRange(textLength, this.TextLength);
-  }
-
-  public Range InsertText(string text)
-  {
-    this.NativeInterface.AddText(text.Length, text);
-    return this.GetRange(this._caret.Position, text.Length);
-  }
-
-  public Range InsertText(int position, string text)
-  {
-    this.NativeInterface.InsertText(position, text);
-    return this.GetRange(position, text.Length);
-  }
-
-  public char CharAt(int position) => this._ns.GetCharAt(position);
-
-  public Range GetRange(int startPosition, int endPosition)
-  {
-    return new Range(startPosition, endPosition, this);
-  }
-
-  public Range GetRange(int position) => new Range(position, position + 1, this);
-
-  public Range GetRange() => new Range(0, this._ns.GetTextLength(), this);
-
-  public int GetColumn(int position) => this._ns.GetColumn(position);
-
-  public int FindColumn(int line, int column) => this._ns.FindColumn(line, column);
-
-  public int PositionFromPoint(int x, int y) => this._ns.PositionFromPoint(x, y);
-
-  public int PositionFromPointClose(int x, int y) => this._ns.PositionFromPointClose(x, y);
-
-  public int PointXFromPosition(int position) => this._ns.PointXFromPosition(position);
-
-  public int PointYFromPosition(int position) => this._ns.PointYFromPosition(position);
-
-  public void ZoomIn() => this._ns.ZoomIn();
-
-  private void ZoomOut() => this._ns.ZoomOut();
-
-  public bool PositionIsOnComment(int position)
-  {
-    return this.PositionIsOnComment(position, this._lexing.Lexer);
-  }
-
-  public bool PositionIsOnComment(int position, Lexer lexer)
-  {
-    int styleAt = (int) this._styles.GetStyleAt(position);
-    return (lexer == Lexer.Python || lexer == Lexer.Lisp) && styleAt == 1 || styleAt == 12 || (lexer == Lexer.Cpp || lexer == Lexer.Pascal || lexer == Lexer.Tcl || lexer == Lexer.Bullant) && styleAt == 1 || styleAt == 2 || styleAt == 3 || styleAt == 15 || styleAt == 17 || styleAt == 18 || (lexer == Lexer.Hypertext || lexer == Lexer.Xml) && styleAt == 9 || styleAt == 20 || styleAt == 29 || styleAt == 30 || styleAt == 42 || styleAt == 43 || styleAt == 44 || styleAt == 57 || styleAt == 58 || styleAt == 59 || styleAt == 72 || styleAt == 82 || styleAt == 92 || styleAt == 107 || styleAt == 124 || styleAt == 125 || (lexer == Lexer.Perl || lexer == Lexer.Ruby || lexer == Lexer.Clw || lexer == Lexer.Bash) && styleAt == 2 || lexer == Lexer.Sql && styleAt == 1 || styleAt == 2 || styleAt == 3 || styleAt == 13 || styleAt == 15 || styleAt == 17 || styleAt == 18 || (lexer == Lexer.VB || lexer == Lexer.Properties || lexer == Lexer.MakeFile || lexer == Lexer.Batch || lexer == Lexer.Diff || lexer == Lexer.Conf || lexer == Lexer.Ave || lexer == Lexer.Eiffel || lexer == Lexer.EiffelKw || lexer == Lexer.Tcl || lexer == Lexer.VBScript || lexer == Lexer.MatLab || lexer == Lexer.Fortran || lexer == Lexer.F77 || lexer == Lexer.Lout || lexer == Lexer.Mmixal || lexer == Lexer.Yaml || lexer == Lexer.PowerBasic || lexer == Lexer.ErLang || lexer == Lexer.Octave || lexer == Lexer.Kix || lexer == Lexer.Asn1) && styleAt == 1 || lexer == Lexer.Latex && styleAt == 4 || (lexer == Lexer.Lua || lexer == Lexer.EScript || lexer == Lexer.Verilog) && styleAt == 1 || styleAt == 2 || styleAt == 3 || lexer == Lexer.Ada && styleAt == 10 || (lexer == Lexer.Baan || lexer == Lexer.Pov || lexer == Lexer.Ps || lexer == Lexer.Forth || lexer == Lexer.MsSql || lexer == Lexer.Gui4Cli || lexer == Lexer.Au3 || lexer == Lexer.Apdl || lexer == Lexer.Vhdl || lexer == Lexer.Rebol) && styleAt == 1 || styleAt == 2 || lexer == Lexer.Asm && styleAt == 1 || styleAt == 11 || lexer == Lexer.Nsis && styleAt == 1 || styleAt == 18 || lexer == Lexer.Specman && styleAt == 2 || styleAt == 3 || lexer == Lexer.Tads3 && styleAt == 3 || styleAt == 4 || lexer == Lexer.CSound && styleAt == 1 || styleAt == 9 || lexer == Lexer.Caml && styleAt == 12 || styleAt == 13 || styleAt == 14 || styleAt == 15 || lexer == Lexer.Haskell && styleAt == 13 || styleAt == 14 || styleAt == 15 || styleAt == 16 /*0x10*/ || lexer == Lexer.Flagship && styleAt == 1 || styleAt == 2 || styleAt == 3 || styleAt == 4 || styleAt == 5 || styleAt == 6 || lexer == Lexer.Smalltalk && styleAt == 3 || lexer == Lexer.Css && styleAt == 9;
-  }
-
-  public void AddLastLineEnd()
-  {
-    EndOfLineMode mode = this._endOfLine.Mode;
-    string text = "\r\n";
-    switch (mode)
-    {
-      case EndOfLineMode.CR:
-        text = "\r";
-        break;
-      case EndOfLineMode.LF:
-        text = "\n";
-        break;
-    }
-    int startPosition = this.TextLength - text.Length;
-    if (startPosition >= 0 && !(this.GetRange(startPosition, startPosition + text.Length).Text != text))
-      return;
-    this.AppendText(text);
-  }
-
-  public string GetWordFromPosition(int position)
-  {
-    return this.GetRange(this.NativeInterface.WordStartPosition(position, true), this.NativeInterface.WordEndPosition(position, true)).Text;
-  }
-
-  internal bool IsDesignMode => this.DesignMode;
-
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    protected internal List<TopLevelHelper> Helpers
-  {
-    get => this._helpers;
-    set => this._helpers = value;
-  }
-
-  [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-  [Browsable(false)]
-  internal bool IsInitializing
-  {
-    get => this._isInitializing;
-    set => this._isInitializing = value;
-  }
-
-  public void BeginInit() => this._isInitializing = true;
-
-  public void EndInit()
-  {
-    this._isInitializing = false;
-    foreach (ScintillaHelperBase helper in this._helpers)
-      helper.Initialize();
-  }
-
-  private class LastSelection
-  {
-    private int start;
-    private int end;
-    private int length;
-
-    public int Start
-    {
-      get => this.start;
-      set => this.start = value;
-    }
-
-    public int End
-    {
-      get => this.end;
-      set => this.end = value;
-    }
-
-    public int Length
-    {
-      get => this.length;
-      set => this.length = value;
-    }
-  }
 }
