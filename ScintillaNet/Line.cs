@@ -1,277 +1,405 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-#nullable disable
-namespace ScintillaNet;
-
-public class Line : ScintillaHelperBase
+namespace ScintillaNET
 {
-  private int _number;
-
-  protected internal Line(Scintilla scintilla, int number)
-    : base(scintilla)
-  {
-    this._number = number;
-  }
-
-  public int Number
-  {
-    get => this._number;
-    set => this._number = value;
-  }
-
-  public string Text
-  {
-    get
+    /// <summary>
+    /// Represents a line of text in a <see cref="Scintilla" /> control.
+    /// </summary>
+    public class Line
     {
-      string text;
-      this.NativeScintilla.GetLine(this._number, out text);
-      return text;
+        private readonly Scintilla scintilla;
+
+        /// <summary>
+        /// Navigates the caret to the start of the line.
+        /// </summary>
+        /// <remarks>Any selection is discarded.</remarks>
+        public void Goto()
+        {
+            scintilla.DirectMessage(NativeMethods.SCI_GOTOLINE, new IntPtr(Index));
+        }
+
+        /// <summary>
+        /// Adds the specified <see cref="Marker" /> to the line.
+        /// </summary>
+        /// <param name="marker">The zero-based index of the marker to add to the line.</param>
+        /// <returns>A <see cref="MarkerHandle" /> which can be used to track the line.</returns>
+        /// <remarks>This method does not check if the line already contains the <paramref name="marker" />.</remarks>
+        public MarkerHandle MarkerAdd(int marker)
+        {
+            marker = Helpers.Clamp(marker, 0, scintilla.Markers.Count - 1);
+            var handle = scintilla.DirectMessage(NativeMethods.SCI_MARKERADD, new IntPtr(Index), new IntPtr(marker));
+            return new MarkerHandle { Value = handle };
+        }
+
+        /// <summary>
+        /// Adds one or more markers to the line in a single call using a bit mask.
+        /// </summary>
+        /// <param name="markerMask">An unsigned 32-bit value with each bit cooresponding to one of the 32 zero-based <see cref="Margin" /> indexes to add.</param>
+        public void MarkerAddSet(uint markerMask)
+        {
+            var mask = unchecked((int)markerMask);
+            scintilla.DirectMessage(NativeMethods.SCI_MARKERADDSET, new IntPtr(Index), new IntPtr(mask));
+        }
+
+        /// <summary>
+        /// Removes the specified <see cref="Marker" /> from the line.
+        /// </summary>
+        /// <param name="marker">The zero-based index of the marker to remove from the line or -1 to delete all markers from the line.</param>
+        /// <remarks>If the same marker has been added to the line more than once, this will delete one copy each time it is used.</remarks>
+        public void MarkerDelete(int marker)
+        {
+            marker = Helpers.Clamp(marker, -1, scintilla.Markers.Count - 1);
+            scintilla.DirectMessage(NativeMethods.SCI_MARKERDELETE, new IntPtr(Index), new IntPtr(marker));
+        }
+
+        /// <summary>
+        /// Returns a bit mask indicating which markers are present on the line.
+        /// </summary>
+        /// <returns>An unsigned 32-bit value with each bit cooresponding to one of the 32 zero-based <see cref="Margin" /> indexes.</returns>
+        public uint MarkerGet()
+        {
+            var mask = scintilla.DirectMessage(NativeMethods.SCI_MARKERGET, new IntPtr(Index)).ToInt32();
+            return unchecked((uint)mask);
+        }
+
+        /// <summary>
+        /// Efficiently searches from the current line forward to the end of the document for the specified markers.
+        /// </summary>
+        /// <param name="markerMask">An unsigned 32-bit value with each bit cooresponding to one of the 32 zero-based <see cref="Margin" /> indexes.</param>
+        /// <returns>If found, the zero-based line index containing one of the markers in <paramref name="markerMask" />; otherwise, -1.</returns>
+        /// <remarks>For example, the mask for marker index 10 is 1 shifted left 10 times (1 &lt;&lt; 10).</remarks>
+        public int MarkerNext(uint markerMask)
+        {
+            var mask = unchecked((int)markerMask);
+            return scintilla.DirectMessage(NativeMethods.SCI_MARKERNEXT, new IntPtr(Index), new IntPtr(mask)).ToInt32();
+        }
+
+        /// <summary>
+        /// Efficiently searches from the current line backward to the start of the document for the specified markers.
+        /// </summary>
+        /// <param name="markerMask">An unsigned 32-bit value with each bit cooresponding to one of the 32 zero-based <see cref="Margin" /> indexes.</param>
+        /// <returns>If found, the zero-based line index containing one of the markers in <paramref name="markerMask" />; otherwise, -1.</returns>
+        /// <remarks>For example, the mask for marker index 10 is 1 shifted left 10 times (1 &lt;&lt; 10).</remarks>
+        public int MarkerPrevious(uint markerMask)
+        {
+            var mask = unchecked((int)markerMask);
+            return scintilla.DirectMessage(NativeMethods.SCI_MARKERPREVIOUS, new IntPtr(Index), new IntPtr(mask)).ToInt32();
+        }
+
+        /// <summary>
+        /// Gets the number of annotation lines of text.
+        /// </summary>
+        /// <returns>The number of annotation lines.</returns>
+        public int AnnotationLines
+        {
+            get
+            {
+                return scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETLINES, new IntPtr(Index)).ToInt32();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the style of the annotation text.
+        /// </summary>
+        /// <returns>
+        /// The zero-based index of the annotation text <see cref="Style" /> or 256 when <see cref="AnnotationStyles" />
+        /// has been used to set individual character styles.
+        /// </returns>
+        /// <seealso cref="AnnotationStyles" />
+        public int AnnotationStyle
+        {
+            get
+            {
+                return scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETSTYLE, new IntPtr(Index)).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, scintilla.Styles.Count - 1);
+                scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONSETSTYLE, new IntPtr(Index), new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets an array of style indexes corresponding to each charcter in the <see cref="AnnotationText" />
+        /// so that each character may be individually styled.
+        /// </summary>
+        /// <returns>
+        /// An array of <see cref="Style" /> indexes corresponding with each annotation text character or an uninitialized
+        /// array when <see cref="AnnotationStyle" /> has been used to set a single style for all characters.
+        /// </returns>
+        /// <remarks>
+        /// <see cref="AnnotationText" /> must be set prior to setting this property.
+        /// The <paramref name="value" /> specified should have a length equal to the <see cref="AnnotationText" /> length to properly style all characters.
+        /// </remarks>
+        /// <seealso cref="AnnotationStyle" />
+        public unsafe byte[] AnnotationStyles
+        {
+            get
+            {
+                var length = scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETTEXT, new IntPtr(Index)).ToInt32();
+                if (length == 0)
+                    return new byte[0];
+
+                var text = new byte[length + 1];
+                var styles = new byte[length + 1];
+
+                fixed (byte* textPtr = text)
+                fixed (byte* stylePtr = styles)
+                {
+                    scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETTEXT, new IntPtr(Index), new IntPtr(textPtr));
+                    scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETSTYLES, new IntPtr(Index), new IntPtr(stylePtr));
+
+                    return Helpers.ByteToCharStyles(stylePtr, textPtr, length, scintilla.Encoding);
+                }
+            }
+            set
+            {
+                var length = scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETTEXT, new IntPtr(Index)).ToInt32();
+                if (length == 0)
+                    return;
+
+                var text = new byte[length + 1];
+                fixed (byte* textPtr = text)
+                {
+                    scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETTEXT, new IntPtr(Index), new IntPtr(textPtr));
+
+                    var styles = Helpers.CharToByteStyles(value ?? new byte[0], textPtr, length, scintilla.Encoding);
+                    fixed (byte* stylePtr = styles)
+                        scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONSETSTYLES, new IntPtr(Index), new IntPtr(stylePtr));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the line annotation text.
+        /// </summary>
+        /// <returns>A String representing the line annotation text.</returns>
+        public unsafe string AnnotationText
+        {
+            get
+            {
+                var length = scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETTEXT, new IntPtr(Index)).ToInt32();
+                if (length == 0)
+                    return string.Empty;
+
+                var bytes = new byte[length + 1];
+                fixed (byte* bp = bytes)
+                {
+                    scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETTEXT, new IntPtr(Index), new IntPtr(bp));
+                    return Helpers.GetString(new IntPtr(bp), length, scintilla.Encoding);
+                }
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    // Scintilla docs suggest that setting to NULL rather than an empty string will free memory
+                    scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONGETTEXT, new IntPtr(Index), IntPtr.Zero);
+                }
+                else
+                {
+                    var bytes = Helpers.GetBytes(value, scintilla.Encoding, zeroTerminated: true);
+                    fixed (byte* bp = bytes)
+                        scintilla.DirectMessage(NativeMethods.SCI_ANNOTATIONSETTEXT, new IntPtr(Index), new IntPtr(bp));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the zero-based character position in the document where the line ends (exclusive).
+        /// </summary>
+        /// <returns>The equivalent of <see cref="Position" /> + <see cref="Length" />.</returns>
+        public int EndPosition
+        {
+            get
+            {
+                return Position + Length;
+            }
+        }
+
+        /// <summary>
+        /// Gets the line index.
+        /// </summary>
+        /// <returns>The zero-based line index within the <see cref="LineCollection" /> that created it.</returns>
+        public int Index { get; private set; }
+
+        /// <summary>
+        /// Gets the length of the line.
+        /// </summary>
+        /// <returns>The number of characters in the line including any end of line characters.</returns>
+        public int Length
+        {
+            get
+            {
+                return scintilla.Lines.CharLineLength(Index);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the style of the margin text in a <see cref="MarginType.Text" /> or <see cref="MarginType.RightText" /> margin.
+        /// </summary>
+        /// <returns>
+        /// The zero-based index of the margin text <see cref="Style" /> or 256 when <see cref="MarginStyles" />
+        /// has been used to set individual character styles.
+        /// </returns>
+        /// <seealso cref="MarginStyles" />
+        public int MarginStyle
+        {
+            get
+            {
+                return scintilla.DirectMessage(NativeMethods.SCI_MARGINGETSTYLE, new IntPtr(Index)).ToInt32();
+            }
+            set
+            {
+                value = Helpers.Clamp(value, 0, scintilla.Styles.Count - 1);
+                scintilla.DirectMessage(NativeMethods.SCI_MARGINSETSTYLE, new IntPtr(Index), new IntPtr(value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets an array of style indexes corresponding to each charcter in the <see cref="MarginText" />
+        /// so that each character may be individually styled.
+        /// </summary>
+        /// <returns>
+        /// An array of <see cref="Style" /> indexes corresponding with each margin text character or an uninitialized
+        /// array when <see cref="MarginStyle" /> has been used to set a single style for all characters.
+        /// </returns>
+        /// <remarks>
+        /// <see cref="MarginText" /> must be set prior to setting this property.
+        /// The <paramref name="value" /> specified should have a length equal to the <see cref="MarginText" /> length to properly style all characters.
+        /// </remarks>
+        /// <seealso cref="MarginStyle" />
+        public unsafe byte[] MarginStyles
+        {
+            get
+            {
+                var length = scintilla.DirectMessage(NativeMethods.SCI_MARGINGETTEXT, new IntPtr(Index)).ToInt32();
+                if (length == 0)
+                    return new byte[0];
+
+                var text = new byte[length + 1];
+                var styles = new byte[length + 1];
+
+                fixed (byte* textPtr = text)
+                fixed (byte* stylePtr = styles)
+                {
+                    scintilla.DirectMessage(NativeMethods.SCI_MARGINGETTEXT, new IntPtr(Index), new IntPtr(textPtr));
+                    scintilla.DirectMessage(NativeMethods.SCI_MARGINGETSTYLES, new IntPtr(Index), new IntPtr(stylePtr));
+
+                    return Helpers.ByteToCharStyles(stylePtr, textPtr, length, scintilla.Encoding);
+                }
+            }
+            set
+            {
+                var length = scintilla.DirectMessage(NativeMethods.SCI_MARGINGETTEXT, new IntPtr(Index)).ToInt32();
+                if (length == 0)
+                    return;
+
+                var text = new byte[length + 1];
+                fixed (byte* textPtr = text)
+                {
+                    scintilla.DirectMessage(NativeMethods.SCI_MARGINGETTEXT, new IntPtr(Index), new IntPtr(textPtr));
+
+                    var styles = Helpers.CharToByteStyles(value ?? new byte[0], textPtr, length, scintilla.Encoding);
+                    fixed (byte* stylePtr = styles)
+                        scintilla.DirectMessage(NativeMethods.SCI_MARGINSETSTYLES, new IntPtr(Index), new IntPtr(stylePtr));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the text displayed in the line margin when the margin type is
+        /// <see cref="MarginType.Text" /> or <see cref="MarginType.RightText" />.
+        /// </summary>
+        /// <returns>The text displayed in the line margin.</returns>
+        /// <remarks>The margin text cannot contain any Unicode characters or it will not render correctly.</remarks>
+        public unsafe string MarginText
+        {
+            get
+            {
+                var length = scintilla.DirectMessage(NativeMethods.SCI_MARGINGETTEXT, new IntPtr(Index)).ToInt32();
+                if (length == 0)
+                    return string.Empty;
+
+                var bytes = new byte[length + 1];
+                fixed (byte* bp = bytes)
+                {
+                    scintilla.DirectMessage(NativeMethods.SCI_MARGINGETTEXT, new IntPtr(Index), new IntPtr(bp));
+                    return Helpers.GetString(new IntPtr(bp), length, scintilla.Encoding);
+                }
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    // Scintilla docs suggest that setting to NULL rather than an empty string will free memory
+                    scintilla.DirectMessage(NativeMethods.SCI_MARGINSETTEXT, new IntPtr(Index), IntPtr.Zero);
+                }
+                else
+                {
+                    var bytes = Helpers.GetBytes(value, scintilla.Encoding, zeroTerminated: true);
+                    fixed (byte* bp = bytes)
+                        scintilla.DirectMessage(NativeMethods.SCI_MARGINSETTEXT, new IntPtr(Index), new IntPtr(bp));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the zero-based character position in the document where the line begins.
+        /// </summary>
+        /// <returns>The document position of the first character in the line.</returns>
+        public int Position
+        {
+            get
+            {
+                return scintilla.Lines.CharPositionFromLine(Index);
+            }
+        }
+
+        /// <summary>
+        /// Gets the line text.
+        /// </summary>
+        /// <returns>A string representing the document line.</returns>
+        /// <remarks>The returned text includes any end of line characters.</remarks>
+        public unsafe string Text
+        {
+            get
+            {
+                var start = scintilla.DirectMessage(NativeMethods.SCI_POSITIONFROMLINE, new IntPtr(Index));
+                var length = scintilla.DirectMessage(NativeMethods.SCI_LINELENGTH, new IntPtr(Index));
+                var ptr = scintilla.DirectMessage(NativeMethods.SCI_GETRANGEPOINTER, start, length);
+                if (ptr == IntPtr.Zero)
+                    return string.Empty;
+
+                var text = new string((sbyte*)ptr, 0, length.ToInt32(), scintilla.Encoding);
+                return text;
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of display lines this line would occupy when wrapping is enabled.
+        /// </summary>
+        /// <returns>The number of display lines needed to wrap the current document line.</returns>
+        public int WrapCount
+        {
+            get
+            {
+                return scintilla.DirectMessage(NativeMethods.SCI_WRAPCOUNT, new IntPtr(Index)).ToInt32();
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Line" /> class.
+        /// </summary>
+        /// <param name="scintilla">The <see cref="Scintilla" /> control that created this line.</param>
+        /// <param name="index">The index of this line within the <see cref="LineCollection" /> that created it.</param>
+        public Line(Scintilla scintilla, int index)
+        {
+            this.scintilla = scintilla;
+            Index = index;
+        }
     }
-    set
-    {
-      this.NativeScintilla.SetTargetStart(this.StartPosition);
-      this.NativeScintilla.SetTargetEnd(this.EndPosition);
-      this.NativeScintilla.ReplaceTarget(-1, value);
-    }
-  }
-
-  public Range Range => this.Scintilla.GetRange(this.StartPosition, this.EndPosition);
-
-  public void Select() => this.NativeScintilla.SetSel(this.StartPosition, this.EndPosition);
-
-  public int StartPosition => this.NativeScintilla.PositionFromLine(this._number);
-
-  public int EndPosition => this.NativeScintilla.GetLineEndPosition(this._number);
-
-  public int Length => this.NativeScintilla.LineLength(this._number);
-
-  public int Height => this.NativeScintilla.TextHeight(this._number);
-
-  public void Goto() => this.NativeScintilla.GotoLine(this._number);
-
-  public int LineState
-  {
-    get => this.NativeScintilla.GetLineState(this._number);
-    set => this.NativeScintilla.SetLineState(this._number, value);
-  }
-
-  public int Indentation
-  {
-    get => this.NativeScintilla.GetLineIndentation(this._number);
-    set => this.NativeScintilla.SetLineIndentation(this._number, value);
-  }
-
-  public int IndentPosition => this.NativeScintilla.GetLineIndentPosition(this._number);
-
-  public int SelectionStartPosition => this.NativeScintilla.GetLineSelStartPosition(this._number);
-
-  public int SelectionEndPosition => this.NativeScintilla.GetLineSelEndPosition(this._number);
-
-  public List<Marker> GetMarkers()
-  {
-    List<Marker> markers = new List<Marker>();
-    int markerMask = this.GetMarkerMask();
-    int num = 1;
-    for (int number = 0; number < 32 /*0x20*/; ++number)
-    {
-      if ((markerMask & num) != 0)
-        markers.Add(new Marker(this.Scintilla, number));
-      num += num;
-    }
-    return markers;
-  }
-
-  public Line FindNextMarker(Marker marker) => this.FindNextMarker(marker.Mask);
-
-  public Line FindPreviousMarker(Marker marker) => this.FindPreviousMarker(marker.Mask);
-
-  public Line DeleteMarker(int markerNumber)
-  {
-    this.NativeScintilla.MarkerDelete(this._number, markerNumber);
-    return this;
-  }
-
-  public Line DeleteMarker(Marker marker)
-  {
-    this.NativeScintilla.MarkerDelete(this._number, marker.Number);
-    return this;
-  }
-
-  public MarkerInstance AddMarker(int markerNumber)
-  {
-    return new MarkerInstance(this.Scintilla, new Marker(this.Scintilla, markerNumber), this.NativeScintilla.MarkerAdd(this._number, markerNumber));
-  }
-
-  public MarkerInstance AddMarker(Marker marker)
-  {
-    return new MarkerInstance(this.Scintilla, marker, this.NativeScintilla.MarkerAdd(this._number, marker.Number));
-  }
-
-  public Line AddMarkerSet(uint markerMask)
-  {
-    this.NativeScintilla.MarkerAddSet(this._number, markerMask);
-    return this;
-  }
-
-  public Line AddMarkerSet(IEnumerable<Marker> markers)
-  {
-    this.AddMarkerSet(Utilities.GetMarkerMask(markers));
-    return this;
-  }
-
-  public Line AddMarkerSet(IEnumerable<int> markers)
-  {
-    this.AddMarkerSet(Utilities.GetMarkerMask(markers));
-    return this;
-  }
-
-  public Line DeleteMarkerSet(IEnumerable<int> markerNumbers)
-  {
-    foreach (int markerNumber in markerNumbers)
-      this.NativeScintilla.MarkerDelete(this._number, markerNumber);
-    return this;
-  }
-
-  public Line DeleteMarkerSet(IEnumerable<Marker> markers)
-  {
-    foreach (Marker marker in markers)
-      this.NativeScintilla.MarkerDelete(this._number, marker.Number);
-    return this;
-  }
-
-  public Line DeleteAllMarkers()
-  {
-    this.DeleteMarker(-1);
-    return this;
-  }
-
-  public int GetMarkerMask() => this.NativeScintilla.MarkerGet(this._number);
-
-  public Line FindNextMarker(uint markerMask)
-  {
-    int index = this.NativeScintilla.MarkerNext(this._number + 1, markerMask);
-    return index < 0 ? (Line) null : this.Scintilla.Lines[index];
-  }
-
-  public Line FindNextMarker(IEnumerable<int> markers)
-  {
-    return this.FindNextMarker(Utilities.GetMarkerMask(markers));
-  }
-
-  public Line FindNextMarker(IEnumerable<Marker> markers)
-  {
-    return this.FindNextMarker(Utilities.GetMarkerMask(markers));
-  }
-
-  public Line FindPreviousMarker(uint markerMask)
-  {
-    int index = this.NativeScintilla.MarkerPrevious(this._number - 1, markerMask);
-    return index < 0 ? (Line) null : this.Scintilla.Lines[index];
-  }
-
-  public Line FindPreviousMarker(IEnumerable<int> markers)
-  {
-    return this.FindPreviousMarker(Utilities.GetMarkerMask(markers));
-  }
-
-  public Line FindPreviousMarker(IEnumerable<Marker> markers)
-  {
-    return this.FindPreviousMarker(Utilities.GetMarkerMask(markers));
-  }
-
-  public int VisibleLineNumber => this.NativeScintilla.VisibleFromDocLine(this._number);
-
-  public bool IsVisible
-  {
-    get => this.NativeScintilla.GetLineVisible(this._number);
-    set
-    {
-      if (value)
-        this.NativeScintilla.ShowLines(this._number, this._number);
-      else
-        this.NativeScintilla.HideLines(this._number, this._number);
-    }
-  }
-
-  public void EnsureVisible() => this.NativeScintilla.EnsureVisible(this._number);
-
-  public int FoldLevel
-  {
-    get => (int) this.NativeScintilla.GetFoldLevel(this._number) & 4095 /*0x0FFF*/;
-    set
-    {
-      uint num = this.NativeScintilla.GetFoldLevel(this._number) & 12288U /*0x3000*/;
-      this.NativeScintilla.SetFoldLevel(this._number, (uint) value | num);
-    }
-  }
-
-  public bool IsFoldPoint
-  {
-    get
-    {
-      return ((int) this.NativeScintilla.GetFoldLevel(this._number) & 8192 /*0x2000*/) == 8192 /*0x2000*/;
-    }
-    set
-    {
-      if (value)
-        this.NativeScintilla.SetFoldLevel(this._number, this.NativeScintilla.GetFoldLevel(this._number) | 8192U /*0x2000*/);
-      else
-        this.NativeScintilla.SetFoldLevel(this._number, this.NativeScintilla.GetFoldLevel(this._number) & 4294959103U);
-    }
-  }
-
-  public bool IsFoldWhitespace
-  {
-    get
-    {
-      return ((int) this.NativeScintilla.GetFoldLevel(this._number) & 4096 /*0x1000*/) == 4096 /*0x1000*/;
-    }
-    set
-    {
-      if (value)
-        this.NativeScintilla.SetFoldLevel(this._number, this.NativeScintilla.GetFoldLevel(this._number) | 4096U /*0x1000*/);
-      else
-        this.NativeScintilla.SetFoldLevel(this._number, this.NativeScintilla.GetFoldLevel(this._number) & 4294963199U);
-    }
-  }
-
-  public void ToggleFoldExpanded() => this.NativeScintilla.ToggleFold(this._number);
-
-  public bool FoldExpanded
-  {
-    get => this.NativeScintilla.GetFoldExpanded(this._number);
-    set => this.NativeScintilla.SetFoldExpanded(this._number, value);
-  }
-
-  public Line GetLastFoldChild() => this.GetLastFoldChild(-1);
-
-  public Line GetLastFoldChild(int level)
-  {
-    int lastChild = this.NativeScintilla.GetLastChild(this._number, level);
-    return lastChild < 0 ? (Line) null : new Line(this.Scintilla, lastChild);
-  }
-
-  public Line FoldParent
-  {
-    get
-    {
-      int foldParent = this.NativeScintilla.GetFoldParent(this._number);
-      return foldParent < 0 ? (Line) null : new Line(this.Scintilla, foldParent);
-    }
-  }
-
-  public int WrapCount => this.NativeScintilla.WrapCount(this._number);
-
-  public override bool Equals(object obj)
-  {
-    return obj is Line line && line.Scintilla == this.Scintilla && line._number == this._number;
-  }
-
-  public override string ToString() => "Line " + this._number.ToString();
-
-  public override int GetHashCode() => base.GetHashCode();
-
-  public Line Next => new Line(this.Scintilla, this._number + 1);
-
-  public Line Previous => new Line(this.Scintilla, this._number - 1);
 }

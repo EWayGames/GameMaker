@@ -38,7 +38,7 @@ namespace DS_Game_Maker
             components = new System.ComponentModel.Container();
             var resources = new System.ComponentModel.ComponentResourceManager(typeof(Preview));
             PreviewPanel = new Panel();
-            MainTimer = new System.Timers.Timer(components.Components.Count);
+            MainTimer = new System.Timers.Timer(components.Components.Count +1);
             MainTimer.Elapsed += new System.Timers.ElapsedEventHandler(MainTimer_Tick);
             SuspendLayout();
             // 

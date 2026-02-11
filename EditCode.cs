@@ -32,9 +32,9 @@ namespace DS_Game_Maker
 
         public void UpdateLineStats()
         {
-            InfoLabel.Text = "Ln " + MainTextBox.Caret.LineNumber.ToString() + " : ";
-            InfoLabel.Text += MainTextBox.Lines.Count.ToString() + "   Col " + MainTextBox.GetColumn(MainTextBox.CurrentPos).ToString();
-            InfoLabel.Text += "   Sel " + MainTextBox.Selection.Start.ToString();
+            //InfoLabel.Text = "Ln " + MainTextBox.Caret.LineNumber.ToString() + " : ";
+            //InfoLabel.Text += MainTextBox.Lines.Count.ToString() + "   Col " + MainTextBox.GetColumn(MainTextBox.CurrentPos).ToString();
+            //InfoLabel.Text += "   Sel " + MainTextBox.Selection.Start.ToString();
         }
 
         private void MainTextBox_KeyDown(object sender, EventArgs e)
@@ -45,21 +45,21 @@ namespace DS_Game_Maker
         private void DAcceptButton_Click(object sender, EventArgs e)
         {
             WindowState = FormWindowState.Normal;
-            ReturnableCode = MainTextBox.Text.Replace(Constants.vbCrLf, "<br|>").Replace(",", "<com>").Replace(";", "<sem>");
+            //ReturnableCode = MainTextBox.Text.Replace(Constants.vbCrLf, "<br|>").Replace(",", "<com>").Replace(";", "<sem>");
             DialogResult = DialogResult.OK;
             Close();
         }
 
         private void UndoButton_Click(object sender, EventArgs e)
         {
-            if (MainTextBox.UndoRedo.CanUndo)
-                MainTextBox.UndoRedo.Undo();
+            if (MainTextBox.CanUndo)
+                MainTextBox.Undo();
         }
 
         private void RedoButton_Click(object sender, EventArgs e)
         {
-            if (MainTextBox.UndoRedo.CanRedo)
-                MainTextBox.UndoRedo.Redo();
+            if (MainTextBox.CanRedo)
+                MainTextBox.Redo();
         }
 
         private void LoadInButton_Click(object sender, EventArgs e)
@@ -92,11 +92,11 @@ namespace DS_Game_Maker
             System.IO.File.WriteAllText(Response, ToWrite);
         }
 
-        private void MainTextBox_CharAdded(object sender, ScintillaNet.CharAddedEventArgs e)
+        private void MainTextBox_CharAdded(object sender, ScintillaNET.CharAddedEventArgs e)
         {
-            if (!(e.Ch == '\r'))
-                return;
-            ScintillaNet.Scintilla argTheControl = (ScintillaNet.Scintilla)sender;
+            //if (!(e.Ch == '\r'))
+            //    return;
+            ScintillaNET.Scintilla argTheControl = (ScintillaNET.Scintilla)sender;
             DS_Game_Maker.DSGMlib.IntelliSense(ref argTheControl);
             sender = argTheControl;
         }

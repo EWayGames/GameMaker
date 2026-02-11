@@ -10,12 +10,13 @@ namespace DS_Game_Maker
         [STAThread]
         public static void Main(string[] args)
         {
+            ApplicationConfiguration.Initialize();
+
             Forms = new GlobalFormsClass();
             Forms.Initialize(args);
 
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
             Application.Run(Forms.main_Form);
         }
     }

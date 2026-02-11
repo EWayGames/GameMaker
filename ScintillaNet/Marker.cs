@@ -1,174 +1,163 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms;
+using System.Drawing.Imaging;
+using System.Linq;
+using System.Text;
 
-#nullable disable
-namespace ScintillaNet;
-
-[TypeConverter(typeof (ExpandableObjectConverter))]
-public class Marker : ScintillaHelperBase
+namespace ScintillaNET
 {
-  private int _number;
-
-  internal Marker(Scintilla scintilla, int number)
-    : base(scintilla)
-  {
-    this._number = number;
-  }
-
-  internal bool ShouldSerialize()
-  {
-    return this.ShouldSerializeAlpha() || this.ShouldSerializeBackColor() || this.ShouldSerializeForeColor() || this.ShouldSerializeSymbol();
-  }
-
-  public void Reset()
-  {
-    this.ResetAlpha();
-    this.ResetBackColor();
-    this.ResetForeColor();
-    this.ResetSymbol();
-  }
-
-  public int Number
-  {
-    get => this._number;
-    set => this._number = value;
-  }
-
-  public uint Mask => (uint) (1 << this.Number);
-
-  public MarkerSymbol Symbol
-  {
-    get
+    /// <summary>
+    /// Represents a margin marker in a <see cref="Scintilla" /> control.
+    /// </summary>
+    public class Marker
     {
-      return this.Scintilla.PropertyBag.ContainsKey((object) (this.ToString() + ".Symbol")) ? (MarkerSymbol) this.Scintilla.PropertyBag[(object) (this.ToString() + ".Symbol")] : MarkerSymbol.Circle;
+        private readonly Scintilla scintilla;
+
+        /// <summary>
+        /// An unsigned 32-bit mask of all <see cref="Margin" /> indexes where each bit cooresponds to a margin index.
+        /// </summary>
+        public const uint MaskAll = unchecked((uint)-1);
+
+        /// <summary>
+        /// An unsigned 32-bit mask of folder <see cref="Margin" /> indexes (25 through 31) where each bit cooresponds to a margin index.
+        /// </summary>
+        /// <seealso cref="Margin.Mask" />
+        public const uint MaskFolders = NativeMethods.SC_MASK_FOLDERS;
+
+        /// <summary>
+        /// Folder end marker index. This marker is typically configured to display the <see cref="MarkerSymbol.BoxPlusConnected" /> symbol.
+        /// </summary>
+        public const int FolderEnd = NativeMethods.SC_MARKNUM_FOLDEREND;
+
+        /// <summary>
+        /// Folder open marker index. This marker is typically configured to display the <see cref="MarkerSymbol.BoxMinusConnected" /> symbol.
+        /// </summary>
+        public const int FolderOpenMid = NativeMethods.SC_MARKNUM_FOLDEROPENMID;
+
+        /// <summary>
+        /// Folder mid tail marker index. This marker is typically configured to display the <see cref="MarkerSymbol.TCorner" /> symbol.
+        /// </summary>
+        public const int FolderMidTail = NativeMethods.SC_MARKNUM_FOLDERMIDTAIL;
+
+        /// <summary>
+        /// Folder tail marker index. This marker is typically configured to display the <see cref="MarkerSymbol.LCorner" /> symbol.
+        /// </summary>
+        public const int FolderTail = NativeMethods.SC_MARKNUM_FOLDERTAIL;
+
+        /// <summary>
+        /// Folder sub marker index. This marker is typically configured to display the <see cref="MarkerSymbol.VLine" /> symbol.
+        /// </summary>
+        public const int FolderSub = NativeMethods.SC_MARKNUM_FOLDERSUB;
+
+        /// <summary>
+        /// Folder marker index. This marker is typically configured to display the <see cref="MarkerSymbol.BoxPlus" /> symbol.
+        /// </summary>
+        public const int Folder = NativeMethods.SC_MARKNUM_FOLDER;
+
+        /// <summary>
+        /// Folder open marker index. This marker is typically configured to display the <see cref="MarkerSymbol.BoxMinus" /> symbol.
+        /// </summary>
+        public const int FolderOpen = NativeMethods.SC_MARKNUM_FOLDEROPEN;
+
+        /// <summary>
+        /// Sets the marker symbol to a custom image.
+        /// </summary>
+        /// <param name="image">The Bitmap to use as a marker symbol.</param>
+        /// <remarks>Calling this method will also update the <see cref="Symbol" /> property to <see cref="MarkerSymbol.RgbaImage" />.</remarks>
+        public unsafe void DefineRgbaImage(Bitmap image)
+        {
+            if (image == null)
+                return;
+
+            scintilla.DirectMessage(NativeMethods.SCI_RGBAIMAGESETWIDTH, new IntPtr(image.Width));
+            scintilla.DirectMessage(NativeMethods.SCI_RGBAIMAGESETHEIGHT, new IntPtr(image.Height));
+
+            var bytes = Helpers.BitmapToArgb(image);
+            fixed (byte* bp = bytes)
+                scintilla.DirectMessage(NativeMethods.SCI_MARKERDEFINERGBAIMAGE, new IntPtr(Index), new IntPtr(bp));
+        }
+
+        /// <summary>
+        /// Removes this marker from all lines.
+        /// </summary>
+        public void DeleteAll()
+        {
+            scintilla.MarkerDeleteAll(Index);
+        }
+
+        /// <summary>
+        /// Sets the foreground alpha transparency for markers that are drawn in the content area.
+        /// </summary>
+        /// <param name="alpha">The alpha transparency ranging from 0 (completely transparent) to 255 (no transparency).</param>
+        /// <remarks>See the remarks on the <see cref="SetBackColor" /> method for a full explanation of when a marker can be drawn in the content area.</remarks>
+        /// <seealso cref="SetBackColor" />
+        public void SetAlpha(int alpha)
+        {
+            alpha = Helpers.Clamp(alpha, 0, 255);
+            scintilla.DirectMessage(NativeMethods.SCI_MARKERSETALPHA, new IntPtr(Index), new IntPtr(alpha));
+        }
+
+        /// <summary>
+        /// Sets the background color of the marker.
+        /// </summary>
+        /// <param name="color">The <see cref="Marker" /> background Color. The default is White.</param>
+        /// <remarks>
+        /// The background color of the whole line will be drawn in the <paramref name="color" /> specified when the marker is not visible
+        /// because it is hidden by a <see cref="Margin.Mask" /> or the <see cref="Margin.Width" /> is zero.
+        /// </remarks>
+        /// <seealso cref="SetAlpha" />
+        public void SetBackColor(Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            scintilla.DirectMessage(NativeMethods.SCI_MARKERSETBACK, new IntPtr(Index), new IntPtr(colour));
+        }
+
+        /// <summary>
+        /// Sets the foreground color of the marker.
+        /// </summary>
+        /// <param name="color">The <see cref="Marker" /> foreground Color. The default is Black.</param>
+        public void SetForeColor(Color color)
+        {
+            var colour = ColorTranslator.ToWin32(color);
+            scintilla.DirectMessage(NativeMethods.SCI_MARKERSETFORE, new IntPtr(Index), new IntPtr(colour));
+        }
+
+        /// <summary>
+        /// Gets the zero-based marker index this object represents.
+        /// </summary>
+        /// <returns>The marker index within the <see cref="MarkerCollection" />.</returns>
+        public int Index { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the marker symbol.
+        /// </summary>
+        /// <returns>
+        /// One of the <see cref="ScintillaNET.MarkerSymbol" /> enumeration values.
+        /// The default is <see cref="ScintillaNET.MarkerSymbol.Circle" />.
+        /// </returns>
+        public MarkerSymbol Symbol
+        {
+            get
+            {
+                return (MarkerSymbol)scintilla.DirectMessage(NativeMethods.SCI_MARKERSYMBOLDEFINED, new IntPtr(Index));
+            }
+            set
+            {
+                var markerSymbol = (int)value;
+                scintilla.DirectMessage(NativeMethods.SCI_MARKERDEFINE, new IntPtr(Index), new IntPtr(markerSymbol));
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Marker" /> class.
+        /// </summary>
+        /// <param name="scintilla">The <see cref="Scintilla" /> control that created this marker.</param>
+        /// <param name="index">The index of this style within the <see cref="MarkerCollection" /> that created it.</param>
+        public Marker(Scintilla scintilla, int index)
+        {
+            this.scintilla = scintilla;
+            Index = index;
+        }
     }
-    set
-    {
-      this.SetSymbolInternal(value);
-      this.Scintilla.Folding.MarkerScheme = FoldMarkerScheme.Custom;
-    }
-  }
-
-  internal void SetSymbolInternal(MarkerSymbol value)
-  {
-    this.Scintilla.PropertyBag[(object) (this.ToString() + ".Symbol")] = (object) value;
-    this.NativeScintilla.MarkerDefine(this._number, (int) value);
-  }
-
-  private bool ShouldSerializeSymbol()
-  {
-    return this.Scintilla.Folding.MarkerScheme == FoldMarkerScheme.Custom && this.Symbol != MarkerSymbol.Circle;
-  }
-
-  private void ResetSymbol() => this.Symbol = MarkerSymbol.Circle;
-
-  public Color ForeColor
-  {
-    get
-    {
-      return this.Scintilla.ColorBag.ContainsKey(this.ToString() + ".ForeColor") ? this.Scintilla.ColorBag[this.ToString() + ".ForeColor"] : Color.Black;
-    }
-    set
-    {
-      this.SetForeColorInternal(value);
-      this.Scintilla.Folding.MarkerScheme = FoldMarkerScheme.Custom;
-    }
-  }
-
-  internal void SetForeColorInternal(Color value)
-  {
-    this.Scintilla.ColorBag[this.ToString() + ".ForeColor"] = value;
-    this.NativeScintilla.MarkerSetFore(this._number, Utilities.ColorToRgb(value));
-  }
-
-  private bool ShouldSerializeForeColor()
-  {
-    return this.Scintilla.Folding.MarkerScheme == FoldMarkerScheme.Custom && this.ForeColor != Color.Black;
-  }
-
-  private void ResetForeColor() => this.ForeColor = Color.Black;
-
-  public Color BackColor
-  {
-    get
-    {
-      return this.Scintilla.ColorBag.ContainsKey(this.ToString() + ".BackColor") ? this.Scintilla.ColorBag[this.ToString() + ".BackColor"] : Color.White;
-    }
-    set
-    {
-      this.SetBackColorInternal(value);
-      this.Scintilla.Folding.MarkerScheme = FoldMarkerScheme.Custom;
-    }
-  }
-
-  internal void SetBackColorInternal(Color value)
-  {
-    this.Scintilla.ColorBag[this.ToString() + ".BackColor"] = value;
-    this.NativeScintilla.MarkerSetBack(this._number, Utilities.ColorToRgb(value));
-  }
-
-  private bool ShouldSerializeBackColor()
-  {
-    return this.Scintilla.Folding.MarkerScheme == FoldMarkerScheme.Custom && this.BackColor != Color.White;
-  }
-
-  private void ResetBackColor() => this.BackColor = Color.White;
-
-  public int Alpha
-  {
-    get
-    {
-      try
-      {
-        return this.Scintilla.PropertyBag.ContainsKey((object) (this.ToString() + ".Alpha")) ? (int) this.Scintilla.PropertyBag[(object) (this.ToString() + nameof (Alpha))] : (int) byte.MaxValue;
-      }
-      catch (Exception ex)
-      {
-        int num = (int) MessageBox.Show(ex.ToString());
-        return (int) byte.MaxValue;
-      }
-    }
-    set
-    {
-      this.Scintilla.PropertyBag[(object) (this.ToString() + ".Alpha")] = (object) value;
-      this.NativeScintilla.MarkerSetAlpha(this._number, value);
-    }
-  }
-
-  private bool ShouldSerializeAlpha() => this.Alpha != (int) byte.MaxValue;
-
-  private void ResetAlpha() => this.Alpha = (int) byte.MaxValue;
-
-  public override string ToString() => "MarkerNumber" + (object) this._number;
-
-  public void SetImage(string xpmImage)
-  {
-    this.NativeScintilla.MarkerDefinePixmap(this._number, xpmImage);
-  }
-
-  public void SetImage(Bitmap image, Color transparentColor)
-  {
-    this.NativeScintilla.MarkerDefinePixmap(this._number, XpmConverter.ConvertToXPM(image, Utilities.ColorToHtml(transparentColor)));
-  }
-
-  public void SetImage(Bitmap image)
-  {
-    this.NativeScintilla.MarkerDefinePixmap(this._number, XpmConverter.ConvertToXPM(image));
-  }
-
-  public MarkerInstance AddInstanceTo(int line)
-  {
-    return new MarkerInstance(this.Scintilla, this, this.NativeScintilla.MarkerAdd(line, this._number));
-  }
-
-  public MarkerInstance AddInstanceTo(Line line) => this.AddInstanceTo(line.Number);
-
-  public override bool Equals(object obj)
-  {
-    return this.IsSameHelperFamily(obj) && ((Marker) obj).Number == this.Number;
-  }
-
-  public override int GetHashCode() => base.GetHashCode();
 }

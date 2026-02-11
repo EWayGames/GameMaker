@@ -50,23 +50,23 @@ namespace DS_Game_Maker
 
         private void UndoButton_Click(object sender, EventArgs e)
         {
-            if (MainTextBox.UndoRedo.CanUndo)
-                MainTextBox.UndoRedo.Undo();
+            if (MainTextBox.CanUndo)
+                MainTextBox.Undo();
         }
 
         private void RedoButton_Click(object sender, EventArgs e)
         {
-            if (MainTextBox.UndoRedo.CanRedo)
-                MainTextBox.UndoRedo.Redo();
+            if (MainTextBox.CanRedo)
+                MainTextBox.Redo();
         }
 
         public void GoToLine(short LineNumber, short Position, short SelLength)
         {
             if (LineNumber >= MainTextBox.Lines.Count)
                 return;
-            MainTextBox.Caret.LineNumber = LineNumber;
-            MainTextBox.Selection.Start += Position;
-            MainTextBox.Selection.Length = SelLength;
+            //MainTextBox.Caret.LineNumber = LineNumber;
+           // MainTextBox.Selection.Start += Position;
+            //MainTextBox.Selection.Length = SelLength;
         }
 
         private void Script_Load(object sender, EventArgs e)
@@ -86,8 +86,8 @@ namespace DS_Game_Maker
             // '.StopCharacters = String.Empty
             // End With
             MainToolStrip.Renderer = new DS_Game_Maker.clsToolstripRenderer();
-            MainTextBox.AcceptsTab = true;
-            MainTextBox.Caret.HighlightCurrentLine = (int)Convert.ToByte(DS_Game_Maker.SettingsLib.GetSetting("HIGHLIGHT_CURRENT_LINE")) == 1;
+            //MainTextBox.AcceptsTab = true;
+            //MainTextBox.Caret.HighlightCurrentLine = (int)Convert.ToByte(DS_Game_Maker.SettingsLib.GetSetting("HIGHLIGHT_CURRENT_LINE")) == 1;
             // MsgError("""" + ScriptName + """")
             ScriptContent = DS_Game_Maker.DSGMlib.PathToString(DS_Game_Maker.SessionsLib.SessionPath + @"Scripts\" + ScriptName + ".dbas");
             MainTextBox.Text = ScriptContent;
@@ -124,9 +124,9 @@ namespace DS_Game_Maker
 
         public void UpdateLineStats()
         {
-            StatsLabel.Text = "Ln " + MainTextBox.Caret.LineNumber.ToString() + " : ";
-            StatsLabel.Text += MainTextBox.Lines.Count.ToString() + "   Col " + MainTextBox.GetColumn(MainTextBox.CurrentPos).ToString();
-            StatsLabel.Text += "   Sel " + MainTextBox.Selection.Start.ToString();
+            //StatsLabel.Text = "Ln " + MainTextBox.Caret.LineNumber.ToString() + " : ";
+            //StatsLabel.Text += MainTextBox.Lines.Count.ToString() + "   Col " + MainTextBox.GetColumn(MainTextBox.CurrentPos).ToString();
+            //StatsLabel.Text += "   Sel " + MainTextBox.Selection.Start.ToString();
         }
 
         private void NameTextBox_TextChanged(object sender, EventArgs e)
@@ -286,7 +286,7 @@ namespace DS_Game_Maker
             if (ArgumentsList.SelectedIndices.Count == 0)
                 return;
             // Dim BackupPosition = MainTextBox.Caret.Position + ArgumentsListBox.Text.Length
-            MainTextBox.InsertText(ArgumentNames[ArgumentsList.SelectedIndex]);
+            //MainTextBox.InsertText(ArgumentNames[ArgumentsList.SelectedIndex]);
             MainTextBox.Focus();
             // MainTextBox.Caret.Position = BackupPosition
         }
@@ -384,11 +384,11 @@ namespace DS_Game_Maker
             // MsgInfo("You must update your code so that it no longer uses or references the deleted argument.")
         }
 
-        private void MainTextBox_CharAdded(object sender, ScintillaNet.CharAddedEventArgs e)
+        private void MainTextBox_CharAdded(object sender, ScintillaNET.CharAddedEventArgs e)
         {
-            if (!(e.Ch == '\r'))
-                return;
-            ScintillaNet.Scintilla argTheControl = (ScintillaNet.Scintilla)sender;
+            //if (!(e.Ch == '\r'))
+            //    return;
+            ScintillaNET.Scintilla argTheControl = (ScintillaNET.Scintilla)sender;
             DS_Game_Maker.DSGMlib.IntelliSense(ref argTheControl);
             sender = argTheControl;
             // Dim pos As Int32 = MainTextBox.NativeInterface.GetCurrentPos()

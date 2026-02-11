@@ -36,11 +36,11 @@ namespace DS_Game_Maker
         private void InitializeComponent()
         {
             var resources = new System.ComponentModel.ComponentResourceManager(typeof(EditCode));
-            MainTextBox = new ScintillaNet.Scintilla();
+            MainTextBox = new ScintillaNET.Scintilla();
             MainTextBox.KeyDown += new KeyEventHandler(MainTextBox_KeyDown);
             MainTextBox.MouseClick += new MouseEventHandler(MainTextBox_KeyDown);
-            MainTextBox.TextChanged += new EventHandler<EventArgs>(MainTextBox_KeyDown);
-            MainTextBox.CharAdded += new EventHandler<ScintillaNet.CharAddedEventArgs>(MainTextBox_CharAdded);
+            MainTextBox.TextChanged += new EventHandler(MainTextBox_KeyDown);
+            MainTextBox.CharAdded += new EventHandler<ScintillaNET.CharAddedEventArgs>(MainTextBox_CharAdded);
             MainToolStrip = new ToolStrip();
             DAcceptButton = new ToolStripButton();
             DAcceptButton.Click += new EventHandler(DAcceptButton_Click);
@@ -56,33 +56,33 @@ namespace DS_Game_Maker
             SaveOutButton.Click += new EventHandler(SaveOutButton_Click);
             MainStatusStrip = new StatusStrip();
             InfoLabel = new ToolStripStatusLabel();
-            ((System.ComponentModel.ISupportInitialize)MainTextBox).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)MainTextBox).BeginInit();
             MainToolStrip.SuspendLayout();
             MainStatusStrip.SuspendLayout();
             SuspendLayout();
             // 
             // MainTextBox
             // 
-            MainTextBox.ConfigurationManager.Language = "vbscript";
+            //MainTextBox.ConfigurationManager.Language = "vbscript";
             MainTextBox.Dock = DockStyle.Fill;
-            MainTextBox.IsBraceMatching = true;
+            //MainTextBox.IsBraceMatching = true;
             MainTextBox.Location = new Point(0, 25);
             MainTextBox.Margins.Left = 0;
-            MainTextBox.Margins.Margin0.Width = 32;
+            //MainTextBox.Margins.Margin0.Width = 32;
             MainTextBox.Margins.Right = 0;
             MainTextBox.Name = "MainTextBox";
-            MainTextBox.Scrolling.HorizontalWidth = -1;
+            //MainTextBox.Scrolling.HorizontalWidth = -1;
             MainTextBox.Size = new Size(464, 275);
-            MainTextBox.Styles.BraceBad.FontName = "Verdana";
-            MainTextBox.Styles.BraceLight.FontName = "Verdana";
-            MainTextBox.Styles.CallTip.FontName = "Tahoma";
-            MainTextBox.Styles.CallTip.Size = 8.25f;
-            MainTextBox.Styles.ControlChar.FontName = "Verdana";
-            MainTextBox.Styles.Default.FontName = "Verdana";
-            MainTextBox.Styles.IndentGuide.FontName = "Verdana";
-            MainTextBox.Styles.LastPredefined.FontName = "Verdana";
-            MainTextBox.Styles.LineNumber.FontName = "Verdana";
-            MainTextBox.Styles.Max.FontName = "Verdana";
+            //MainTextBox.Styles.BraceBad.FontName = "Verdana";
+            //MainTextBox.Styles.BraceLight.FontName = "Verdana";
+            //MainTextBox.Styles.CallTip.FontName = "Tahoma";
+            //MainTextBox.Styles.CallTip.Size = 8.25f;
+            //MainTextBox.Styles.ControlChar.FontName = "Verdana";
+            //MainTextBox.Styles.Default.FontName = "Verdana";
+            //MainTextBox.Styles.IndentGuide.FontName = "Verdana";
+            //MainTextBox.Styles.LastPredefined.FontName = "Verdana";
+            //MainTextBox.Styles.LineNumber.FontName = "Verdana";
+            //MainTextBox.Styles.Max.FontName = "Verdana";
             MainTextBox.TabIndex = 6;
             // 
             // MainToolStrip
@@ -173,7 +173,7 @@ namespace DS_Game_Maker
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "EditCode";
             Text = "Code Editor";
-            ((System.ComponentModel.ISupportInitialize)MainTextBox).EndInit();
+            //((System.ComponentModel.ISupportInitialize)MainTextBox).EndInit();
             MainToolStrip.ResumeLayout(false);
             MainToolStrip.PerformLayout();
             MainStatusStrip.ResumeLayout(false);
@@ -183,7 +183,7 @@ namespace DS_Game_Maker
             PerformLayout();
 
         }
-        internal ScintillaNet.Scintilla MainTextBox;
+        internal ScintillaNET.Scintilla MainTextBox;
         internal ToolStrip MainToolStrip;
         internal StatusStrip MainStatusStrip;
         internal ToolStripButton DAcceptButton;

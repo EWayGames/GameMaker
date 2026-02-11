@@ -190,7 +190,7 @@ namespace DS_Game_Maker
             FinalString += "CONDITION " + (ConditionalDisplayChecker.Checked ? "1" : "0") + Constants.vbCrLf;
             foreach (ListViewItem X in ArgumentsListView.Items)
                 FinalString += "ARG " + X.Text + "," + DS_Game_Maker.ScriptsLib.ArgumentStringToType(X.SubItems[1].Text).ToString() + Constants.vbCrLf;
-            foreach (ScintillaNet.Line X in MainTextBox.Lines)
+            foreach (ScintillaNET.Line X in MainTextBox.Lines)
                 FinalString += X.Text;
             if (IndentRadioButton.Checked)
                 FinalString += Constants.vbCrLf + "INDENT";
@@ -258,7 +258,7 @@ namespace DS_Game_Maker
             bool DisplayNeedsBinning = ListDisplayTextBox.Text.Contains("$" + TheName + "$") ? true : false;
             if (ListDisplayTextBox.Text.Contains("%" + TheName + "%"))
                 DisplayNeedsBinning = true;
-            foreach (ScintillaNet.Line X in MainTextBox.Lines)
+            foreach (ScintillaNET.Line X in MainTextBox.Lines)
             {
                 if (X.Text.Contains("!" + TheName + "!"))
                     NeedsBinning = true;
