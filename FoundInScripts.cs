@@ -112,7 +112,7 @@ namespace DS_Game_Maker
         {
             string ScriptName = ScriptNames[MainListBox.SelectedIndex];
             bool HasDone = false;
-            foreach (Form X in MainForm.ActiveForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (X.Name == "Script" & (X.Text ?? "") == (ScriptName ?? ""))
                 {

@@ -217,7 +217,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSChangeLine(X, NewLine);
                 }
             }
-            foreach (Form X in MainForm.ActiveForm.MdiChildren)
+            foreach (Form X in Program.mainForm.MdiChildren)
             {
                 if (DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT " + X.Text + ",").Length == 0)
                     continue;
