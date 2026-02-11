@@ -52,9 +52,8 @@ namespace DS_Game_Maker
             byte IndentChange = 0;
             byte CurrentIndent = (byte)(IsLocal ? 0 : 1);
             var StringVariables = new List<string>();
-            foreach (string X_ in DS_Game_Maker.DSGMlib.StringToLines(ScriptContent))
+            foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(ScriptContent))
             {
-                string X = X_;
                 if (X.Length == 0)
                     continue;
                 X = X.Replace(Conversions.ToString(ControlChars.Tab), " ");
@@ -319,9 +318,8 @@ namespace DS_Game_Maker
         {
             string ArgumentsString = string.Empty;
             string ArgumentTypesString = string.Empty;
-            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("SCRIPTARG " + ScriptName + ","))
+            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("SCRIPTARG " + ScriptName + ","))
             {
-                string X = X_;
                 X = X.Substring(10);
                 ArgumentsString += DS_Game_Maker.DSGMlib.iGet(X, (byte)1, ",") + ",";
                 ArgumentTypesString += DS_Game_Maker.DSGMlib.iGet(X, (byte)2, ",") + ",";

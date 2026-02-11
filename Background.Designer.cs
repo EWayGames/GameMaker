@@ -64,7 +64,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = Properties.Resources.AcceptIcon;
+            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);
@@ -77,7 +77,7 @@ namespace DS_Game_Maker
             // 
             // EditButton
             // 
-            EditButton.Image = Properties.Resources.PencilIcon;
+            EditButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
             EditButton.ImageTransparentColor = Color.Magenta;
             EditButton.Name = "EditButton";
             EditButton.Size = new Size(45, 22);
@@ -86,7 +86,7 @@ namespace DS_Game_Maker
             // 
             // LoadfromFileButton
             // 
-            LoadfromFileButton.Image = Properties.Resources.FolderIcon;
+            LoadfromFileButton.Image = DS_Game_Maker.My.Resources.Resources.FolderIcon;
             LoadfromFileButton.ImageTransparentColor = Color.Magenta;
             LoadfromFileButton.Name = "LoadfromFileButton";
             LoadfromFileButton.Size = new Size(94, 22);

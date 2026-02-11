@@ -213,9 +213,8 @@ namespace DS_Game_Maker
             string Content = DS_Game_Maker.DSGMlib.PathToString(Response);
             string FinalContent = string.Empty;
             TidyUp();
-            foreach (string X_ in DS_Game_Maker.DSGMlib.StringToLines(Content))
+            foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(Content))
             {
-                string X = X_;
                 if (X.StartsWith("SCRIPTARG "))
                 {
                     X = X.Substring(10);
@@ -286,7 +285,7 @@ namespace DS_Game_Maker
             if (ArgumentsList.SelectedIndices.Count == 0)
                 return;
             // Dim BackupPosition = MainTextBox.Caret.Position + ArgumentsListBox.Text.Length
-            MainTextBox.InsertText(0, ArgumentNames[ArgumentsList.SelectedIndex]);
+            MainTextBox.InsertText(ArgumentNames[ArgumentsList.SelectedIndex]);
             MainTextBox.Focus();
             // MainTextBox.Caret.Position = BackupPosition
         }
@@ -384,11 +383,11 @@ namespace DS_Game_Maker
             // MsgInfo("You must update your code so that it no longer uses or references the deleted argument.")
         }
 
-        private void MainTextBox_CharAdded(object sender, ScintillaNET.CharAddedEventArgs e)
+        private void MainTextBox_CharAdded(object sender, ScintillaNet.CharAddedEventArgs e)
         {
             if (!(e.Ch == '\r'))
                 return;
-            ScintillaNET.Scintilla argTheControl = (ScintillaNET.Scintilla)sender;
+            ScintillaNet.Scintilla argTheControl = (ScintillaNet.Scintilla)sender;
             DS_Game_Maker.DSGMlib.IntelliSense(ref argTheControl);
             sender = argTheControl;
             // Dim pos As Int32 = MainTextBox.NativeInterface.GetCurrentPos()
@@ -422,7 +421,7 @@ namespace DS_Game_Maker
                 e.Graphics.DrawString(TheName, TF, Brushes.Black, 16f, e.Bounds.Y + 1);
                 e.Graphics.DrawString(TheType, TF, Brushes.LightGray, e.Bounds.Width - TW - 3, e.Bounds.Y + 1);
             }
-            e.Graphics.DrawImageUnscaled(Properties.Resources.ArgumentIcon, new Point(0, e.Bounds.Y));
+            e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.ArgumentIcon, new Point(0, e.Bounds.Y));
         }
 
         private void ArgumentsList_MeasureItem(object sender, MeasureItemEventArgs e)

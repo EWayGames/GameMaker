@@ -23,7 +23,7 @@ namespace DS_Game_Maker
         {
             MainToolStrip.Renderer = new DS_Game_Maker.clsToolstripRenderer();
             SubToolStrip.Renderer = new DS_Game_Maker.clsToolstripRenderer();
-            MainImageList.Images.Add("ActionIcon", Properties.Resources.ActionIcon);
+            MainImageList.Images.Add("ActionIcon", DS_Game_Maker.My.Resources.Resources.ActionIcon);
             ActionsTreeView.ImageList = MainImageList;
             TypeDropper.Items.Clear();
             ImageDropper.Items.Clear();
@@ -61,9 +61,8 @@ namespace DS_Game_Maker
             bool NoApplies = false;
             DontRequestApplicationChecker.Checked = false;
             ConditionalDisplayChecker.Checked = false;
-            foreach (string ActLine_ in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + e.Node.Text + ".action"))
+            foreach (string ActLine in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + e.Node.Text + ".action"))
             {
-                string ActLine = ActLine_;
                 if (ActLine.StartsWith("TYPE "))
                 {
                     ActionType = Conversions.ToByte(ActLine.Substring(5));
@@ -190,7 +189,7 @@ namespace DS_Game_Maker
             FinalString += "CONDITION " + (ConditionalDisplayChecker.Checked ? "1" : "0") + Constants.vbCrLf;
             foreach (ListViewItem X in ArgumentsListView.Items)
                 FinalString += "ARG " + X.Text + "," + DS_Game_Maker.ScriptsLib.ArgumentStringToType(X.SubItems[1].Text).ToString() + Constants.vbCrLf;
-            foreach (ScintillaNET.Line X in MainTextBox.Lines)
+            foreach (ScintillaNet.Line X in MainTextBox.Lines)
                 FinalString += X.Text;
             if (IndentRadioButton.Checked)
                 FinalString += Constants.vbCrLf + "INDENT";
@@ -217,7 +216,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSChangeLine(X, NewLine);
                 }
             }
-            foreach (Form X in Program.mainForm.MdiChildren)
+            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
             {
                 if (DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT " + X.Text + ",").Length == 0)
                     continue;
@@ -258,7 +257,7 @@ namespace DS_Game_Maker
             bool DisplayNeedsBinning = ListDisplayTextBox.Text.Contains("$" + TheName + "$") ? true : false;
             if (ListDisplayTextBox.Text.Contains("%" + TheName + "%"))
                 DisplayNeedsBinning = true;
-            foreach (ScintillaNET.Line X in MainTextBox.Lines)
+            foreach (ScintillaNet.Line X in MainTextBox.Lines)
             {
                 if (X.Text.Contains("!" + TheName + "!"))
                     NeedsBinning = true;

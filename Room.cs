@@ -47,9 +47,8 @@ namespace DS_Game_Maker
 
         public void ClearObjects()
         {
-            foreach (AnObject X_ in Objects)
+            foreach (AnObject X in Objects)
             {
-                AnObject X = X_;
                 X.InUse = false;
                 X.X = 0;
                 X.Y = 0;
@@ -319,17 +318,15 @@ namespace DS_Game_Maker
             TopScreenBGDropper.Items.Add(string.Empty);
             BottomScreenBGDropper.Items.Clear();
             BottomScreenBGDropper.Items.Add(string.Empty);
-            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("BACKGROUND "))
+            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("BACKGROUND "))
             {
-                string X = X_;
                 X = X.Substring(11);
                 TopScreenBGDropper.Items.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ","));
                 BottomScreenBGDropper.Items.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ","));
             }
             ObjectDropper.Items.Clear();
-            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
+            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
             {
-                string X = X_;
                 X = X.Substring(7);
                 ObjectDropper.Items.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ","));
             }
@@ -351,9 +348,8 @@ namespace DS_Game_Maker
             TopScreenBGDropper.Text = TopBG;
             BottomScreenBGDropper.Text = BottomBG;
             ClearObjects();
-            foreach (string TheLine_ in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECTPLOT "))
+            foreach (string TheLine in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECTPLOT "))
             {
-                string TheLine = TheLine_;
                 TheLine = TheLine.Substring(11);
                 if (!((DS_Game_Maker.DSGMlib.iGet(TheLine, (byte)1, ",") ?? "") == (RoomName ?? "")))
                     continue;

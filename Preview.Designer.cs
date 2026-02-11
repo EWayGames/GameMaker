@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
-using formTimer = System.Windows.Forms;
 
 namespace DS_Game_Maker
 {
@@ -36,11 +35,9 @@ namespace DS_Game_Maker
         [DebuggerStepThrough()]
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            var resources = new System.ComponentModel.ComponentResourceManager(typeof(Preview));
             PreviewPanel = new Panel();
-            MainTimer = new formTimer.Timer(components);
-            MainTimer.Tick += new EventHandler(MainTimer_Tick);
+            MainTimer = new System.Timers.Timer();
+            ((System.ComponentModel.ISupportInitialize)MainTimer).BeginInit();
             SuspendLayout();
             // 
             // PreviewPanel
@@ -54,27 +51,31 @@ namespace DS_Game_Maker
             // 
             // MainTimer
             // 
+            MainTimer.Enabled = true;
+            MainTimer.Interval = 2D;
+            MainTimer.SynchronizingObject = this;
+            MainTimer.Elapsed += MainTimer_Tick;
             // 
             // Preview
             // 
-            AutoScaleDimensions = new SizeF(6.0f, 13.0f);
+            AutoScaleDimensions = new SizeF(6F, 13F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
             ClientSize = new Size(158, 136);
             Controls.Add(PreviewPanel);
-            Font = new Font("Tahoma", 8.25f, FontStyle.Regular, GraphicsUnit.Point, 0);
+            Font = new Font("Tahoma", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             FormBorderStyle = FormBorderStyle.FixedSingle;
-            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "Preview";
             StartPosition = FormStartPosition.CenterParent;
             Text = "Sprite Preview";
-            Load += new EventHandler(Preview_Load);
+            Load += Preview_Load;
+            ((System.ComponentModel.ISupportInitialize)MainTimer).EndInit();
             ResumeLayout(false);
 
         }
         internal Panel PreviewPanel;
-        internal formTimer.Timer MainTimer;
+        internal System.Timers.Timer MainTimer;
     }
 }

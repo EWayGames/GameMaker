@@ -65,7 +65,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = Properties.Resources.AcceptIcon;
+            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);
@@ -78,7 +78,7 @@ namespace DS_Game_Maker
             // 
             // CopytoClipboardButton
             // 
-            CopytoClipboardButton.Image = Properties.Resources.CopyIcon;
+            CopytoClipboardButton.Image = DS_Game_Maker.My.Resources.Resources.CopyIcon;
             CopytoClipboardButton.ImageTransparentColor = Color.Magenta;
             CopytoClipboardButton.Name = "CopytoClipboardButton";
             CopytoClipboardButton.Size = new Size(113, 22);

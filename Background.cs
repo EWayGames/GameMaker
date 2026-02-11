@@ -1,4 +1,9 @@
-﻿using static DS_Game_Maker.DSGMlib;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using System.Xml.Linq;
+using Microsoft.VisualBasic;
 
 namespace DS_Game_Maker
 {
@@ -18,11 +23,11 @@ namespace DS_Game_Maker
 
         private void Background_Load(object sender, EventArgs e)
         {
-            MainToolStrip.Renderer = new clsToolstripRenderer();
+            MainToolStrip.Renderer = new DS_Game_Maker.clsToolstripRenderer();
             NameTextBox.Text = BackgroundName;
             Text = BackgroundName;
-            RealPath = SessionsLib.SessionPath + @"Backgrounds\" + BackgroundName + ".png";
-            TempPath = SessionsLib.SessionPath + @"Backgrounds\" + BackgroundName + "_Copy.png";
+            RealPath = DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + BackgroundName + ".png";
+            TempPath = DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + BackgroundName + "_Copy.png";
             File.Delete(TempPath);
             File.Copy(RealPath, TempPath);
             ImageChanged = false;
@@ -38,181 +43,127 @@ namespace DS_Game_Maker
         private void DAcceptButton_Click(object sender, EventArgs e)
         {
             string NewName = NameTextBox.Text;
-
-            if (NewName != BackgroundName)
+            if (!((BackgroundName ?? "") == (NewName ?? "")))
             {
-                if (DSGMlib.GUIResNameChecker(NewName))
-                {
+                if (DS_Game_Maker.DSGMlib.GUIResNameChecker(NewName))
                     return;
-                }
             }
-
             File.Delete(RealPath);
             File.Move(TempPath, RealPath);
-
-            if (NewName != BackgroundName)
+            if (!((NewName ?? "") == (BackgroundName ?? "")))
             {
-                DSGMlib.XDSChangeLine("BACKGROUND " + BackgroundName, "BACKGROUND " + NewName);
-                DSGMlib.SilentMoveFile(RealPath, SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
+                DS_Game_Maker.DSGMlib.XDSChangeLine("BACKGROUND " + BackgroundName, "BACKGROUND " + NewName);
+                DS_Game_Maker.DSGMlib.SilentMoveFile(RealPath, DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
                 // File.Move(RealPath, SessionPath + "Backgrounds\" + NewName + ".png")
-
-                foreach (Form X in Program.mainForm.MdiChildren)
+                foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
                 {
                     if (X.Name == "Room")
                     {
-                        Room DForm = (Room)X;
+                        DS_Game_Maker.Room DForm = (DS_Game_Maker.Room)X;
                         DForm.RenameBackground(BackgroundName, NewName);
                     }
                     else if (X.Name == "DObject")
                     {
-                        DObject DForm = (DObject)X;
-                        DForm.MyXDSLines = DSGMlib.UpdateActionsName(DForm.MyXDSLines, "Background", BackgroundName, NewName, false);
+                        DS_Game_Maker.DObject DForm = (DS_Game_Maker.DObject)X;
+                        DForm.MyXDSLines = DS_Game_Maker.DSGMlib.UpdateActionsName(DForm.MyXDSLines, "Background", BackgroundName, NewName, false);
                     }
                 }
-
-                if (DSGMlib.BGsToRedo.Contains(BackgroundName))
+                if (DS_Game_Maker.DSGMlib.BGsToRedo.Contains(BackgroundName))
                 {
                     byte P = 0;
-
-                    foreach (string D in DSGMlib.BGsToRedo)
+                    foreach (string D in DS_Game_Maker.DSGMlib.BGsToRedo)
                     {
-                        if (D == BackgroundName)
-                        {
+                        if ((D ?? "") == (BackgroundName ?? ""))
                             break;
-                        }
-
                         P = (byte)(P + 1);
                     }
-                    DSGMlib.BGsToRedo[(int)P] = NewName;
+                    DS_Game_Maker.DSGMlib.BGsToRedo[(int)P] = NewName;
                 }
-
-                DSGMlib.UpdateArrayActionsName("Background", BackgroundName, NewName, false);
-                DSGMlib.CurrentXDS = DSGMlib.UpdateActionsName(DSGMlib.CurrentXDS, "Background", BackgroundName, NewName, false);
-
-                foreach (string X_ in DSGMlib.GetXDSFilter("ROOM "))
+                DS_Game_Maker.DSGMlib.UpdateArrayActionsName("Background", BackgroundName, NewName, false);
+                DS_Game_Maker.DSGMlib.CurrentXDS = DS_Game_Maker.DSGMlib.UpdateActionsName(DS_Game_Maker.DSGMlib.CurrentXDS, "Background", BackgroundName, NewName, false);
+                foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("ROOM "))
                 {
-                    string X = X_;
                     string Backup = X;
                     X = X.Substring(5);
                     bool TopChange = false;
                     bool BottomChange = false;
-
-                    if ((DSGMlib.iGet(X, (byte)4, ",") ?? "") == (BackgroundName ?? ""))
-                    {
+                    if ((DS_Game_Maker.DSGMlib.iGet(X, (byte)4, ",") ?? "") == (BackgroundName ?? ""))
                         TopChange = true;
-                    }
-
-                    if ((DSGMlib.iGet(X, (byte)8, ",") ?? "") == (BackgroundName ?? ""))
-                    {
+                    if ((DS_Game_Maker.DSGMlib.iGet(X, (byte)8, ",") ?? "") == (BackgroundName ?? ""))
                         BottomChange = true;
-                    }
-
                     if (TopChange & BottomChange)
                     {
                         string NewLine = "ROOM ";
-
                         for (byte I = 0; I <= 3; I++)
-                        {
-                            NewLine += DSGMlib.iGet(X, I, ",") + ",";
-                        }
-
+                            NewLine += DS_Game_Maker.DSGMlib.iGet(X, I, ",") + ",";
                         NewLine += NewName + ",";
-
                         for (byte I = 5; I <= 7; I++)
-                        {
-                            NewLine += DSGMlib.iGet(X, I, ",") + ",";
-                        }
-
+                            NewLine += DS_Game_Maker.DSGMlib.iGet(X, I, ",") + ",";
                         NewLine += NewName;
-                        DSGMlib.XDSChangeLine(Backup, NewLine);
+                        DS_Game_Maker.DSGMlib.XDSChangeLine(Backup, NewLine);
                     }
                     else
                     {
                         if (TopChange)
                         {
                             string NewLine = "ROOM ";
-
                             for (byte I = 0; I <= 3; I++)
-                            {
-                                NewLine += DSGMlib.iGet(X, I, ",") + ",";
-                            }
-
+                                NewLine += DS_Game_Maker.DSGMlib.iGet(X, I, ",") + ",";
                             NewLine += NewName + ",";
-
                             for (byte I = 5; I <= 8; I++)
-                            {
-                                NewLine += DSGMlib.iGet(X, I, ",") + ",";
-                            }
-
+                                NewLine += DS_Game_Maker.DSGMlib.iGet(X, I, ",") + ",";
                             NewLine = NewLine.Substring(0, NewLine.Length - 1);
-                            DSGMlib.XDSChangeLine(Backup, NewLine);
+                            DS_Game_Maker.DSGMlib.XDSChangeLine(Backup, NewLine);
                         }
                         if (BottomChange)
                         {
                             string NewLine = "ROOM ";
-
                             for (byte I = 0; I <= 7; I++)
-                            {
-                                NewLine += DSGMlib.iGet(X, I, ",") + ",";
-                            }
-
+                                NewLine += DS_Game_Maker.DSGMlib.iGet(X, I, ",") + ",";
                             NewLine += NewName;
-                            DSGMlib.XDSChangeLine(Backup, NewLine);
+                            DS_Game_Maker.DSGMlib.XDSChangeLine(Backup, NewLine);
                         }
                     }
                 }
             }
-
             if (ImageChanged)
             {
-                if (DSGMlib.BGsToRedo.Contains(BackgroundName))
-                {
-                    DSGMlib.BGsToRedo.Remove(BackgroundName);
-                }
-
-                DSGMlib.BGsToRedo.Add(NewName);
-
-                foreach (Form X in Program.mainForm.MdiChildren)
+                if (DS_Game_Maker.DSGMlib.BGsToRedo.Contains(BackgroundName))
+                    DS_Game_Maker.DSGMlib.BGsToRedo.Remove(BackgroundName);
+                DS_Game_Maker.DSGMlib.BGsToRedo.Add(NewName);
+                foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
                 {
                     if (!(X.Name == "Room"))
-                    {
                         continue;
-                    }
-
-                    if ((((Room)X).TopBG ?? "") == (NewName ?? ""))
+                    if ((((DS_Game_Maker.Room)X).TopBG ?? "") == (NewName ?? ""))
                     {
-                        ((Room)X).RefreshRoom(true);
+                        ((DS_Game_Maker.Room)X).RefreshRoom(true);
                     }
-
-                    if ((((Room)X).BottomBG ?? "") == (NewName ?? ""))
+                    if ((((DS_Game_Maker.Room)X).BottomBG ?? "") == (NewName ?? ""))
                     {
-                        ((Room)X).RefreshRoom(false);
+                        ((DS_Game_Maker.Room)X).RefreshRoom(false);
                     }
                 }
                 // Remove the old files (no use!!!!!)
-                File.Delete(SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png");
-
-                if (Directory.Exists(SessionsLib.CompilePath + @"gfx\bin"))
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png");
+                if (Directory.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin"))
                 {
-                    File.Delete(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c");
-                    File.Delete(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Tiles.bin");
-                    File.Delete(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Map.bin");
-                    File.Delete(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Pal.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Tiles.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Map.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Pal.bin");
                 }
             }
             if (!((BackgroundName ?? "") == (NewName ?? "")))
             {
-                if (File.Exists(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c"))
                 {
-                    var BackupDate = File.GetLastWriteTime(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c");
+                    var BackupDate = File.GetLastWriteTime(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c");
                     // SilentMoveFile(CompilePath + "gfx\bin\" + BackgroundName + ".c", CompilePath + "gfx\bin\" + NewName + ".c")
-
-                    File.Move(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c", SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c");
-
+                    File.Move(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + ".c", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c");
                     string ToWrite = string.Empty;
                     string ToPaste = string.Empty;
-
-                    foreach (string X in DSGMlib.StringToLines(DSGMlib.PathToString(SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c")))
+                    foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(DS_Game_Maker.DSGMlib.PathToString(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c")))
                     {
                         ToPaste = X;
                         switch (X ?? "")
@@ -253,87 +204,67 @@ namespace DS_Game_Maker
                                     break;
                                 }
                         }
-                        ToWrite += ToPaste + "\r\n";
+                        ToWrite += ToPaste + Constants.vbCrLf;
                     }
-                    File.WriteAllText(SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c", ToWrite);
-                    File.SetLastWriteTime(SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c", BackupDate);
+                    File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c", ToWrite);
+                    File.SetLastWriteTime(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + ".c", BackupDate);
                 }
-
-                if (File.Exists(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Map.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Map.bin"))
                 {
-                    DSGMlib.SilentMoveFile(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Map.bin", SessionsLib.CompilePath + @"gfx\bin\" + NewName + "_Map.bin");
+                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Map.bin", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + "_Map.bin");
                 }
-
-                if (File.Exists(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Tiles.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Tiles.bin"))
                 {
-                    DSGMlib.SilentMoveFile(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Tiles.bin", SessionsLib.CompilePath + @"gfx\bin\" + NewName + "_Tiles.bin");
+                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Tiles.bin", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + "_Tiles.bin");
                 }
-
-                if (File.Exists(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Pal.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Pal.bin"))
                 {
-                    DSGMlib.SilentMoveFile(SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Pal.bin", SessionsLib.CompilePath + @"gfx\bin\" + NewName + "_Pal.bin");
+                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + BackgroundName + "_Pal.bin", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + "_Pal.bin");
                 }
-
-                if (File.Exists(SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png"))
                 {
-                    DSGMlib.SilentMoveFile(SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png", SessionsLib.CompilePath + @"gfx\" + NewName + ".png");
+                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + NewName + ".png");
                 }
-
                 string NewString = string.Empty;
-
-                foreach (string X_ in DSGMlib.StringToLines(DSGMlib.PathToString(SessionsLib.CompilePath + @"gfx\dsgm_gfx.h")))
+                foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(DS_Game_Maker.DSGMlib.PathToString(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h")))
                 {
-                    string X = X_;
                     if ((X ?? "") == ("extern const PA_BgStruct " + BackgroundName + ";" ?? ""))
                         X = "extern const PA_BgStruct " + NewName + ";";
-                    NewString += X + "\r\n";
+                    NewString += X + Constants.vbCrLf;
                 }
-
-                File.WriteAllText(SessionsLib.CompilePath + @"gfx\temp_gfx.h", NewString);
-                File.Delete(SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
-
-                DSGMlib.SilentMoveFile(SessionsLib.CompilePath + @"gfx\temp_gfx.h", SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
+                File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\temp_gfx.h", NewString);
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
+                DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\temp_gfx.h", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
             }
-
-            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes.Add(ResourceIDs.Background.ToString()).Nodes)
+            foreach (TreeNode X in DS_Game_Maker.My.MyProject.Forms.MainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Background].Nodes)
             {
-                if (X.Text == BackgroundName)
-                {
+                if ((X.Text ?? "") == (BackgroundName ?? ""))
                     X.Text = NewName;
-                }
             }
-
             Close();
         }
 
         public void MakePreview()
         {
-            PreviewPanel.BackgroundImage = DSGMlib.PathToImage(TempPath);
+            PreviewPanel.BackgroundImage = DS_Game_Maker.DSGMlib.PathToImage(TempPath);
         }
 
         private void LoadfromFileButton_Click(object sender, EventArgs e)
         {
-            string Result = DSGMlib.OpenFile(string.Empty, DSGMlib.ImageFilter);
-
+            string Result = DS_Game_Maker.DSGMlib.OpenFile(string.Empty, DS_Game_Maker.DSGMlib.ImageFilter);
             if (Result.Length == 0)
-            {
                 return;
-            }
-
-            var NewSize = DSGMlib.PathToImage(Result).Size;
-
+            var NewSize = DS_Game_Maker.DSGMlib.PathToImage(Result).Size;
             if (!(NewSize.Width % 256 == 0))
             {
-                DSGMlib.MsgError("The width of the Background must be a multiple of 256 pixels.");
+                DS_Game_Maker.DSGMlib.MsgError("The width of the Background must be a multiple of 256 pixels.");
                 return;
             }
-
             if (!(NewSize.Height % 256 == 0) & !(NewSize.Height == 192))
             {
-                DSGMlib.MsgError("The height of the Background must be either 192 pixels high or a multiple of 256 pixels.");
+                DS_Game_Maker.DSGMlib.MsgError("The height of the Background must be either 192 pixels high or a multiple of 256 pixels.");
                 return;
             }
-
             File.Delete(TempPath);
             File.Copy(Result, TempPath, true);
             ImageChanged = true;
@@ -342,11 +273,8 @@ namespace DS_Game_Maker
 
         private void EditButton_Click(object sender, EventArgs e)
         {
-            if (!DSGMlib.EditImage(TempPath, BackgroundName, false))
-            {
+            if (!DS_Game_Maker.DSGMlib.EditImage(TempPath, BackgroundName, false))
                 return;
-            }
-
             ImageChanged = true;
             MakePreview();
         }

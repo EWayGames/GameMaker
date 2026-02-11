@@ -34,9 +34,8 @@ namespace DS_Game_Maker
             Variables.Clear();
             MyVariableTypes.Clear();
             VariableValues.Clear();
-            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("GLOBAL "))
+            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("GLOBAL "))
             {
-                string X = X_;
                 X = X.Substring(7);
                 Variables.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ","));
                 MyVariableTypes.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)1, ","));
@@ -241,7 +240,7 @@ namespace DS_Game_Maker
             {
                 e.Graphics.DrawString(FinalText, TF, Brushes.Black, 20f, e.Bounds.Y + 3);
             }
-            e.Graphics.DrawImageUnscaled(Properties.Resources.VariableIcon, new Point(4, e.Bounds.Y + 4));
+            e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.VariableIcon, new Point(4, e.Bounds.Y + 4));
         }
 
         private void TypeList_MeasureItem(object sender, MeasureItemEventArgs e)

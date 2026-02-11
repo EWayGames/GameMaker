@@ -37,12 +37,11 @@ namespace DS_Game_Maker
             var TMPList = new ImageList();
             TMPList.ImageSize = new Size(16, 16);
             TMPList.ColorDepth = ColorDepth.Depth32Bit;
-            TMPList.Images.Add(Properties.Resources.ArrayIcon);
+            TMPList.Images.Add(DS_Game_Maker.My.Resources.Resources.ArrayIcon);
             ArraysList.ImageList = TMPList;
             ArraysList.Nodes.Clear();
-            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("ARRAY "))
+            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("ARRAY "))
             {
-                string X = X_;
                 X = X.Substring(6);
                 string ArrayName = DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ",");
                 ArraysList.Nodes.Add(string.Empty, ArrayName, 0);

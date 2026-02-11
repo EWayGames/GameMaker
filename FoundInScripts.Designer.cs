@@ -60,7 +60,7 @@ namespace DS_Game_Maker
             // 
             // CloseButton
             // 
-            CloseButton.Image = Properties.Resources.AcceptIcon;
+            CloseButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
             CloseButton.ImageTransparentColor = Color.Magenta;
             CloseButton.Name = "CloseButton";
             CloseButton.Size = new Size(53, 22);

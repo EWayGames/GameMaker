@@ -30,9 +30,9 @@ namespace DS_Game_Maker
             TheLine = DS_Game_Maker.DSGMlib.GetXDSLine("SPRITE " + SpriteName + ",");
             short ImageCount = 0;
             MainImageList.Images.Clear();
-            foreach (string X_ in Directory.GetFiles(DS_Game_Maker.SessionsLib.SessionPath + "Sprites"))
+            foreach (string X in Directory.GetFiles(DS_Game_Maker.SessionsLib.SessionPath + "Sprites"))
             {
-                string X = X_;
+                string Y = X;
                 X = X.Substring(X.LastIndexOf(@"\") + 1);
                 X = X.Substring(0, X.LastIndexOf("."));
                 X = X.Substring(X.IndexOf("_") + 1);
@@ -41,7 +41,7 @@ namespace DS_Game_Maker
                     if (ImageCount == 0)
                     {
                         // First image! Grab the size....
-                        MainImageList.ImageSize = DS_Game_Maker.DSGMlib.PathToImage(X).Size;
+                        MainImageList.ImageSize = DS_Game_Maker.DSGMlib.PathToImage(Y).Size;
                     }
                     ImageCount = (short)(ImageCount + 1);
                 }
@@ -486,9 +486,8 @@ namespace DS_Game_Maker
                 string ObjectFrame = DS_Game_Maker.DSGMlib.iGet(X.Substring(7), (byte)2, ",");
                 DS_Game_Maker.DSGMlib.XDSChangeLine(X, "OBJECT " + ObjectName + "," + NewName + "," + ObjectFrame);
             }
-            foreach (string X_ in Directory.GetFiles(DS_Game_Maker.SessionsLib.SessionPath + "Sprites"))
+            foreach (string X in Directory.GetFiles(DS_Game_Maker.SessionsLib.SessionPath + "Sprites"))
             {
-                string X = X_;
                 string Backup = X;
                 X = X.Substring(X.LastIndexOf(@"\") + 1);
                 X = X.Substring(0, X.LastIndexOf("."));

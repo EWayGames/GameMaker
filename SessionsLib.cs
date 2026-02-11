@@ -50,10 +50,10 @@ namespace DS_Game_Maker
             Directory.CreateDirectory(CompilePath + "data");
             Directory.CreateDirectory(CompilePath + "nitrofiles");
             Directory.CreateDirectory(CompilePath + "gfx");
-            File.WriteAllBytes(CompilePath + @"gfx\PAGfx.exe", Properties.Resources.PAGfx);
+            File.WriteAllBytes(CompilePath + @"gfx\PAGfx.exe", DS_Game_Maker.My.Resources.Resources.PAGfx);
             Directory.CreateDirectory(CompilePath + "include");
-            File.WriteAllBytes(CompilePath + @"include\ActionWorks.h", Properties.Resources.ActionWorks);
-            File.WriteAllBytes(CompilePath + @"include\ExtraDBAS.h", Properties.Resources.ExtraDBAS);
+            File.WriteAllBytes(CompilePath + @"include\ActionWorks.h", DS_Game_Maker.My.Resources.Resources.ActionWorks);
+            File.WriteAllBytes(CompilePath + @"include\ExtraDBAS.h", DS_Game_Maker.My.Resources.Resources.ExtraDBAS);
             File.WriteAllText(CompilePath + @"include\ActionWorks.h", DS_Game_Maker.DSGMlib.PathToString(CompilePath + @"include\ActionWorks.h") + Constants.vbCrLf + DS_Game_Maker.DSGMlib.PathToString(CompilePath + @"include\ExtraDBAS.h"));
             File.Delete(CompilePath + @"include\ExtraDBAS.h");
             Directory.CreateDirectory(CompilePath + "source");

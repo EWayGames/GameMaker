@@ -39,7 +39,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Scintilla.NET" Version="5.3.2.9" />
+    <Reference Include="ScintillaNet">
+      <HintPath>bin\Debug\ScintillaNet.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

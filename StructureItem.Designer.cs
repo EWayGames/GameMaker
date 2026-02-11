@@ -65,7 +65,7 @@ namespace DS_Game_Maker
             // DAcceptButton
             // 
             DAcceptButton.BackgroundImageLayout = ImageLayout.None;
-            DAcceptButton.Image = Properties.Resources.AcceptIcon;
+            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);

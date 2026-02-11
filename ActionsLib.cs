@@ -50,9 +50,8 @@ namespace DS_Game_Maker
 
         public static bool ActionIsConditional(object ActionName)
         {
-            foreach (string X_ in File.ReadAllLines(Conversions.ToString(Operators.AddObject(Operators.AddObject(DS_Game_Maker.DSGMlib.AppPath + @"Actions\", ActionName), ".action"))))
+            foreach (string X in File.ReadAllLines(Conversions.ToString(Operators.AddObject(Operators.AddObject(DS_Game_Maker.DSGMlib.AppPath + @"Actions\", ActionName), ".action"))))
             {
-                string X = X_;
                 if (X.StartsWith("CONDITION "))
                 {
                     X = X.Substring("CONDITION".Length + 1);
@@ -84,7 +83,7 @@ namespace DS_Game_Maker
             Bitmap TIcon = (Bitmap)DS_Game_Maker.DSGMlib.PathToImage(ActionGetIconPath(ActionName, true));
             if (TIcon.Width == 32)
             {
-                TBMPGFX.DrawImageUnscaled(Properties.Resources.ActionBacker, 0, 0);
+                TBMPGFX.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.ActionBacker, 0, 0);
                 TBMPGFX.DrawImageUnscaled(TIcon, new Point(0, 0));
             }
             else

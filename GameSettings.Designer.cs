@@ -209,7 +209,7 @@ namespace DS_Game_Maker
             // 
             // BrowseButton
             // 
-            BrowseButton.Image = Properties.Resources.FolderIcon;
+            BrowseButton.Image = DS_Game_Maker.My.Resources.Resources.FolderIcon;
             BrowseButton.Location = new Point(232, 183);
             BrowseButton.Name = "BrowseButton";
             BrowseButton.Size = new Size(24, 24);
@@ -409,7 +409,7 @@ namespace DS_Game_Maker
             // DeleteNitroFSFileButton
             // 
             DeleteNitroFSFileButton.AccessibleName = "Delete NitroFS File";
-            DeleteNitroFSFileButton.Image = Properties.Resources.DeleteIcon;
+            DeleteNitroFSFileButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
             DeleteNitroFSFileButton.Location = new Point(62, 2);
             DeleteNitroFSFileButton.Name = "DeleteNitroFSFileButton";
             DeleteNitroFSFileButton.Size = new Size(30, 26);
@@ -419,7 +419,7 @@ namespace DS_Game_Maker
             // EditNitroFSFileButton
             // 
             EditNitroFSFileButton.AccessibleName = "Edit NitroFS File";
-            EditNitroFSFileButton.Image = Properties.Resources.PencilIcon;
+            EditNitroFSFileButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
             EditNitroFSFileButton.Location = new Point(32, 2);
             EditNitroFSFileButton.Name = "EditNitroFSFileButton";
             EditNitroFSFileButton.Size = new Size(30, 26);
@@ -429,7 +429,7 @@ namespace DS_Game_Maker
             // AddNitroFSFileButton
             // 
             AddNitroFSFileButton.AccessibleName = "Add NitroFS File";
-            AddNitroFSFileButton.Image = Properties.Resources.PlusIcon;
+            AddNitroFSFileButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
             AddNitroFSFileButton.Location = new Point(2, 2);
             AddNitroFSFileButton.Name = "AddNitroFSFileButton";
             AddNitroFSFileButton.Size = new Size(30, 26);
@@ -450,7 +450,7 @@ namespace DS_Game_Maker
             // DeleteIncludeFileButton
             // 
             DeleteIncludeFileButton.AccessibleName = "Delete Include File";
-            DeleteIncludeFileButton.Image = Properties.Resources.DeleteIcon;
+            DeleteIncludeFileButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
             DeleteIncludeFileButton.Location = new Point(62, 2);
             DeleteIncludeFileButton.Name = "DeleteIncludeFileButton";
             DeleteIncludeFileButton.Size = new Size(30, 26);
@@ -460,7 +460,7 @@ namespace DS_Game_Maker
             // EditIncludeFileButton
             // 
             EditIncludeFileButton.AccessibleName = "Edit Include File";
-            EditIncludeFileButton.Image = Properties.Resources.PencilIcon;
+            EditIncludeFileButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
             EditIncludeFileButton.Location = new Point(32, 2);
             EditIncludeFileButton.Name = "EditIncludeFileButton";
             EditIncludeFileButton.Size = new Size(30, 26);
@@ -470,7 +470,7 @@ namespace DS_Game_Maker
             // AddIncludeFileButton
             // 
             AddIncludeFileButton.AccessibleName = "Add Include File";
-            AddIncludeFileButton.Image = Properties.Resources.PlusIcon;
+            AddIncludeFileButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
             AddIncludeFileButton.Location = new Point(2, 2);
             AddIncludeFileButton.Name = "AddIncludeFileButton";
             AddIncludeFileButton.Size = new Size(30, 26);

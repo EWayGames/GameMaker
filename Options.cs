@@ -88,8 +88,8 @@ namespace DS_Game_Maker
                 {
                     if (SC.Name == "MainTextBox")
                     {
-                        ((ScintillaNET.Scintilla)SC).Caret.HighlightCurrentLine = HighlightCurrentLineCheckBox.Checked;
-                        ((ScintillaNET.Scintilla)SC).MatchBraces = MatchBracesCheckBox.Checked;
+                        ((ScintillaNet.Scintilla)SC).Caret.HighlightCurrentLine = HighlightCurrentLineCheckBox.Checked;
+                        ((ScintillaNet.Scintilla)SC).MatchBraces = MatchBracesCheckBox.Checked;
                     }
                 }
             }

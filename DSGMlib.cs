@@ -2063,7 +2063,7 @@ namespace DS_Game_Maker
         private static byte TempSpaces = 0;
         private static byte GAmount = 2;
 
-        public static void IntelliSense(ref ScintillaNET.Scintilla TheControl)
+        public static void IntelliSense(ref ScintillaNet.Scintilla TheControl)
         {
             string[] Starters = new string[] { "if", "while", "for", "with" };
             string[] Enders = new string[] { "end if", "end while", "next", "end with" };

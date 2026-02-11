@@ -70,7 +70,7 @@ namespace DS_Game_Maker
             // 
             // StepEventButton
             // 
-            StepEventButton.Image = Properties.Resources.ClockIcon;
+            StepEventButton.Image = DS_Game_Maker.My.Resources.Resources.ClockIcon;
             StepEventButton.ImageAlign = ContentAlignment.MiddleLeft;
             StepEventButton.Location = new Point(12, 114);
             StepEventButton.Name = "StepEventButton";
@@ -82,7 +82,7 @@ namespace DS_Game_Maker
             // 
             // CollisionEventButton
             // 
-            CollisionEventButton.Image = Properties.Resources.Collision;
+            CollisionEventButton.Image = DS_Game_Maker.My.Resources.Resources.Collision;
             CollisionEventButton.ImageAlign = ContentAlignment.MiddleLeft;
             CollisionEventButton.Location = new Point(143, 80);
             CollisionEventButton.Name = "CollisionEventButton";
@@ -94,7 +94,7 @@ namespace DS_Game_Maker
             // 
             // TouchEventButton
             // 
-            TouchEventButton.Image = Properties.Resources.StylusIcon;
+            TouchEventButton.Image = DS_Game_Maker.My.Resources.Resources.StylusIcon;
             TouchEventButton.ImageAlign = ContentAlignment.MiddleLeft;
             TouchEventButton.Location = new Point(12, 80);
             TouchEventButton.Name = "TouchEventButton";
@@ -106,7 +106,7 @@ namespace DS_Game_Maker
             // 
             // ButtonReleaseEventButton
             // 
-            ButtonReleaseEventButton.Image = Properties.Resources.KeyDownIcon1;
+            ButtonReleaseEventButton.Image = DS_Game_Maker.My.Resources.Resources.KeyDownIcon1;
             ButtonReleaseEventButton.ImageAlign = ContentAlignment.MiddleLeft;
             ButtonReleaseEventButton.Location = new Point(143, 46);
             ButtonReleaseEventButton.Name = "ButtonReleaseEventButton";
@@ -118,7 +118,7 @@ namespace DS_Game_Maker
             // 
             // ButtonHeldEventButton
             // 
-            ButtonHeldEventButton.Image = Properties.Resources.KeyDownIcon;
+            ButtonHeldEventButton.Image = DS_Game_Maker.My.Resources.Resources.KeyDownIcon;
             ButtonHeldEventButton.ImageAlign = ContentAlignment.MiddleLeft;
             ButtonHeldEventButton.Location = new Point(12, 46);
             ButtonHeldEventButton.Name = "ButtonHeldEventButton";
@@ -130,7 +130,7 @@ namespace DS_Game_Maker
             // 
             // ButtonPressEventButton
             // 
-            ButtonPressEventButton.Image = Properties.Resources.KeyIcon;
+            ButtonPressEventButton.Image = DS_Game_Maker.My.Resources.Resources.KeyIcon;
             ButtonPressEventButton.ImageAlign = ContentAlignment.MiddleLeft;
             ButtonPressEventButton.Location = new Point(143, 12);
             ButtonPressEventButton.Name = "ButtonPressEventButton";
@@ -142,7 +142,7 @@ namespace DS_Game_Maker
             // 
             // CreateEventButton
             // 
-            CreateEventButton.Image = Properties.Resources.CreateEventIcon;
+            CreateEventButton.Image = DS_Game_Maker.My.Resources.Resources.CreateEventIcon;
             CreateEventButton.ImageAlign = ContentAlignment.MiddleLeft;
             CreateEventButton.Location = new Point(12, 12);
             CreateEventButton.Name = "CreateEventButton";

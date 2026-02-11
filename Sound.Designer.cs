@@ -66,7 +66,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = Properties.Resources.AcceptIcon;
+            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);
@@ -79,7 +79,7 @@ namespace DS_Game_Maker
             // 
             // EditButton
             // 
-            EditButton.Image = Properties.Resources.PencilIcon;
+            EditButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
             EditButton.ImageTransparentColor = Color.Magenta;
             EditButton.Name = "EditButton";
             EditButton.Size = new Size(45, 22);
@@ -87,7 +87,7 @@ namespace DS_Game_Maker
             // 
             // LoadButton
             // 
-            LoadButton.Image = Properties.Resources.OpenIcon;
+            LoadButton.Image = DS_Game_Maker.My.Resources.Resources.OpenIcon;
             LoadButton.ImageTransparentColor = Color.Magenta;
             LoadButton.Name = "LoadButton";
             LoadButton.Size = new Size(94, 22);
@@ -95,7 +95,7 @@ namespace DS_Game_Maker
             // 
             // IconPictureBox
             // 
-            IconPictureBox.Image = Properties.Resources.BigMusicIcon1;
+            IconPictureBox.Image = DS_Game_Maker.My.Resources.Resources.BigMusicIcon1;
             IconPictureBox.Location = new Point(4, 27);
             IconPictureBox.Name = "IconPictureBox";
             IconPictureBox.Size = new Size(84, 84);
@@ -120,7 +120,7 @@ namespace DS_Game_Maker
             // 
             // PlayButton
             // 
-            PlayButton.BackgroundImage = Properties.Resources.PlayButtonIcon;
+            PlayButton.BackgroundImage = DS_Game_Maker.My.Resources.Resources.PlayButtonIcon;
             PlayButton.Location = new Point(161, 79);
             PlayButton.Name = "PlayButton";
             PlayButton.Size = new Size(32, 32);
@@ -128,7 +128,7 @@ namespace DS_Game_Maker
             // 
             // StopButton
             // 
-            StopButton.BackgroundImage = Properties.Resources.StopButtonIcon;
+            StopButton.BackgroundImage = DS_Game_Maker.My.Resources.Resources.StopButtonIcon;
             StopButton.Location = new Point(197, 79);
             StopButton.Name = "StopButton";
             StopButton.Size = new Size(32, 32);

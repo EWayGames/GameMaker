@@ -1,5 +1,4 @@
-﻿using ScintillaNET;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
@@ -54,17 +53,12 @@ namespace DS_Game_Maker
             StatsLabel = new ToolStripStatusLabel();
             SpacesLabel = new ToolStripStatusLabel();
             FunctionLabel = new ToolStripStatusLabel();
-
-            MainTextBox = new ScintillaNET.Scintilla();
+            MainTextBox = new ScintillaNet.Scintilla();
             MainTextBox.KeyDown += new KeyEventHandler(MainTextBox_LineStatCaller);
             MainTextBox.MouseClick += new MouseEventHandler(MainTextBox_LineStatCaller);
-            // old version
-            // MainTextBox.TextChanged += new EventHandler<EventArgs>(MainTextBox_LineStatCaller);
-            //"Brute Force" Lambda
-            MainTextBox.TextChanged += (s, e) => MainTextBox_LineStatCaller(s, e);
-
+            MainTextBox.TextChanged += new EventHandler<EventArgs>(MainTextBox_LineStatCaller);
             MainTextBox.KeyUp += new KeyEventHandler(MainTextBox_KeyUp);
-            MainTextBox.CharAdded += new EventHandler<ScintillaNET.CharAddedEventArgs>(MainTextBox_CharAdded);
+            MainTextBox.CharAdded += new EventHandler<ScintillaNet.CharAddedEventArgs>(MainTextBox_CharAdded);
             SidePanel = new Panel();
             ParseDBASChecker = new CheckBox();
             ArgumentsList = new ListBox();
@@ -100,7 +94,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = Properties.Resources.AcceptIcon;
+            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);
@@ -113,7 +107,7 @@ namespace DS_Game_Maker
             // 
             // UndoButton
             // 
-            UndoButton.Image = Properties.Resources.UndoIcon;
+            UndoButton.Image = DS_Game_Maker.My.Resources.Resources.UndoIcon;
             UndoButton.ImageTransparentColor = Color.Magenta;
             UndoButton.Name = "UndoButton";
             UndoButton.Size = new Size(55, 22);
@@ -121,7 +115,7 @@ namespace DS_Game_Maker
             // 
             // RedoButton
             // 
-            RedoButton.Image = Properties.Resources.RedoIcon;
+            RedoButton.Image = DS_Game_Maker.My.Resources.Resources.RedoIcon;
             RedoButton.ImageTransparentColor = Color.Magenta;
             RedoButton.Name = "RedoButton";
             RedoButton.Size = new Size(55, 22);
@@ -134,7 +128,7 @@ namespace DS_Game_Maker
             // 
             // LoadInButton
             // 
-            LoadInButton.Image = Properties.Resources.OpenIcon;
+            LoadInButton.Image = DS_Game_Maker.My.Resources.Resources.OpenIcon;
             LoadInButton.ImageTransparentColor = Color.Magenta;
             LoadInButton.Name = "LoadInButton";
             LoadInButton.Size = new Size(75, 22);
@@ -142,7 +136,7 @@ namespace DS_Game_Maker
             // 
             // SaveOutButton
             // 
-            SaveOutButton.Image = Properties.Resources.SaveIcon;
+            SaveOutButton.Image = DS_Game_Maker.My.Resources.Resources.SaveIcon;
             SaveOutButton.ImageTransparentColor = Color.Magenta;
             SaveOutButton.Name = "SaveOutButton";
             SaveOutButton.Size = new Size(84, 22);
@@ -183,22 +177,22 @@ namespace DS_Game_Maker
             // 
             // MainTextBox
             // 
-            MainTextBox.LexerName = "vbscript"; // .ConfigurationManager.Language = "vbscript";
+            MainTextBox.ConfigurationManager.Language = "vbscript";
             MainTextBox.Dock = DockStyle.Fill;
-            //MainTextBox.IsBraceMatching = true;
+            MainTextBox.IsBraceMatching = true;
             MainTextBox.Location = new Point(196, 25);
-            //MainTextBox.Margins.Margin0.Width = 20;
+            MainTextBox.Margins.Margin0.Width = 20;
             MainTextBox.Name = "MainTextBox";
-            //MainTextBox.Scrolling.HorizontalWidth = 1000;
+            MainTextBox.Scrolling.HorizontalWidth = 1000;
             MainTextBox.Size = new Size(348, 452);
-           // MainTextBox.Styles.BraceBad.FontName = "Verdana";
-           // MainTextBox.Styles.BraceLight.FontName = "Verdana";
-           // MainTextBox.Styles.ControlChar.FontName = "Verdana";
-           // MainTextBox.Styles.Default.FontName = "Verdana";
-           // MainTextBox.Styles.IndentGuide.FontName = "Verdana";
-           // MainTextBox.Styles.LastPredefined.FontName = "Verdana";
-           // MainTextBox.Styles.LineNumber.FontName = "Verdana";
-           // MainTextBox.Styles.Max.FontName = "Verdana";
+            MainTextBox.Styles.BraceBad.FontName = "Verdana";
+            MainTextBox.Styles.BraceLight.FontName = "Verdana";
+            MainTextBox.Styles.ControlChar.FontName = "Verdana";
+            MainTextBox.Styles.Default.FontName = "Verdana";
+            MainTextBox.Styles.IndentGuide.FontName = "Verdana";
+            MainTextBox.Styles.LastPredefined.FontName = "Verdana";
+            MainTextBox.Styles.LineNumber.FontName = "Verdana";
+            MainTextBox.Styles.Max.FontName = "Verdana";
             MainTextBox.TabIndex = 4;
             // 
             // SidePanel
@@ -242,7 +236,7 @@ namespace DS_Game_Maker
             // 
             // EditArgumentButton
             // 
-            EditArgumentButton.Image = Properties.Resources.PencilIcon;
+            EditArgumentButton.Image = DS_Game_Maker.My.Resources.Resources.PencilIcon;
             EditArgumentButton.Location = new Point(44, 227);
             EditArgumentButton.Name = "EditArgumentButton";
             EditArgumentButton.Size = new Size(30, 26);
@@ -251,7 +245,7 @@ namespace DS_Game_Maker
             // 
             // AddArgumentButton
             // 
-            AddArgumentButton.Image = Properties.Resources.PlusIcon;
+            AddArgumentButton.Image = DS_Game_Maker.My.Resources.Resources.PlusIcon;
             AddArgumentButton.Location = new Point(13, 227);
             AddArgumentButton.Name = "AddArgumentButton";
             AddArgumentButton.Size = new Size(30, 26);
@@ -260,7 +254,7 @@ namespace DS_Game_Maker
             // 
             // DeleteArgumentButton
             // 
-            DeleteArgumentButton.Image = Properties.Resources.DeleteIcon;
+            DeleteArgumentButton.Image = DS_Game_Maker.My.Resources.Resources.DeleteIcon;
             DeleteArgumentButton.Location = new Point(75, 227);
             DeleteArgumentButton.Name = "DeleteArgumentButton";
             DeleteArgumentButton.Size = new Size(30, 26);
@@ -269,7 +263,7 @@ namespace DS_Game_Maker
             // 
             // InsertIntoCodeButton
             // 
-            InsertIntoCodeButton.Image = Properties.Resources.ArrowFadeRightIcon;
+            InsertIntoCodeButton.Image = DS_Game_Maker.My.Resources.Resources.ArrowFadeRightIcon;
             InsertIntoCodeButton.ImageAlign = ContentAlignment.MiddleRight;
             InsertIntoCodeButton.Location = new Point(108, 227);
             InsertIntoCodeButton.Name = "InsertIntoCodeButton";
@@ -336,7 +330,7 @@ namespace DS_Game_Maker
         internal ToolStripSeparator ToolSep1;
         internal ToolStripButton LoadInButton;
         internal ToolStripButton SaveOutButton;
-        internal ScintillaNET.Scintilla MainTextBox;
+        internal ScintillaNet.Scintilla MainTextBox;
         internal Panel SidePanel;
         internal TextBox NameTextBox;
         internal Label NameLabel;

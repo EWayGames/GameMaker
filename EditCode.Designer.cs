@@ -36,11 +36,11 @@ namespace DS_Game_Maker
         private void InitializeComponent()
         {
             var resources = new System.ComponentModel.ComponentResourceManager(typeof(EditCode));
-            MainTextBox = new ScintillaNET.Scintilla();
+            MainTextBox = new ScintillaNet.Scintilla();
             MainTextBox.KeyDown += new KeyEventHandler(MainTextBox_KeyDown);
             MainTextBox.MouseClick += new MouseEventHandler(MainTextBox_KeyDown);
             MainTextBox.TextChanged += new EventHandler<EventArgs>(MainTextBox_KeyDown);
-            MainTextBox.CharAdded += new EventHandler<ScintillaNET.CharAddedEventArgs>(MainTextBox_CharAdded);
+            MainTextBox.CharAdded += new EventHandler<ScintillaNet.CharAddedEventArgs>(MainTextBox_CharAdded);
             MainToolStrip = new ToolStrip();
             DAcceptButton = new ToolStripButton();
             DAcceptButton.Click += new EventHandler(DAcceptButton_Click);
@@ -96,7 +96,7 @@ namespace DS_Game_Maker
             // 
             // DAcceptButton
             // 
-            DAcceptButton.Image = Properties.Resources.AcceptIcon;
+            DAcceptButton.Image = DS_Game_Maker.My.Resources.Resources.AcceptIcon;
             DAcceptButton.ImageTransparentColor = Color.Magenta;
             DAcceptButton.Name = "DAcceptButton";
             DAcceptButton.Size = new Size(60, 22);
@@ -109,7 +109,7 @@ namespace DS_Game_Maker
             // 
             // UndoButton
             // 
-            UndoButton.Image = Properties.Resources.UndoIcon;
+            UndoButton.Image = DS_Game_Maker.My.Resources.Resources.UndoIcon;
             UndoButton.ImageTransparentColor = Color.Magenta;
             UndoButton.Name = "UndoButton";
             UndoButton.Size = new Size(55, 22);
@@ -118,7 +118,7 @@ namespace DS_Game_Maker
             // 
             // RedoButton
             // 
-            RedoButton.Image = Properties.Resources.RedoIcon;
+            RedoButton.Image = DS_Game_Maker.My.Resources.Resources.RedoIcon;
             RedoButton.ImageTransparentColor = Color.Magenta;
             RedoButton.Name = "RedoButton";
             RedoButton.Size = new Size(55, 22);
@@ -133,7 +133,7 @@ namespace DS_Game_Maker
             // 
             // LoadInButton
             // 
-            LoadInButton.Image = Properties.Resources.OpenIcon;
+            LoadInButton.Image = DS_Game_Maker.My.Resources.Resources.OpenIcon;
             LoadInButton.ImageTransparentColor = Color.Magenta;
             LoadInButton.Name = "LoadInButton";
             LoadInButton.Size = new Size(75, 22);
@@ -141,7 +141,7 @@ namespace DS_Game_Maker
             // 
             // SaveOutButton
             // 
-            SaveOutButton.Image = Properties.Resources.SaveIcon;
+            SaveOutButton.Image = DS_Game_Maker.My.Resources.Resources.SaveIcon;
             SaveOutButton.ImageTransparentColor = Color.Magenta;
             SaveOutButton.Name = "SaveOutButton";
             SaveOutButton.Size = new Size(84, 22);
@@ -183,7 +183,7 @@ namespace DS_Game_Maker
             PerformLayout();
 
         }
-        internal ScintillaNET.Scintilla MainTextBox;
+        internal ScintillaNet.Scintilla MainTextBox;
         internal ToolStrip MainToolStrip;
         internal StatusStrip MainStatusStrip;
         internal ToolStripButton DAcceptButton;

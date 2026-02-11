@@ -98,8 +98,8 @@ namespace DS_Game_Maker
                 IsSelected = true;
             e.Graphics.FillRectangle(Brushes.White, new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height));
             if (IsSelected)
-                e.Graphics.DrawImage(Properties.Resources.BarBG, new Rectangle(0, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height));
-            e.Graphics.DrawImageUnscaled(Properties.Resources.ScriptIcon, new Point(e.Bounds.X + 4, e.Bounds.Y + 3));
+                e.Graphics.DrawImage(DS_Game_Maker.My.Resources.Resources.BarBG, new Rectangle(0, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height));
+            e.Graphics.DrawImageUnscaled(DS_Game_Maker.My.Resources.Resources.ScriptIcon, new Point(e.Bounds.X + 4, e.Bounds.Y + 3));
             e.Graphics.DrawString(ScriptNames[i] + ": Line " + ScriptLines[i].ToString() + ", Pos: " + ScriptPositions[i].ToString(), new Font("Tahoma", 8f), Brushes.Black, e.Bounds.X + 21, e.Bounds.Y + 4);
         }
 
@@ -112,7 +112,7 @@ namespace DS_Game_Maker
         {
             string ScriptName = ScriptNames[MainListBox.SelectedIndex];
             bool HasDone = false;
-            foreach (Form X in Program.mainForm.MdiChildren)
+            foreach (Form X in DS_Game_Maker.My.MyProject.Forms.MainForm.MdiChildren)
             {
                 if (X.Name == "Script" & (X.Text ?? "") == (ScriptName ?? ""))
                 {
