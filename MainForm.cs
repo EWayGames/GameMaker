@@ -98,14 +98,14 @@ namespace DS_Game_Maker
                 withBlock1.Add("Unsigned Byte");
                 withBlock1.Add("String");
             }
-            DS_Game_Maker.DSGMlib.AppPath = Application.StartupPath;
-            if (DS_Game_Maker.DSGMlib.AppPath.EndsWith(@"\bin\Debug"))
-                DS_Game_Maker.DSGMlib.AppPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\" + Application.ProductName;
-            DS_Game_Maker.DSGMlib.AppPath += @"\";
+           
+            if (Constants.AppDirectory.EndsWith(@"\bin\Debug"))
+                Constants.AppDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\" + Application.ProductName;
+            //DS_Game_Maker.DSGMlib.AppPath += @"\";
             // Set Up Action icons
-            DS_Game_Maker.DSGMlib.ActionBG = (Bitmap)(File.Exists(DS_Game_Maker.DSGMlib.AppPath + "ActionBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(DS_Game_Maker.DSGMlib.AppPath + "ActionBG.png") : Properties.Resources.ActionBG);
-            DS_Game_Maker.DSGMlib.ActionConditionalBG = (Bitmap)(File.Exists(DS_Game_Maker.DSGMlib.AppPath + "ActionConditionalBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(DS_Game_Maker.DSGMlib.AppPath + "ActionConditionalBG.png") : Properties.Resources.ActionConditionalBG);
-            DS_Game_Maker.DSGMlib.CDrive = DS_Game_Maker.DSGMlib.AppPath.Substring(0, 3);
+            DS_Game_Maker.DSGMlib.ActionBG = (Bitmap)(File.Exists(Constants.AppDirectory + "ActionBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(Constants.AppDirectory + "ActionBG.png") : Properties.Resources.ActionBG);
+            DS_Game_Maker.DSGMlib.ActionConditionalBG = (Bitmap)(File.Exists(Constants.AppDirectory + "ActionConditionalBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(Constants.AppDirectory + "ActionConditionalBG.png") : Properties.Resources.ActionConditionalBG);
+
             foreach (Control ctl in Controls)
             {
                 if (ctl is MdiClient)
@@ -136,7 +136,7 @@ namespace DS_Game_Maker
             {
                 File.Copy(DS_Game_Maker.DSGMlib.AppPath + "ScintillaNet.dll", WindowsPath + @"\ScintillaNet.dll");
             }
-            */
+           
 
             try
             {
@@ -149,13 +149,14 @@ namespace DS_Game_Maker
             catch (Exception ex)
             {
                 DS_Game_Maker.DSGMlib.MsgWarn("You should run " + Application.ProductName + " as an Administrator." + Constants.vbCrLf + Constants.vbCrLf + "(" + ex.Message + ")");
-            }
+            } */
+
             var VitalFiles = new Collection();
-            VitalFiles.Add(DS_Game_Maker.DSGMlib.AppPath + @"Resources\NoSprite.png");
-            VitalFiles.Add(DS_Game_Maker.DSGMlib.AppPath + @"ActionIcons\Empty.png");
-            VitalFiles.Add(DS_Game_Maker.DSGMlib.AppPath + @"DefaultResources\Sprite.png");
-            VitalFiles.Add(DS_Game_Maker.DSGMlib.AppPath + @"DefaultResources\Background.png");
-            VitalFiles.Add(DS_Game_Maker.DSGMlib.AppPath + @"DefaultResources\Sound.wav");
+            VitalFiles.Add(Constants.AppDirectory + @"Resources\NoSprite.png");
+            VitalFiles.Add(Constants.AppDirectory + @"ActionIcons\Empty.png");
+            VitalFiles.Add(Constants.AppDirectory + @"DefaultResources\Sprite.png");
+            VitalFiles.Add(Constants.AppDirectory + @"DefaultResources\Background.png");
+            VitalFiles.Add(Constants.AppDirectory + @"DefaultResources\Sound.wav");
             byte VitalBuggered = 0;
             foreach (string X in VitalFiles)
             {
@@ -201,20 +202,20 @@ namespace DS_Game_Maker
 
 
             // Settings 
-            if (File.Exists(DSGMlib.AppPath + "data.dat") == false)
+            if (File.Exists(Constants.AppDirectory + "data.dat") == false)
             {
-                File.Copy(DSGMlib.AppPath + "restore.dat", DSGMlib.AppPath + "data.dat");
+                File.Copy(Constants.AppDirectory + "restore.dat", Constants.AppDirectory + "data.dat");
             }
 
 
-            DS_Game_Maker.SettingsLib.SettingsPath = DS_Game_Maker.DSGMlib.AppPath + "data.dat";
+            DS_Game_Maker.SettingsLib.SettingsPath = Constants.AppDirectory + "data.dat";
             PatchSetting("USE_EXTERNAL_SCRIPT_EDITOR", "0");
             PatchSetting("RIGHT_CLICK", "1");
             PatchSetting("HIDE_OLD_ACTIONS", "1");
             PatchSetting("SHRINK_ACTIONS_LIST", "0");
             DS_Game_Maker.SettingsLib.LoadSettings();
             // Fonts Setup
-            foreach (string FontFile in Directory.GetFiles(DS_Game_Maker.DSGMlib.AppPath + "Fonts"))
+            foreach (string FontFile in Directory.GetFiles(Constants.AppDirectory + "Fonts"))
             {
                 string FontName = FontFile.Substring(FontFile.LastIndexOf(@"\") + 1);
                 FontName = FontName.Substring(0, FontName.IndexOf("."));
@@ -260,7 +261,7 @@ namespace DS_Game_Maker
 
         private void NewProject_Click(object sender, EventArgs e)
         {
-            Interaction.Shell(DS_Game_Maker.DSGMlib.AppPath + ProductName + ".exe /skipauto");
+            Interaction.Shell(Constants.AppDirectory + ProductName + ".exe /skipauto");
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -295,7 +296,7 @@ namespace DS_Game_Maker
                         Directory.Delete(DS_Game_Maker.SessionsLib.SessionPath, true);
                         Directory.Delete(DS_Game_Maker.SessionsLib.CompilePath, true);
                         if (DS_Game_Maker.DSGMlib.IsNewProject)
-                            File.Delete(DS_Game_Maker.DSGMlib.AppPath + @"NewProjects\" + DS_Game_Maker.SessionsLib.Session + ".dsgm");
+                            File.Delete(Constants.AppDirectory + @"NewProjects\" + DS_Game_Maker.SessionsLib.Session + ".dsgm");
                     }
                 }
                 catch
@@ -335,7 +336,7 @@ namespace DS_Game_Maker
         private void AddSpriteButton_Click(object sender, EventArgs e)
         {
             string NewName = DS_Game_Maker.DSGMlib.MakeResourceName("Sprite", "SPRITE");
-            File.Copy(DS_Game_Maker.DSGMlib.AppPath + @"DefaultResources\Sprite.png", DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\0_" + NewName + ".png");
+            File.Copy(Constants.AppDirectory + @"DefaultResources\Sprite.png", DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\0_" + NewName + ".png");
             DS_Game_Maker.DSGMlib.XDSAddLine("SPRITE " + NewName + ",32,32");
             byte argResourceID = (byte)DS_Game_Maker.DSGMlib.ResourceIDs.Sprite;
             DS_Game_Maker.DSGMlib.AddResourceNode(ref argResourceID, NewName, "SpriteNode", true);
@@ -366,7 +367,7 @@ namespace DS_Game_Maker
         private void AddBackgroundButton_Click(object sender, EventArgs e)
         {
             string NewName = DS_Game_Maker.DSGMlib.MakeResourceName("Background", "BACKGROUND");
-            File.Copy(DS_Game_Maker.DSGMlib.AppPath + @"DefaultResources\Background.png", DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
+            File.Copy(Constants.AppDirectory + @"DefaultResources\Background.png", DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
             DS_Game_Maker.DSGMlib.XDSAddLine("BACKGROUND " + NewName);
             byte argResourceID = (byte)DS_Game_Maker.DSGMlib.ResourceIDs.Background;
             DS_Game_Maker.DSGMlib.AddResourceNode(ref argResourceID, NewName, "BackgroundNode", true);
@@ -401,7 +402,7 @@ namespace DS_Game_Maker
             string NewName = DS_Game_Maker.DSGMlib.MakeResourceName("Sound", "SOUND");
             Program.Forms.soundType_Form.ShowDialog();
             bool SB = Program.Forms.soundType_Form.IsSoundEffect;
-            File.Copy(DS_Game_Maker.DSGMlib.AppPath + @"DefaultResources\Sound." + (SB ? "wav" : "mp3"), DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + NewName + "." + (SB ? "wav" : "mp3"));
+            File.Copy(Constants.AppDirectory + @"DefaultResources\Sound." + (SB ? "wav" : "mp3"), DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + NewName + "." + (SB ? "wav" : "mp3"));
             DS_Game_Maker.DSGMlib.XDSAddLine("SOUND " + NewName + "," + (SB ? "0" : "1"));
             byte argResourceID = (byte)DS_Game_Maker.DSGMlib.ResourceIDs.Sound;
             DS_Game_Maker.DSGMlib.AddResourceNode(ref argResourceID, NewName, "SoundNode", true);
@@ -642,20 +643,20 @@ namespace DS_Game_Maker
 
         public void ActuallyCleanUp()
         {
-            foreach (string X in Directory.GetDirectories(DS_Game_Maker.DSGMlib.CDrive))
+            foreach (string X in Directory.GetDirectories(Constants.AppDirectory))
             {
                 if ((X ?? "") == (DS_Game_Maker.SessionsLib.CompilePath.Substring(0, DS_Game_Maker.SessionsLib.CompilePath.Length - 1) ?? ""))
                     continue;
                 try
                 {
-                    if (X.StartsWith(DS_Game_Maker.DSGMlib.CDrive + "DSGMTemp"))
+                    if (X.StartsWith(Constants.AppDirectory + "DSGMTemp"))
                         Directory.Delete(X, true);
                 }
                 catch
                 {
                 }
             }
-            foreach (string X in Directory.GetDirectories(DS_Game_Maker.DSGMlib.AppPath + "ProjectTemp"))
+            foreach (string X in Directory.GetDirectories(Constants.AppDirectory + "ProjectTemp"))
             {
                 if ((X ?? "") == (DS_Game_Maker.SessionsLib.SessionPath.Substring(0, DS_Game_Maker.SessionsLib.SessionPath.Length - 1) ?? ""))
                     continue;
@@ -757,10 +758,13 @@ namespace DS_Game_Maker
             {
                 Program.Forms.dUpdate_Form.ShowDialog();
             }
-            if (!Directory.Exists(DS_Game_Maker.DSGMlib.CDrive + "devkitPro"))
+            if (!Directory.Exists(Constants.AppDirectory + "devkitPro"))
             {
-                DS_Game_Maker.DSGMlib.MsgInfo("Thank you for installing " + Application.ProductName + "." + Constants.vbCrLf + Constants.vbCrLf + "The toolchain will now be installed to compile your games.");
-                DS_Game_Maker.Toolchain.RundevkitProUpdater();
+                //DS_Game_Maker.DSGMlib.MsgInfo("Thank you for installing " + Application.ProductName + "." + Constants.vbCrLf + Constants.vbCrLf + "The toolchain will now be installed to compile your games.");
+                //DS_Game_Maker.Toolchain.RundevkitProUpdater();
+
+                DSGMlib.MsgInfo("Thank you for installing " + Application.ProductName + "." + Constants.vbCrLf + Constants.vbCrLf + "The ds toolchain should of came pre configured but is missing, the application will now exit.");
+                Application.Exit();
             }
             bool SkipAuto = false;
             var Args = new List<string>();
@@ -798,13 +802,13 @@ namespace DS_Game_Maker
                 for (byte Looper = 0; Looper <= 10; Looper++)
                 {
                     SessionName = Conversions.ToString(Operators.AddObject("NewProject", DS_Game_Maker.SessionsLib.MakeSessionName()));
-                    if (!Directory.Exists(DS_Game_Maker.DSGMlib.AppPath + @"ProjectTemp\" + SessionName))
+                    if (!Directory.Exists(Constants.AppDirectory + @"ProjectTemp\" + SessionName))
                         break;
                 }
                 DS_Game_Maker.SessionsLib.FormSession(SessionName);
                 DS_Game_Maker.SessionsLib.FormSessionFS();
                 DS_Game_Maker.DSGMlib.IsNewProject = true;
-                DS_Game_Maker.DSGMlib.ProjectPath = DS_Game_Maker.DSGMlib.AppPath + @"NewProjects\" + SessionName + ".dsgm";
+                DS_Game_Maker.DSGMlib.ProjectPath = Constants.AppDirectory + @"NewProjects\" + SessionName + ".dsgm";
                 Text = DS_Game_Maker.DSGMlib.TitleDataWorks();
                 GenerateShite("<New Project>");
                 DS_Game_Maker.DSGMlib.RedoAllGraphics = true;
@@ -896,7 +900,8 @@ namespace DS_Game_Maker
 
         private void RunDevkitProUpdaterButton(object sender, EventArgs e)
         {
-            DS_Game_Maker.Toolchain.RundevkitProUpdater();
+            //DS_Game_Maker.Toolchain.RundevkitProUpdater();
+            DS_Game_Maker.DSGMlib.MsgWarn("The toolchain is now updated manually, please use that method instead.");
         }
 
         private void EditMenu_DropDownOpening(object sender, EventArgs e)

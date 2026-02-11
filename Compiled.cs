@@ -57,7 +57,7 @@ namespace DS_Game_Maker
             byte Response = (byte)MessageBox.Show("'" + DS_Game_Maker.DSGMlib.CacheProjectName + "' was copied successfully." + Constants.vbCrLf + Constants.vbCrLf + "Safely disconnect USB Reader now?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (!(Response == (int)MsgBoxResult.Yes))
                 return;
-            DS_Game_Maker.DSGMlib.RunBatchString("EjectMedia " + HBKitDrive + Constants.vbCrLf + "RemoveDrive " + HBKitDrive, DS_Game_Maker.DSGMlib.AppPath, false);
+            DS_Game_Maker.DSGMlib.RunBatchString("EjectMedia " + HBKitDrive + Constants.vbCrLf + "RemoveDrive " + HBKitDrive, Constants.AppDirectory, false);
         }
     }
 }

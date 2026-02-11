@@ -31,9 +31,9 @@ namespace DS_Game_Maker
         public static void FormSession(string SessionName)
         {
             Session = SessionName;
-            SessionPath = DS_Game_Maker.DSGMlib.AppPath + @"ProjectTemp\" + Session + @"\";
+            SessionPath = Constants.AppDirectory + @"ProjectTemp\" + Session + @"\";
             CompileName = "DSGMTemp" + Session;
-            CompilePath = DS_Game_Maker.DSGMlib.CDrive + CompileName + @"\";
+            CompilePath = Constants.AppDirectory + @"\OutputGame\" + CompileName + @"\";
         }
 
         public static void FormSessionFS()
@@ -64,7 +64,7 @@ namespace DS_Game_Maker
             File.CreateText(CompilePath + @"source\main.c").Dispose();
             File.CreateText(CompilePath + @"gfx\dsgm_gfx.h").Dispose();
 
-            File.Copy(DS_Game_Maker.DSGMlib.AppPath + "logo.bmp", CompilePath + "logo.bmp");
+            File.Copy(Constants.AppDirectory + "logo.bmp", CompilePath + "logo.bmp");
 
         }
 

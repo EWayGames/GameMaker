@@ -60,7 +60,7 @@ namespace DS_Game_Maker
             ActionNameLabel.Text = ActionName;
             ArgumentsListLabel.Text = string.Empty;
             byte ArgumentCount = 0;
-            foreach (string X_ in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
             {
                 string X = X_;
                 if (X.StartsWith("ARG "))
@@ -128,7 +128,7 @@ namespace DS_Game_Maker
                 return;
             byte ArgCount = 0;
             bool NoAppliesTo = false;
-            foreach (string X in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
             {
                 if (X.StartsWith("ARG "))
                     ArgCount = (byte)(ArgCount + 1);
@@ -269,7 +269,7 @@ namespace DS_Game_Maker
             {
                 string ActionName = Actions[X];
                 byte IndentChange = 0;
-                foreach (string Y in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+                foreach (string Y in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
                 {
                     if (Y == "INDENT")
                     {
@@ -328,7 +328,7 @@ namespace DS_Game_Maker
             string ImagePath;
             if (SpriteDropper.Text == "None")
             {
-                ImagePath = DS_Game_Maker.DSGMlib.AppPath + @"Resources\NoSprite.png";
+                ImagePath = Constants.AppDirectory + @"Resources\NoSprite.png";
             }
             else
             {
@@ -390,7 +390,7 @@ namespace DS_Game_Maker
                 Y.SetAutoScrollMargin(8, 8);
 
                 var Actions = new List<string>();
-                foreach (string Z in Directory.GetFiles(DS_Game_Maker.DSGMlib.AppPath + "Actions"))
+                foreach (string Z in Directory.GetFiles(Constants.AppDirectory + "Actions"))
                 {
                     string ActionName = Z.Substring(Z.LastIndexOf(@"\") + 1);
                     ActionName = ActionName.Substring(0, ActionName.LastIndexOf("."));
@@ -1228,7 +1228,7 @@ namespace DS_Game_Maker
         {
             bool NoAppliesTo = false;
             byte ArgCount = 0;
-            foreach (string X in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + Actions[ActionsList.SelectedIndices[0]] + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + Actions[ActionsList.SelectedIndices[0]] + ".action"))
             {
                 if (X == "NOAPPLIES")
                     NoAppliesTo = true;
