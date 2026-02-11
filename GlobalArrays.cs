@@ -40,8 +40,9 @@ namespace DS_Game_Maker
             TMPList.Images.Add(Properties.Resources.ArrayIcon);
             ArraysList.ImageList = TMPList;
             ArraysList.Nodes.Clear();
-            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("ARRAY "))
+            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("ARRAY "))
             {
+                string X = X_;
                 X = X.Substring(6);
                 string ArrayName = DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ",");
                 ArraysList.Nodes.Add(string.Empty, ArrayName, 0);

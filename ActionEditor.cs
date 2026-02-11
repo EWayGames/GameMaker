@@ -61,8 +61,9 @@ namespace DS_Game_Maker
             bool NoApplies = false;
             DontRequestApplicationChecker.Checked = false;
             ConditionalDisplayChecker.Checked = false;
-            foreach (string ActLine in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + e.Node.Text + ".action"))
+            foreach (string ActLine_ in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + e.Node.Text + ".action"))
             {
+                string ActLine = ActLine_;
                 if (ActLine.StartsWith("TYPE "))
                 {
                     ActionType = Conversions.ToByte(ActLine.Substring(5));
@@ -216,7 +217,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSChangeLine(X, NewLine);
                 }
             }
-            foreach (Form X in Program.mainForm.MdiChildren)
+            foreach (Form X in Program.Forms.main_Form.MdiChildren)
             {
                 if (DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT " + X.Text + ",").Length == 0)
                     continue;

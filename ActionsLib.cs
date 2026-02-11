@@ -50,8 +50,9 @@ namespace DS_Game_Maker
 
         public static bool ActionIsConditional(object ActionName)
         {
-            foreach (string X in File.ReadAllLines(Conversions.ToString(Operators.AddObject(Operators.AddObject(DS_Game_Maker.DSGMlib.AppPath + @"Actions\", ActionName), ".action"))))
+            foreach (string X_ in File.ReadAllLines(Conversions.ToString(Operators.AddObject(Operators.AddObject(DS_Game_Maker.DSGMlib.AppPath + @"Actions\", ActionName), ".action"))))
             {
+                string X = X_;
                 if (X.StartsWith("CONDITION "))
                 {
                     X = X.Substring("CONDITION".Length + 1);

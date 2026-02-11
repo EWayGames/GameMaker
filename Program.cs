@@ -2,19 +2,21 @@ namespace DS_Game_Maker
 {
     public static class Program
     {
-        public static MainForm mainForm;
+        public static GlobalFormsClass Forms;
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        public static void Main(string[] args)
         {
-            mainForm = new MainForm();
+            Forms = new GlobalFormsClass();
+            Forms.Initialize(args);
 
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(mainForm);
+            Application.Run(Forms.main_Form);
         }
     }
 }

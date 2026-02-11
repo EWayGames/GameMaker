@@ -64,8 +64,9 @@ namespace DS_Game_Maker
                     }
                 case (byte)6:
                     {
-                        foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
+                        foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
                         {
+                            string X = X_;
                             X = X.Substring(7);
                             string ObjectName = X.Substring(0, X.IndexOf(","));
                             // If ObjectName = OwnedBy Then Continue For

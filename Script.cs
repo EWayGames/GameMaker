@@ -41,7 +41,7 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.XDSAddLine("SCRIPTARG " + NameTextBox.Text + "," + ArgumentNames[P] + "," + ArgumentTypes[P]);
             }
             File.WriteAllText(DS_Game_Maker.SessionsLib.SessionPath + @"Scripts\" + NameTextBox.Text + ".dbas", MainTextBox.Text);
-            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Script].Nodes)
+            foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Script].Nodes)
             {
                 if ((X.Text ?? "") == (ScriptName ?? ""))
                     X.Text = NameTextBox.Text;
@@ -213,8 +213,9 @@ namespace DS_Game_Maker
             string Content = DS_Game_Maker.DSGMlib.PathToString(Response);
             string FinalContent = string.Empty;
             TidyUp();
-            foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(Content))
+            foreach (string X_ in DS_Game_Maker.DSGMlib.StringToLines(Content))
             {
+                string X = X_;
                 if (X.StartsWith("SCRIPTARG "))
                 {
                     X = X.Substring(10);

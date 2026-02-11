@@ -139,8 +139,9 @@ namespace DS_Game_Maker
             byte DOn = 0;
             LabelsPanel.Controls.Clear();
             ControlsPanel.Controls.Clear();
-            foreach (string X in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
             {
+                string X = X_;
                 if (X.StartsWith("ARG "))
                 {
                     X = X.Substring(4);
@@ -190,8 +191,9 @@ namespace DS_Game_Maker
                     }
                     else if (ArgumentType == 3)
                     {
-                        foreach (string Y in DS_Game_Maker.DSGMlib.GetXDSFilter("GLOBAL "))
+                        foreach (string Y_ in DS_Game_Maker.DSGMlib.GetXDSFilter("GLOBAL "))
                         {
+                            string Y = Y_;
                             Y = Y.Substring(7);
                             string VariableName = Y.Substring(0, Y.IndexOf(","));
                             ((ComboBox)InputControl).Items.Add(VariableName);
@@ -200,8 +202,9 @@ namespace DS_Game_Maker
                     }
                     else if (ArgumentType == 4)
                     {
-                        foreach (string Y in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
+                        foreach (string Y_ in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
                         {
+                            string Y = Y_;
                             Y = Y.Substring(7);
                             string ObjectName = Y.Substring(0, Y.IndexOf(","));
                             ((ComboBox)InputControl).Items.Add(ObjectName);
@@ -216,8 +219,9 @@ namespace DS_Game_Maker
                     }
                     else if (ArgumentType == 6)
                     {
-                        foreach (string Y in DS_Game_Maker.DSGMlib.GetXDSFilter("SOUND "))
+                        foreach (string Y_ in DS_Game_Maker.DSGMlib.GetXDSFilter("SOUND "))
                         {
+                            string Y = Y_;
                             Y = Y.Substring(6);
                             string SoundName = Y.Substring(0, Y.IndexOf(","));
                             ((ComboBox)InputControl).Items.Add(SoundName);
@@ -225,8 +229,9 @@ namespace DS_Game_Maker
                     }
                     else if (ArgumentType == 7)
                     {
-                        foreach (string Y in DS_Game_Maker.DSGMlib.GetXDSFilter("ROOM "))
+                        foreach (string Y_ in DS_Game_Maker.DSGMlib.GetXDSFilter("ROOM "))
                         {
+                            string Y = Y_;
                             Y = Y.Substring(5);
                             string RoomName = Y.Substring(0, Y.IndexOf(","));
                             ((ComboBox)InputControl).Items.Add(RoomName);
@@ -295,8 +300,9 @@ namespace DS_Game_Maker
                     }
                     else if (ArgumentType == 16)
                     {
-                        foreach (string Y in DS_Game_Maker.DSGMlib.GetXDSFilter("STRUCTURE "))
+                        foreach (string Y_ in DS_Game_Maker.DSGMlib.GetXDSFilter("STRUCTURE "))
                         {
+                            string Y = Y_;
                             Y = Y.Substring(10);
                             string StructureName = Y.Substring(0, Y.IndexOf(","));
                             ((ComboBox)InputControl).Items.Add(StructureName);
@@ -328,8 +334,9 @@ namespace DS_Game_Maker
                 ControlsPanel.Visible = true;
             }
             InstancesOfDropper.Items.Clear();
-            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
+            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("OBJECT "))
             {
+                string X = X_;
                 X = X.Substring(7);
                 InstancesOfDropper.Items.Add(X.Substring(0, X.IndexOf(",")));
             }

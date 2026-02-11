@@ -55,7 +55,7 @@ namespace DS_Game_Maker
                 DS_Game_Maker.DSGMlib.XDSChangeLine("BACKGROUND " + BackgroundName, "BACKGROUND " + NewName);
                 DS_Game_Maker.DSGMlib.SilentMoveFile(RealPath, DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
                 // File.Move(RealPath, SessionPath + "Backgrounds\" + NewName + ".png")
-                foreach (Form X in Program.mainForm.MdiChildren)
+                foreach (Form X in Program.Forms.main_Form.MdiChildren)
                 {
                     if (X.Name == "Room")
                     {
@@ -81,8 +81,9 @@ namespace DS_Game_Maker
                 }
                 DS_Game_Maker.DSGMlib.UpdateArrayActionsName("Background", BackgroundName, NewName, false);
                 DS_Game_Maker.DSGMlib.CurrentXDS = DS_Game_Maker.DSGMlib.UpdateActionsName(DS_Game_Maker.DSGMlib.CurrentXDS, "Background", BackgroundName, NewName, false);
-                foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("ROOM "))
+                foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("ROOM "))
                 {
+                    string X = X_;
                     string Backup = X;
                     X = X.Substring(5);
                     bool TopChange = false;
@@ -131,7 +132,7 @@ namespace DS_Game_Maker
                 if (DS_Game_Maker.DSGMlib.BGsToRedo.Contains(BackgroundName))
                     DS_Game_Maker.DSGMlib.BGsToRedo.Remove(BackgroundName);
                 DS_Game_Maker.DSGMlib.BGsToRedo.Add(NewName);
-                foreach (Form X in Program.mainForm.MdiChildren)
+                foreach (Form X in Program.Forms.main_Form.MdiChildren)
                 {
                     if (!(X.Name == "Room"))
                         continue;
@@ -226,8 +227,9 @@ namespace DS_Game_Maker
                     DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + NewName + ".png");
                 }
                 string NewString = string.Empty;
-                foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(DS_Game_Maker.DSGMlib.PathToString(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h")))
+                foreach (string X_ in DS_Game_Maker.DSGMlib.StringToLines(DS_Game_Maker.DSGMlib.PathToString(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h")))
                 {
+                    string X = X_;
                     if ((X ?? "") == ("extern const PA_BgStruct " + BackgroundName + ";" ?? ""))
                         X = "extern const PA_BgStruct " + NewName + ";";
                     NewString += X + Constants.vbCrLf;
@@ -236,7 +238,7 @@ namespace DS_Game_Maker
                 File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
                 DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\temp_gfx.h", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
             }
-            foreach (TreeNode X in Program.mainForm.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Background].Nodes)
+            foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DS_Game_Maker.DSGMlib.ResourceIDs.Background].Nodes)
             {
                 if ((X.Text ?? "") == (BackgroundName ?? ""))
                     X.Text = NewName;

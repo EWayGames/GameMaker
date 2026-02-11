@@ -34,8 +34,9 @@ namespace DS_Game_Maker
             Variables.Clear();
             MyVariableTypes.Clear();
             VariableValues.Clear();
-            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("GLOBAL "))
+            foreach (string X_ in DS_Game_Maker.DSGMlib.GetXDSFilter("GLOBAL "))
             {
+                string X = X_;
                 X = X.Substring(7);
                 Variables.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)0, ","));
                 MyVariableTypes.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)1, ","));
