@@ -18,6 +18,8 @@ namespace DS_Game_Maker
         private bool NeedsDKP = false;
         private bool CacheHasTinternet = true;
 
+        public Compile compileForm;
+
         public MainForm()
         {
             InitializeComponent();
@@ -60,6 +62,8 @@ namespace DS_Game_Maker
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            compileForm = new Compile();
+
             // If Not System.IO.Directory.Exists(System.IO.Path.GetTempPath + "DSGameMaker") Then
             // My.Computer.FileSystem.CreateDirectory(System.IO.Path.GetTempPath + "DSGameMaker")
             // End If
@@ -568,9 +572,9 @@ namespace DS_Game_Maker
         {
             if (Conversions.ToBoolean(!DS_Game_Maker.DSGMlib.CompileWrapper()))
                 return;
-            DS_Game_Maker.My.MyProject.Forms.Compile.HasDoneIt = false;
-            DS_Game_Maker.My.MyProject.Forms.Compile.ShowDialog();
-            if (DS_Game_Maker.My.MyProject.Forms.Compile.Success)
+            Program.mainForm.compileForm.HasDoneIt = false;
+            Program.mainForm.compileForm.ShowDialog();
+            if (Program.mainForm.compileForm.Success)
             {
                 DS_Game_Maker.DSGMlib.NOGBAShizzle();
             }
@@ -584,9 +588,9 @@ namespace DS_Game_Maker
         {
             if (Conversions.ToBoolean(!DS_Game_Maker.DSGMlib.CompileWrapper()))
                 return;
-            DS_Game_Maker.My.MyProject.Forms.Compile.HasDoneIt = false;
-            DS_Game_Maker.My.MyProject.Forms.Compile.ShowDialog();
-            if (DS_Game_Maker.My.MyProject.Forms.Compile.Success)
+            Program.mainForm.compileForm.HasDoneIt = false;
+            Program.mainForm.compileForm.ShowDialog();
+            if (Program.mainForm.compileForm.Success)
             {
                 {
                     var withBlock = DS_Game_Maker.My.MyProject.Forms.Compiled;

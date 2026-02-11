@@ -315,7 +315,7 @@ namespace DS_Game_Maker
 
         public static bool CompileGame()
         {
-            DS_Game_Maker.My.MyProject.Forms.Compile.CustomPerformStep("Cleaning Temporary Data");
+            Program.mainForm.compileForm.CustomPerformStep("Cleaning Temporary Data");
             File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "DSGMTemp" + DS_Game_Maker.SessionsLib.Session + ".nds");
             foreach (Process TheProcess in Process.GetProcesses())
             {
@@ -481,7 +481,7 @@ namespace DS_Game_Maker
             }
             FinalString += "#include \"dsgm_gfx.h\"" + Constants.vbCrLf;
             FinalString += "#include \"GameWorks.h\"" + Constants.vbCrLf;
-            DS_Game_Maker.My.MyProject.Forms.Compile.CustomPerformStep("Converting Sounds");
+            Program.mainForm.compileForm.CustomPerformStep("Converting Sounds");
             string RAWString = string.Empty;
             string MP3String = string.Empty;
             bool DoRAW = false;
@@ -1572,7 +1572,7 @@ namespace DS_Game_Maker
             MF += "MAKEFILE_VER := ver2" + Constants.vbCrLf;
             MF += "include " + CDrive + @"devkitPro\PAlib\lib\PA_Makefile" + Constants.vbCrLf;
             File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "Makefile", MF);
-            DS_Game_Maker.My.MyProject.Forms.Compile.CustomPerformStep("Processing Graphics");
+            Program.mainForm.compileForm.CustomPerformStep("Processing Graphics");
             var MyProcess = new Process();
             var MyInfo = new ProcessStartInfo();
             if (RedoAllGraphics | BGsToRedo.Count > 0 | RedoSprites)
@@ -1672,7 +1672,7 @@ namespace DS_Game_Maker
                     DSGMH += "  extern const unsigned short DSGMPal" + i.ToString() + "_Pal[256] _GFX_ALIGN;" + Constants.vbCrLf;
             }
             File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h", DSGMH);
-            DS_Game_Maker.My.MyProject.Forms.Compile.CustomPerformStep("Compiling Game");
+            Program.mainForm.compileForm.CustomPerformStep("Compiling Game");
             MyInfo.FileName = DS_Game_Maker.SessionsLib.CompilePath + "build.bat";
             MyInfo.WorkingDirectory = DS_Game_Maker.SessionsLib.CompilePath;
             MyProcess.StartInfo = MyInfo;
@@ -2918,7 +2918,7 @@ namespace DS_Game_Maker
         public static void ShowInternalForm(ref object Instance)
         {
             ((dynamic)Instance).TopLevel = false;
-            ((dynamic)Instance).MdiParent = DS_Game_Maker.My.MyProject.Forms.MainForm;
+            ((dynamic)Instance).MdiParent = Program.mainForm;
             ((dynamic)Instance).Show();
         }
 
