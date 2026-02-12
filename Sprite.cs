@@ -30,10 +30,10 @@ namespace DS_Game_Maker
             TheLine = DS_Game_Maker.DSGMlib.GetXDSLine("SPRITE " + SpriteName + ",");
             short ImageCount = 0;
             MainImageList.Images.Clear();
-            foreach (string X_ in Directory.GetFiles(DS_Game_Maker.SessionsLib.SessionPath + "Sprites"))
+            foreach (string X_ in Directory.GetFiles(SessionsLib.SessionPath + "Sprites"))
             {
                 string X = X_;
-                X = X.Substring(X.LastIndexOf(@"\") + 1);
+                X = X.Substring(X.LastIndexOf("/") + 1);
                 X = X.Substring(0, X.LastIndexOf("."));
                 X = X.Substring(X.IndexOf("_") + 1);
 
@@ -50,7 +50,7 @@ namespace DS_Game_Maker
             }
             for (short X = 0, loopTo = (short)(ImageCount - 1); X <= loopTo; X++)
             {
-                string ThePath = DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\" + X.ToString() + "_" + SpriteName + ".png";
+                string ThePath = DS_Game_Maker.SessionsLib.SessionPath + "Sprites/" + X.ToString() + "_" + SpriteName + ".png";
                 string Key = "Frame_" + X.ToString();
                 MainImageList.Images.Add(Key, DS_Game_Maker.DSGMlib.PathToImage(ThePath));
                 MainListView.Items.Add("Frame " + X.ToString(), X);

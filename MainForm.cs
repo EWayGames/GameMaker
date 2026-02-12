@@ -336,7 +336,7 @@ namespace DS_Game_Maker
         private void AddSpriteButton_Click(object sender, EventArgs e)
         {
             string NewName = DS_Game_Maker.DSGMlib.MakeResourceName("Sprite", "SPRITE");
-            File.Copy(Constants.AppDirectory + @"DefaultResources\Sprite.png", DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\0_" + NewName + ".png");
+            File.Copy(Constants.AppDirectory + "DefaultResources/Sprite.png", DS_Game_Maker.SessionsLib.SessionPath + "Sprites/0_" + NewName + ".png");
             DS_Game_Maker.DSGMlib.XDSAddLine("SPRITE " + NewName + ",32,32");
             byte argResourceID = (byte)DS_Game_Maker.DSGMlib.ResourceIDs.Sprite;
             DS_Game_Maker.DSGMlib.AddResourceNode(ref argResourceID, NewName, "SpriteNode", true);
@@ -802,13 +802,13 @@ namespace DS_Game_Maker
                 for (byte Looper = 0; Looper <= 10; Looper++)
                 {
                     SessionName = Conversions.ToString(Operators.AddObject("NewProject", DS_Game_Maker.SessionsLib.MakeSessionName()));
-                    if (!Directory.Exists(Constants.AppDirectory + @"ProjectTemp\" + SessionName))
+                    if (!Directory.Exists(Constants.AppDirectory + "ProjectTemp/" + SessionName))
                         break;
                 }
                 DS_Game_Maker.SessionsLib.FormSession(SessionName);
                 DS_Game_Maker.SessionsLib.FormSessionFS();
                 DS_Game_Maker.DSGMlib.IsNewProject = true;
-                DS_Game_Maker.DSGMlib.ProjectPath = Constants.AppDirectory + @"NewProjects\" + SessionName + ".dsgm";
+                DS_Game_Maker.DSGMlib.ProjectPath = Constants.AppDirectory + "NewProjects/" + SessionName + ".dsgm";
                 Text = DS_Game_Maker.DSGMlib.TitleDataWorks();
                 GenerateShite("<New Project>");
                 DS_Game_Maker.DSGMlib.RedoAllGraphics = true;

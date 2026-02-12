@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using System.IO;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace DS_Game_Maker
 {
@@ -50,7 +49,7 @@ namespace DS_Game_Maker
 
         public static bool ActionIsConditional(object ActionName)
         {
-            foreach (string X_ in File.ReadAllLines(Conversions.ToString(Operators.AddObject(Operators.AddObject(Constants.AppDirectory + @"Actions\", ActionName), ".action"))))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
             {
                 string X = X_;
                 if (X.StartsWith("CONDITION "))

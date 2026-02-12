@@ -31,9 +31,9 @@ namespace DS_Game_Maker
         public static void FormSession(string SessionName)
         {
             Session = SessionName;
-            SessionPath = Constants.AppDirectory + @"ProjectTemp\" + Session + @"\";
+            SessionPath = Constants.AppDirectory + "ProjectTemp/" + Session + "/";
             CompileName = "DSGMTemp" + Session;
-            CompilePath = Constants.AppDirectory + @"\OutputGame\" + CompileName + @"\";
+            CompilePath = Constants.AppDirectory + "OutputGame/" + CompileName + "/";
         }
 
         public static void FormSessionFS()
