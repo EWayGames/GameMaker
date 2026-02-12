@@ -57,7 +57,7 @@ jobs:
 
     env:
       Solution_Name: DS Game Maker.sln                            # Replace with your solution name, i.e. MyWpfApp.sln.
-      Test_Project_Path: dsgamemaker_csharp\Game Maker.csproj     # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
+      Test_Project_Path: Game Maker.csproj     # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
 
     steps:
     - name: Checkout repository
