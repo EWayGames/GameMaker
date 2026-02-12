@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace DS_Game_Maker
 {
@@ -19,17 +10,15 @@ namespace DS_Game_Maker
         public static string[] ResourceTypes = new string[7];
 
         public static short IDVersion = 530;
-        public static string Domain = "http://dsgm.co/";
+        public static string Domain = "https://ewaygames.com/dsgm/";
         public static short UpdateVersion = 0;
 
         public static Bitmap ActionBG = new Bitmap(32, 32);
         public static Bitmap ActionConditionalBG = new Bitmap(32, 32);
         public static WebClient WC = new WebClient();
 
-        public static string AppPath = string.Empty;
         public static string ProjectPath = string.Empty;
 
-        public static string CDrive = string.Empty;
         public static string CacheProjectName = string.Empty;
         public static bool BeingUsed = false;
         public static string CurrentXDS = string.Empty;
@@ -192,7 +181,7 @@ namespace DS_Game_Maker
         public static void RebuildFontCache()
         {
             Fonts.Clear();
-            foreach (string X in Directory.GetFiles(AppPath + "Fonts"))
+            foreach (string X in Directory.GetFiles(Constants.AppDirectory + "Fonts"))
             {
                 if (!X.EndsWith(".png"))
                     continue;
@@ -206,7 +195,7 @@ namespace DS_Game_Maker
         {
             foreach (Form TheForm in Program.Forms.main_Form.MdiChildren)
             {
-                if ((TheForm.Text ?? "") == (ResourceName ?? ""))
+                if (TheForm.Text == ResourceName)
                 {
                     TheForm.Focus();
                     return;
@@ -274,9 +263,9 @@ namespace DS_Game_Maker
 
         public static object CompileWrapper()
         {
-            if (!Directory.Exists(CDrive + @"devkitPro\devkitARM"))
+            if (!Directory.Exists(Constants.AppDirectory + "devkitPro/devkitARM"))
             {
-                MsgError("The development toolchain was not found." + Constants.vbCrLf + Constants.vbCrLf + "Please restart " + Application.ProductName + ". You will receive a prompt to install it.");
+                MsgError("The development toolchain was not found." + Constants.vbCrLf + Constants.vbCrLf + "Please restart " + Application.ProductName + ".");
                 return false;
             }
             return true;
@@ -336,19 +325,19 @@ namespace DS_Game_Maker
                 if (!FontsUsedThisTime.Contains(X))
                     FontsUsedThisTime.Add(X);
             }
-            if (!Directory.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin"))
+            if (!Directory.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin"))
             {
-                Directory.CreateDirectory(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin");
+                Directory.CreateDirectory(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin");
             }
             // Remove fonts not used this time
             foreach (string X in FontsUsedLastTime)
             {
                 if (!FontsUsedThisTime.Contains(X))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + ".c");
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + "_Map.bin");
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + "_Tiles.bin");
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + "_Pal.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + ".c");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + "_Map.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + "_Tiles.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + "_Pal.bin");
                 }
             }
             string FontH = string.Empty;
@@ -366,17 +355,17 @@ namespace DS_Game_Maker
                 // If there's a font in this time's that's not in last times...
                 if (!FontsUsedLastTime.Contains(X))
                 {
-                    File.Copy(AppPath + @"CompiledBINs\" + X + ".c", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + ".c", true);
-                    File.Copy(AppPath + @"CompiledBINs\" + X + "_Map.bin", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + "_Map.bin", true);
-                    File.Copy(AppPath + @"CompiledBINs\" + X + "_Tiles.bin", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + "_Tiles.bin", true);
-                    File.Copy(AppPath + @"CompiledBINs\" + X + "_Pal.bin", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + X + "_Pal.bin", true);
+                    File.Copy(Constants.AppDirectory + "CompiledBINs/" + X + ".c", DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + ".c", true);
+                    File.Copy(Constants.AppDirectory + "CompiledBINs/" + X + "_Map.bin", DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + "_Map.bin", true);
+                    File.Copy(Constants.AppDirectory + "CompiledBINs/" + X + "_Tiles.bin", DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + "_Tiles.bin", true);
+                    File.Copy(Constants.AppDirectory + "CompiledBINs/" + X + "_Pal.bin", DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + X + "_Pal.bin", true);
                 }
                 FontH += "extern const PA_BgStruct " + X + ";" + Constants.vbCrLf;
             }
             // FontH += "#ifdef __cplusplus" + vbcrlf
             // FontH += "  }" + vbcrlf
             // FontH += "#endif"
-            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\custom_gfx.h", FontH);
+            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "gfx/custom_gfx.h", FontH);
             FileInfo[] MyFiles;
             if (RedoAllGraphics)
             {
@@ -402,7 +391,7 @@ namespace DS_Game_Maker
                 {
                     bool IsMyMP3 = false;
                     string RName = TheFile.FullName;
-                    RName = RName.Substring(RName.LastIndexOf(@"\") + 1);
+                    RName = RName.Substring(RName.LastIndexOf("/") + 1);
                     RName = RName.Substring(0, RName.LastIndexOf("."));
                     if (IsAlreadyResource(RName).Length > 0)
                         IsMyMP3 = true;
@@ -426,7 +415,7 @@ namespace DS_Game_Maker
                 var ff = new byte[32769];
                 for (short i = 0; i <= 32767; i++)
                     ff[i] = 0;
-                File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\SaveData.dat", ff);
+                File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/SaveData.dat", ff);
             }
 
             if (GetXDSLine("PROJECTLOGO ").Length < 12)
@@ -435,7 +424,7 @@ namespace DS_Game_Maker
                 {
                     File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "logo.bmp");
                 }
-                File.Copy(AppPath + "logo.bmp", DS_Game_Maker.SessionsLib.CompilePath + "logo.bmp");
+                File.Copy(Constants.AppDirectory + "logo.bmp", DS_Game_Maker.SessionsLib.CompilePath + "logo.bmp");
             }
             else
             {
@@ -455,28 +444,28 @@ namespace DS_Game_Maker
 
             // FinalString += "#include ""NitroGraphics.h""" + vbCrLf
 
-            File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"include\NitroGraphics.h", Properties.Resources.NitroGraphics);
+            File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + "include/NitroGraphics.h", Properties.Resources.NitroGraphics);
             if (GetXDSLine("INCLUDE_WIFI_LIB ").Substring(17) == "1")
             {
                 FinalString += "#include \"ky_geturl.h\"" + Constants.vbCrLf;
-                if (!File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.h"))
+                if (!File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.h"))
                 {
-                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.h", Properties.Resources.WifiLibH);
+                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.h", Properties.Resources.WifiLibH);
                 }
-                if (!File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.c"))
+                if (!File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.c"))
                 {
-                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.c", Properties.Resources.WifiLibC);
+                    File.WriteAllBytes(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.c", Properties.Resources.WifiLibC);
                 }
             }
             else
             {
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.h"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.h"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.h");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.h");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.c"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.c"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"source\ky_geturl.c");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "source/ky_geturl.c");
                 }
             }
             FinalString += "#include \"dsgm_gfx.h\"" + Constants.vbCrLf;
@@ -491,51 +480,51 @@ namespace DS_Game_Maker
                 if (iGet(GetXDSLine("SOUND " + X + ","), 1, ",") == "1")
                 {
                     MP3String += "mp3enc -b 64 \"" + X + "_enc.mp3\" \"" + X + "\".mp3" + Constants.vbCrLf;
-                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + X + ".mp3", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + X + "_enc.mp3");
+                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + X + ".mp3", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + X + "_enc.mp3");
                     DoMP3 = true;
                 }
                 else
                 {
                     RAWString += "sox \"" + X + "\".wav -r 11025 -c 1 -e signed -b 8 \"" + X + "\".raw" + Constants.vbCrLf;
-                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + X + ".wav", DS_Game_Maker.SessionsLib.CompilePath + @"data\" + X + ".wav");
+                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + X + ".wav", DS_Game_Maker.SessionsLib.CompilePath + "data/" + X + ".wav");
                     DoRAW = true;
                 }
             }
             if (DoRAW)
             {
-                File.Copy(AppPath + "sox.exe", DS_Game_Maker.SessionsLib.CompilePath + @"data\sox.exe");
-                File.Copy(AppPath + "libgomp-1.dll", DS_Game_Maker.SessionsLib.CompilePath + @"data\libgomp-1.dll");
-                File.Copy(AppPath + "pthreadgc2.dll", DS_Game_Maker.SessionsLib.CompilePath + @"data\pthreadgc2.dll");
-                File.Copy(AppPath + "zlib1.dll", DS_Game_Maker.SessionsLib.CompilePath + @"data\zlib1.dll");
+                File.Copy(Constants.AppDirectory + "sox.exe", DS_Game_Maker.SessionsLib.CompilePath + "data/sox.exe");
+                File.Copy(Constants.AppDirectory + "libgomp-1.dll", DS_Game_Maker.SessionsLib.CompilePath + "data/libgomp-1.dll");
+                File.Copy(Constants.AppDirectory + "pthreadgc2.dll", DS_Game_Maker.SessionsLib.CompilePath + "data/pthreadgc2.dll");
+                File.Copy(Constants.AppDirectory + "zlib1.dll", DS_Game_Maker.SessionsLib.CompilePath + "data/zlib1.dll");
                 DSGMlib.RunBatchString(RAWString, DS_Game_Maker.SessionsLib.CompilePath + "data", false);
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"data\sox.exe");
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"data\libgomp-1.dll");
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"data\pthreadgc2.dll");
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"data\zlib1.dll");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "data/sox.exe");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "data/libgomp-1.dll");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "data/pthreadgc2.dll");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "data/zlib1.dll");
                 foreach (string X in SoundsToRedo)
                 {
                     if (iGet(GetXDSLine("SOUND " + X + ","), 1, ",") == "1")
                         continue;
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"data\" + X + ".wav");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "data/" + X + ".wav");
                 }
             }
             if (DoMP3)
             {
-                File.Copy(AppPath + "mp3enc.exe", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\mp3enc.exe");
+                File.Copy(Constants.AppDirectory + "mp3enc.exe", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/mp3enc.exe");
                 DSGMlib.RunBatchString(MP3String, DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles", false);
                 foreach (string X in SoundsToRedo)
                 {
                     if (iGet(GetXDSLine("SOUND " + X + ","), 1, ",") == "0")
                         continue;
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + X + "_enc.mp3");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + X + "_enc.mp3");
                 }
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\mp3enc.exe");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/mp3enc.exe");
             }
             FinalString += Constants.vbCrLf;
             foreach (string X in GetXDSFilter("NITROFS "))
             {
                 string FileName = X.Substring(8);
-                File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"NitroFSFiles\" + FileName, DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + FileName, true);
+                File.Copy(DS_Game_Maker.SessionsLib.SessionPath + "NitroFSFiles/" + FileName, DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + FileName, true);
             }
             // FinalString += "s16 score = " + GetXDSLine("SCORE ").ToString.Substring(6) + ";" + vbcrlf
             // FinalString += "s16 health = " + GetXDSLine("HEALTH ").ToString.Substring(7) + ";" + vbcrlf
@@ -599,7 +588,7 @@ namespace DS_Game_Maker
                     string XDSLine = XDSLine_;
                     XDSLine = XDSLine.Substring(11);
                     string BackgroundName = iGet(XDSLine, 0, ",");
-                    var BGImage = DSGMlib.PathToImage(DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + BackgroundName + ".png");
+                    var BGImage = DSGMlib.PathToImage(DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + BackgroundName + ".png");
                     PAini += BackgroundName + ".png ";
                     if (BGImage.Width > 256 & BGImage.Height > 256)
                     {
@@ -609,7 +598,7 @@ namespace DS_Game_Maker
                     {
                         PAini += "EasyBG";
                     }
-                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + BackgroundName + ".png", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + BackgroundName + ".png");
+                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + BackgroundName + ".png", DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + BackgroundName + ".png");
                     PAini += Constants.vbCrLf;
                 }
             }
@@ -619,7 +608,7 @@ namespace DS_Game_Maker
                 {
                     // Dim IsBG As Boolean = DoesXDSLineExist("BACKGROUND " + X)
                     // If Not IsBG Then Continue For
-                    var BGImage = DSGMlib.PathToImage(DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + X + ".png");
+                    var BGImage = DSGMlib.PathToImage(DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + X + ".png");
                     PAini += X + ".png ";
                     if (BGImage.Width > 256 & BGImage.Height > 256)
                     {
@@ -630,7 +619,7 @@ namespace DS_Game_Maker
                         PAini += "EasyBG";
                     }
                     PAini += Constants.vbCrLf;
-                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + X + ".png", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + X + ".png", true);
+                    File.Copy(DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + X + ".png", DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + X + ".png", true);
                     BGImage.Dispose();
                     DOn = (short)(DOn + 1);
                 }
@@ -663,10 +652,10 @@ namespace DS_Game_Maker
             // EventsHeaderString += "void " + ObjectName + StringMainClass + StringSubClass + "_Event(u8 DAppliesTo);" + vbcrlf
             // Next
             PAini += Constants.vbCrLf + "#Sprites : " + Constants.vbCrLf;
-            var PalletNumbers = new Collection();
-            var PalletNames = new Collection();
-            var PalletNumbers_Nitro = new Collection();
-            var PalletNames_Nitro = new Collection();
+            var PalletNumbers = new Dictionary<string, string>();
+            var PalletNames = new Dictionary<string, string>();
+            var PalletNumbers_Nitro = new Dictionary<string, string>();
+            var PalletNames_Nitro = new Dictionary<string, string>();
             short AllColors = 0;
             byte PalletOn = 0;
             short AllColors_Nitro = 0;
@@ -691,7 +680,7 @@ namespace DS_Game_Maker
                     {
                         AllColors_Nitro += CurrentColors;
                     }
-                    PalletNumbers_Nitro.Add(SpriteName + "," + PalletOn_Nitro.ToString());
+                    PalletNumbers_Nitro.Add(SpriteName , PalletOn_Nitro.ToString());
                 }
                 else
                 {
@@ -704,11 +693,11 @@ namespace DS_Game_Maker
                     {
                         AllColors += CurrentColors;
                     }
-                    PalletNumbers.Add(SpriteName + "," + PalletOn.ToString());
+                    PalletNumbers.Add(SpriteName , PalletOn.ToString());
                 }
                 if (RedoSprites)
                 {
-                    TheImage.Save(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + SpriteNameExtension);
+                    TheImage.Save(DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + SpriteNameExtension);
                     if (iGet(GetXDSLine("SPRITE " + XDSLine), 3, ",") == "Nitro")
                     {
                         PAini += SpriteNameExtension + " 256Colors " + "NitroPal" + PalletOn_Nitro.ToString() + Constants.vbCrLf;
@@ -722,26 +711,26 @@ namespace DS_Game_Maker
                 {
                     if (FirstRun)
                     {
-                        PalletNames_Nitro.Add(SpriteName + "," + PalletOn_Nitro.ToString());
+                        PalletNames_Nitro.Add(SpriteName, PalletOn_Nitro.ToString());
                         FirstRun = false;
                         continue;
                     }
                     if (AllColors == 0)
-                        PalletNames_Nitro.Add(SpriteName + "," + PalletOn_Nitro.ToString());
+                        PalletNames_Nitro.Add(SpriteName, PalletOn_Nitro.ToString());
                 }
                 else
                 {
                     if (FirstRun)
                     {
-                        PalletNames.Add(SpriteName + "," + PalletOn.ToString());
+                        PalletNames.Add(SpriteName, PalletOn.ToString());
                         FirstRun = false;
                         continue;
                     }
                     if (AllColors == 0)
-                        PalletNames.Add(SpriteName + "," + PalletOn.ToString());
+                        PalletNames.Add(SpriteName, PalletOn.ToString());
                 }
             }
-            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\PAGfx.ini", PAini);
+            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "gfx/PAGfx.ini", PAini);
             string EventsString = string.Empty;
             foreach (string XDSLine_ in GetXDSFilter("EVENT "))
             {
@@ -750,7 +739,7 @@ namespace DS_Game_Maker
                 XDSLine = XDSLine.Substring(6);
                 string ObjectName = iGet(XDSLine, 0, ",");
                 string MainClass = iGet(XDSLine, 1, ",");
-                string StringMainClass = DS_Game_Maker.ScriptsLib.MainClassTypeToString(Conversions.ToByte(MainClass)).Replace(" ", string.Empty);
+                string StringMainClass = DS_Game_Maker.ScriptsLib.MainClassTypeToString(Convert.ToByte(MainClass)).Replace(" ", string.Empty);
                 string SubClass = iGet(XDSLine, 2, ",");
                 string StringSubClass = SubClass.Replace(" ", string.Empty);
                 if (StringSubClass == "NoData")
@@ -764,17 +753,17 @@ namespace DS_Game_Maker
                 foreach (string Y_ in GetXDSFilter("ACT " + ObjectName + "," + MainClass + "," + SubClass + ","))
                 {
                     string Y = Y_;
-                    Y = Conversions.ToString(SillyFixMe(Y));
+                    Y = (string)SillyFixMe(Y);
                     Y = Y.Substring(("ACT " + ObjectName + "," + MainClass + "," + SubClass + ",").Length);
                     string ActionName = iGet(Y, 0, ",");
-                    if (!File.Exists(AppPath + @"Actions\" + ActionName + ".action"))
+                    if (!File.Exists(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
                         continue;
                     IndentOrDedent = 0;
                     Added = 0;
                     bool NeedsAppliesToVar = false;
                     if (!(ActionName == "Execute Code"))
                     {
-                        foreach (string X in File.ReadAllLines(AppPath + @"Actions\" + ActionName + ".action"))
+                        foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
                         {
                             if (X == "INDENT")
                                 IndentOrDedent = 1;
@@ -825,14 +814,19 @@ namespace DS_Game_Maker
                     {
                         if (AppliesToString == "this")
                         {
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "u16 AppliesTo"), DOn.ToString()), " = DAppliesTo;"), Constants.vbCrLf));
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "u16 AppliesTo" + DOn.ToString() + " = DAppliesTo;" + Constants.vbCrLf;
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "u16 AppliesTo"), DOn.ToString()), " = DAppliesTo;"), Constants.vbCrLf));
                             Added = 0;
                         }
                         else if (IsObject(AppliesToString))
                         {
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "u16 AppliesTo"), DOn.ToString()), " = 0;"), Constants.vbCrLf));
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "for (AppliesTo"), DOn.ToString()), " = 0; AppliesTo"), DOn.ToString()), " < 256; AppliesTo"), DOn.ToString()), "++) {"), Constants.vbCrLf));
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "  if (Instances[AppliesTo"), DOn.ToString()), "].InUse && Instances[AppliesTo"), DOn.ToString()), "].EName == "), AppliesToString), ") {"), Constants.vbCrLf));
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "u16 AppliesTo" + DOn.ToString() + " = 0;" + Constants.vbCrLf;
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "for (AppliesTo" + DOn.ToString() + " = 0; AppliesTo" + DOn.ToString() + " < 256; AppliesTo" + DOn.ToString() + "++) {" + Constants.vbCrLf;
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "  if (Instances[AppliesTo" + DOn.ToString() + "].InUse && Instances[AppliesTo" + DOn.ToString() + "].EName == " + AppliesToString + ") {" + Constants.vbCrLf;
+
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "u16 AppliesTo"), DOn.ToString()), " = 0;"), Constants.vbCrLf));
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "for (AppliesTo"), DOn.ToString()), " = 0; AppliesTo"), DOn.ToString()), " < 256; AppliesTo"), DOn.ToString()), "++) {"), Constants.vbCrLf));
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "  if (Instances[AppliesTo"), DOn.ToString()), "].InUse && Instances[AppliesTo"), DOn.ToString()), "].EName == "), AppliesToString), ") {"), Constants.vbCrLf));
                             CurrentIndent = (byte)(CurrentIndent + 2);
                             Added = 2;
                         }
@@ -847,9 +841,15 @@ namespace DS_Game_Maker
                             }
                             TempLine = TempLine.Substring(0, TempLine.Length - 2);
                             TempLine += "};";
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), TempLine), Constants.vbCrLf));
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "u16 AppliesTo"), DOn.ToString()), " = 0;"), Constants.vbCrLf));
-                            TempLine = Conversions.ToString(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "for (AppliesTo"), DOn.ToString()), " = 0; AppliesTo"), DOn.ToString()), " < "), LoopTo.ToString()), "; AppliesTo"), DOn.ToString()), "++) {"));
+
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + TempLine + Constants.vbCrLf;
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "u16 AppliesTo" + DOn.ToString() + " = 0;" + Constants.vbCrLf;
+
+                            TempLine = MakeSpaces((byte)(CurrentIndent * 2)) + "for (AppliesTo" + DOn.ToString() + " = 0; AppliesTo" + DOn.ToString() + " < " + LoopTo.ToString() + "; AppliesTo" + DOn.ToString() + "++) {";
+
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), TempLine), Constants.vbCrLf));
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "u16 AppliesTo"), DOn.ToString()), " = 0;"), Constants.vbCrLf));
+                            //TempLine = Conversions.ToString(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "for (AppliesTo"), DOn.ToString()), " = 0; AppliesTo"), DOn.ToString()), " < "), LoopTo.ToString()), "; AppliesTo"), DOn.ToString()), "++) {"));
                             EventsString += TempLine + Constants.vbCrLf;
                             CurrentIndent = (byte)(CurrentIndent + 1);
                             Added = 1;
@@ -880,11 +880,14 @@ namespace DS_Game_Maker
                         DBASCode = DBASCode.Replace("<br|>", Constants.vbCrLf).Replace("<com>", ",").Replace("<sem>", ";");
                         string CCode = DS_Game_Maker.ScriptsLib.ScriptParseFromContent("Temp", DBASCode, string.Empty, string.Empty, false, true, false);
                         foreach (string X in StringToLines(CCode))
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), X), Constants.vbCrLf));
+                        {
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + X + Constants.vbCrLf;
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), X), Constants.vbCrLf));
+                        }
                     }
                     else
                     {
-                        foreach (string X_ in File.ReadAllLines(AppPath + @"Actions\" + ActionName + ".action"))
+                        foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
                         {
                             string X = X_;
 
@@ -928,7 +931,8 @@ namespace DS_Game_Maker
                                 X = X.Replace("DX", "AppliesTo");
                             }
                             X = X.Replace("[Me]", "DAppliesTo");
-                            X = Conversions.ToString(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), X));
+                            X = MakeSpaces((byte)(CurrentIndent * 2)) + X;
+                            //X = Conversions.ToString(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), X));
                             EventsString += X + Constants.vbCrLf;
                         }
                     }
@@ -937,18 +941,24 @@ namespace DS_Game_Maker
                         CurrentIndent -= Added;
                         if (Added == 1)
                         {
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "}"), Constants.vbCrLf));
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "}" + Constants.vbCrLf;
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "}"), Constants.vbCrLf));
                         }
                         else if (Added == 2)
                         {
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "  }"), Constants.vbCrLf));
-                            EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "}"), Constants.vbCrLf));
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "  }" + Constants.vbCrLf;
+                            EventsString = EventsString + MakeSpaces((byte)(CurrentIndent * 2)) + "}" + Constants.vbCrLf;
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "  }"), Constants.vbCrLf));
+                            //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(CurrentIndent * 2)), "}"), Constants.vbCrLf));
                         }
                     }
                     DOn = (short)(DOn + 1);
                 }
                 for (int i = CurrentIndent - 1; i >= 0; i -= 1)
-                    EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(i * 2)), "}"), Constants.vbCrLf));
+                {
+                    EventsString = EventsString + MakeSpaces((byte)(i * 2)) + "}" + Constants.vbCrLf;
+                    //EventsString = Conversions.ToString(EventsString + Operators.AddObject(Operators.AddObject(MakeSpaces((byte)(i * 2)), "}"), Constants.vbCrLf));
+                }
             }
             // File.WriteAllText(CompilePath + "source\Events.c", EventsString)
             DOn = 0;
@@ -983,42 +993,53 @@ namespace DS_Game_Maker
                     if (BottomBG.Length > 0)
                         FinalString += "  PA_LoadBackground(0, 2, &" + BottomBG + ");" + Constants.vbCrLf;
                 }
-                var MyPalletLines = new Collection();
+                var MyPalletLines = new Dictionary<string, string>();
                 string MyNewLine = string.Empty;
-                foreach (string p in PalletNames)
+                foreach (var p in PalletNames)
                 {
-                    byte PalletNo = Convert.ToByte(p.Substring(p.IndexOf(",") + 1));
-                    if (File.ReadAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\PAGfx.ini").Contains("DSGMPal" + PalletNo.ToString()))
+                    byte PalletNo = Convert.ToByte(p.Key.Substring(p.Value.IndexOf(",") + 1));
+                    if (File.ReadAllText(SessionsLib.CompilePath + "gfx/PAGfx.ini").Contains("DSGMPal" + PalletNo.ToString()))
                     {
                         MyNewLine = "  PA_LoadSpritePal(1, " + PalletNo.ToString() + ", (void*)DSGMPal" + PalletNo.ToString() + "_Pal);";
                         MyNewLine += " PA_LoadSpritePal(0, " + PalletNo.ToString() + ", (void*)DSGMPal" + PalletNo.ToString() + "_Pal);";
                     }
                     bool AlreadyDone = false;
-                    foreach (string MyLine in MyPalletLines)
+                    foreach (var MyLine in MyPalletLines)
                     {
-                        if ((MyLine ?? "") == (MyNewLine ?? ""))
+                        if (MyLine.Value == MyNewLine)
                         {
                             AlreadyDone = true;
                             break;
                         }
                     }
                     if (!AlreadyDone)
-                        MyPalletLines.Add(MyNewLine);
+                    {
+                        MyPalletLines.Add("", MyNewLine);
+                    }
                 }
-                foreach (string MyLine in MyPalletLines)
-                    FinalString += MyLine + Constants.vbCrLf;
+
+                foreach (var MyLine in MyPalletLines)
+                { 
+                    FinalString += MyLine.Value + Constants.vbCrLf; 
+                }
+
                 FinalString += "  DSGM_Setup_Room(" + TopWidth.ToString() + ", ";
                 FinalString += TopHeight.ToString() + ", ";
                 FinalString += BottomWidth.ToString() + ", ";
                 FinalString += BottomHeight.ToString() + ", 0, 0, 0, 0);" + Constants.vbCrLf;
                 FinalString += "  PA_LoadText(1, 0, &Default); PA_LoadText(0, 0, &Default);" + Constants.vbCrLf;
                 DOn = 0;
+
                 foreach (string Y_ in GetXDSFilter("OBJECTPLOT "))
                 {
                     string Y = Y_;
                     Y = Y.Substring(11);
-                    if (!((iGet(Y, 1, ",") ?? "") == (RoomName ?? "")))
+
+                    if (iGet(Y, 1, ",") != RoomName)
+                    {
                         continue;
+                    }
+
                     string ObjectName = iGet(Y, 0, ",");
                     // FinalString += "  // " + ObjectName + vbcrlf
                     string ObjectLine = GetXDSLine("OBJECT " + ObjectName + ",");
@@ -1244,7 +1265,7 @@ namespace DS_Game_Maker
             // FinalString += "  return true;" + vbcrlf
             // FinalString += "}" + vbcrlf + vbcrlf
             // File.WriteAllText(CompilePath + "gfx\PAGfx.ini", PAini)
-            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"source\main.c", FinalString);
+            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "source/main.c", FinalString);
             string DefsString = string.Empty;
             foreach (string XDSLine in GetXDSFilter("ROOM "))
                 DefsString += "bool " + iGet(XDSLine.Substring(5), 0, ",") + "();" + Constants.vbCrLf;
@@ -1275,7 +1296,7 @@ namespace DS_Game_Maker
                 DefsString += ");" + Constants.vbCrLf;
             }
             // fsdds()
-            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"include\Defines.h", DefsString);
+            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "include/Defines.h", DefsString);
             // File.WriteAllBytes(CompilePath + "include\ActionWorks.h", My.Resources.ActionWorks)
             string GameString = string.Empty;
             GameString += "#include \"dsgm_gfx.h\"" + Constants.vbCrLf;
@@ -1286,7 +1307,7 @@ namespace DS_Game_Maker
             {
                 string FileName = X.Substring(8);
                 GameString += "#include \"" + FileName + "\"" + Constants.vbCrLf;
-                File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"IncludeFiles\" + FileName, DS_Game_Maker.SessionsLib.CompilePath + @"include\" + FileName);
+                File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"IncludeFiles\" + FileName, DS_Game_Maker.SessionsLib.CompilePath + "include/" + FileName);
             }
             foreach (string X_ in GetXDSFilter("SOUND "))
             {
@@ -1295,7 +1316,7 @@ namespace DS_Game_Maker
                     continue;
                 X = X.Substring(6);
                 string SoundName = iGet(X, 0, ",");
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"data\" + SoundName + ".raw"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "data/" + SoundName + ".raw"))
                 {
                     GameString += "#include \"" + SoundName + ".h\"" + Constants.vbCrLf;
                 }
@@ -1417,22 +1438,22 @@ namespace DS_Game_Maker
                     byte PalletNumber_Nitro = 0;
                     if (iGet(X, 3, ",") == "Nitro")
                     {
-                        foreach (string PalletString_Nitro in PalletNumbers_Nitro)
+                        foreach (var PalletString_Nitro in PalletNumbers_Nitro)
                         {
-                            if (PalletString_Nitro.StartsWith(SpriteName + ","))
+                            if (PalletString_Nitro.Key.StartsWith(SpriteName + ","))
                             {
-                                PalletNumber_Nitro = Convert.ToByte(PalletString_Nitro.Substring(PalletString_Nitro.IndexOf(",") + 1));
+                                PalletNumber_Nitro = Convert.ToByte(PalletString_Nitro.Key.Substring(PalletString_Nitro.Value.IndexOf(",") + 1));
                             }
                         }
                         PalletNumber = (byte)PalletNumbers.Count;
                     }
                     else
                     {
-                        foreach (string PalletString in PalletNumbers)
+                        foreach (var PalletString in PalletNumbers)
                         {
-                            if (PalletString.StartsWith(SpriteName + ","))
+                            if (PalletString.Key.StartsWith(SpriteName + ","))
                             {
-                                PalletNumber = Convert.ToByte(PalletString.Substring(PalletString.IndexOf(",") + 1));
+                                PalletNumber = Convert.ToByte(PalletString.Key.Substring(PalletString.Value.IndexOf(",") + 1));
                             }
                         }
                     }
@@ -1557,7 +1578,7 @@ namespace DS_Game_Maker
             // GameString += "void Goto_Room(char *RoomName) {" + vbcrlf
             // GameString += "  Goto_Room_Backend(Room_Get_Index(RoomName));" + vbcrlf
             // GameString += "}" + vbcrlf
-            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"include\GameWorks.h", GameString);
+            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "include/GameWorks.h", GameString);
             string MF = "ARM7_SELECTED = ARM7_MP3_DSWIFI" + Constants.vbCrLf;
             MF += "USE_NITROFS  = YES" + Constants.vbCrLf;
             MF += "NITRODATA   := nitrofiles" + Constants.vbCrLf;
@@ -1570,14 +1591,14 @@ namespace DS_Game_Maker
             MF += "INCLUDES     := include build data gfx" + Constants.vbCrLf;
             MF += "RELEASEPATH  := " + Constants.vbCrLf;
             MF += "MAKEFILE_VER := ver2" + Constants.vbCrLf;
-            MF += "include " + CDrive + @"devkitPro\PAlib\lib\PA_Makefile" + Constants.vbCrLf;
+            MF += "include " + Constants.AppDirectory + "devkitPro/PAlib/lib/PA_Makefile" + Constants.vbCrLf;
             File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "Makefile", MF);
             Program.Forms.main_Form.compileForm.CustomPerformStep("Processing Graphics");
             var MyProcess = new Process();
             var MyInfo = new ProcessStartInfo();
             if (RedoAllGraphics | BGsToRedo.Count > 0 | RedoSprites)
             {
-                MyInfo.FileName = DS_Game_Maker.SessionsLib.CompilePath + @"gfx\PAGfx.exe";
+                MyInfo.FileName = DS_Game_Maker.SessionsLib.CompilePath + "gfx/PAGfx.exe";
                 MyInfo.WorkingDirectory = DS_Game_Maker.SessionsLib.CompilePath + "gfx";
                 MyProcess.StartInfo = MyInfo;
                 MyProcess.Start();
@@ -1596,26 +1617,26 @@ namespace DS_Game_Maker
                 X = X.Substring(7);
                 if (iGet(GetXDSLine("SPRITE " + X), 3, ",") == "Nitro")
                 {
-                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Sprite.bin"))
+                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Sprite.bin"))
                     {
-                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Sprite.bin"))
-                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Sprite.bin");
-                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Sprite.bin", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Sprite.bin");
+                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Sprite.bin"))
+                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Sprite.bin");
+                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Sprite.bin", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Sprite.bin");
                     }
                     byte PalletNumber = 0;
-                    foreach (string PalletString in PalletNumbers)
+                    foreach (var PalletString in PalletNumbers)
                     {
-                        if (PalletString.StartsWith(X + ","))
+                        if (PalletString.Key.StartsWith(X + ","))
                         {
-                            PalletNumber = Convert.ToByte(PalletString.Substring(PalletString.IndexOf(",") + 1));
+                            PalletNumber = Convert.ToByte(PalletString.Key.Substring(PalletString.Value.IndexOf(",") + 1));
                         }
                     }
 
-                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin"))
+                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin"))
                     {
-                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin"))
-                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin");
-                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin");
+                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin"))
+                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin");
+                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + "NitroPal" + PalletNumber.ToString() + "_Pal.bin");
                     }
                 }
                 else
@@ -1634,29 +1655,29 @@ namespace DS_Game_Maker
                 if (iGet(GetXDSLine("BACKGROUND " + X), 1, ",") == "Nitro")
                 {
 
-                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Map.bin"))
+                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Map.bin"))
                     {
-                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Map.bin"))
-                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Map.bin");
-                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Map.bin", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Map.bin");
+                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Map.bin"))
+                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Map.bin");
+                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Map.bin", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Map.bin");
                     }
-                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Tiles.bin"))
+                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Tiles.bin"))
                     {
-                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Tiles.bin"))
-                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Tiles.bin");
-                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Tiles.bin", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Tiles.bin");
+                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Tiles.bin"))
+                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Tiles.bin");
+                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Tiles.bin", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Tiles.bin");
                     }
-                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Pal.bin"))
+                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Pal.bin"))
                     {
-                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Pal.bin"))
-                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Pal.bin");
-                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + "_Pal.bin", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + "_Pal.bin");
+                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Pal.bin"))
+                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Pal.bin");
+                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + "_Pal.bin", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + "_Pal.bin");
                     }
-                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + ".c"))
+                    if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + ".c"))
                     {
-                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + ".c"))
-                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + ".c");
-                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + iGet(X, 0, ",") + ".c", DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + iGet(X, 0, ",") + ".c");
+                        if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + ".c"))
+                            File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + ".c");
+                        File.Move(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + iGet(X, 0, ",") + ".c", DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + iGet(X, 0, ",") + ".c");
                     }
                 }
                 else
@@ -1667,11 +1688,12 @@ namespace DS_Game_Maker
             if (PalletNames.Count > 0)
             {
                 DSGMH += Constants.vbCrLf + "//Pallets:" + Constants.vbCrLf;
-                for (byte i = 0, loopTo4 = (byte)(PalletNames.Count - 1); i <= loopTo4; i++)
-                    // BRB!
+                for (byte i = 0, loopTo4 = (byte)(PalletNames.Count - 1); i <= loopTo4; i++)// BRB!
+                {
                     DSGMH += "  extern const unsigned short DSGMPal" + i.ToString() + "_Pal[256] _GFX_ALIGN;" + Constants.vbCrLf;
+                }
             }
-            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h", DSGMH);
+            File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + "gfx/dsgm_gfx.h", DSGMH);
             Program.Forms.main_Form.compileForm.CustomPerformStep("Compiling Game");
             MyInfo.FileName = DS_Game_Maker.SessionsLib.CompilePath + "build.bat";
             MyInfo.WorkingDirectory = DS_Game_Maker.SessionsLib.CompilePath;
@@ -1694,9 +1716,12 @@ namespace DS_Game_Maker
 
         public static string FormNOGBAPath()
         {
-            string Returnable = AppPath + "NO$GBA";
+            string Returnable = Constants.AppDirectory + "NO$GBA";
             if (!Directory.Exists(Returnable))
-                Returnable = @"C:\NO$GBA";
+            {
+                MessageBox.Show("The emulator NO$GBA was not found.");
+            }
+            //    Returnable = Constants.AppDirectory + "NO$GBA";
             return Returnable;
         }
 
@@ -1710,7 +1735,7 @@ namespace DS_Game_Maker
                     return;
                 }
                 // MsgError(CompilePath + GetXDSLine("PROJECTNAME ").ToString.Substring(12) + ".nds")
-                Process.Start(FormNOGBAPath() + @"\NO$GBA.exe", DS_Game_Maker.SessionsLib.CompilePath + "DSGMTemp" + DS_Game_Maker.SessionsLib.Session + ".nds");
+                Process.Start(FormNOGBAPath() + "/NO$GBA.exe", DS_Game_Maker.SessionsLib.CompilePath + "DSGMTemp" + DS_Game_Maker.SessionsLib.Session + ".nds");
             }
             else
             {
@@ -1772,7 +1797,7 @@ namespace DS_Game_Maker
             short DOn = 0;
             if (TheImage.Palette.Entries.Length == 0)
             {
-                var AllColors = new Collection();
+                var AllColors = new Dictionary<string, string>();
                 for (short X = 0, loopTo = (short)(TheImage.Width - 1); X <= loopTo; X++)
                 {
                     for (short Y = 0, loopTo1 = (short)(TheImage.Height - 1); Y <= loopTo1; Y++)
@@ -1780,16 +1805,18 @@ namespace DS_Game_Maker
                         var TheColor = TheImage.GetPixel(X, Y);
                         string TheColorString = TheColor.R.ToString() + TheColor.G.ToString() + TheColor.B.ToString();
                         bool AlreadyThere = false;
-                        foreach (string P in AllColors)
+                        foreach (var P in AllColors)
                         {
-                            if ((P ?? "") == (TheColorString ?? ""))
+                            if (P.Key ==TheColorString)
                             {
                                 AlreadyThere = true;
                                 break;
                             }
                         }
                         if (!AlreadyThere)
-                            AllColors.Add(TheColorString);
+                        {
+                            AllColors.Add("", TheColorString);
+                        }
                     }
                 }
                 return (short)AllColors.Count;
@@ -1810,14 +1837,15 @@ namespace DS_Game_Maker
         {
             string FinalName = string.Empty;
             string FinalEXE = string.Empty;
-            FinalEXE = DS_Game_Maker.SettingsLib.GetSetting("IMAGE_EDITOR_PATH");
+            FinalEXE = SettingsLib.GetSetting("IMAGE_EDITOR_PATH");
+
             if (File.Exists(FinalEXE))
             {
                 Process.Start(FinalEXE, "\"" + FilePath + "\"");
             }
             else
             {
-                Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.System) + @"\mspaint.exe", "\"" + FilePath + "\"");
+                Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.System) + "/mspaint.exe", "\"" + FilePath + "\"");
             }
             string Message = "'" + ResourceName + "' has been opened. When you are finished, click 'OK'." + Constants.vbCrLf + Constants.vbCrLf + "To reverse any changes, please click 'Cancel'.";
             if (CustomMessage)
@@ -1825,21 +1853,31 @@ namespace DS_Game_Maker
                 Message = "'" + ResourceName + "' has been opened. When you are finished, click 'OK'." + Constants.vbCrLf + Constants.vbCrLf + "You should then re-add the Frame to the Sprite.";
             }
             byte Response = (byte)MessageBox.Show(Message, Application.ProductName, CustomMessage ? MessageBoxButtons.OK : MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-            if (Response == (int)MsgBoxResult.Ok)
+
+            if (MessageBox.Show(Message, "DSGMLib: Compile") == DialogResult.OK)
+            {
                 return true;
+            }
             else
+            {
                 return false;
+            }
         }
 
         public static bool EditSound(string FilePath, string ResourceName)
         {
-            Process.Start(DS_Game_Maker.SettingsLib.GetSetting("SOUND_EDITOR_PATH"), "\"" + FilePath + "\"");
+            Process.Start(SettingsLib.GetSetting("SOUND_EDITOR_PATH"), "\"" + FilePath + "\"");
+            
             string Message = "'" + ResourceName + "' has been opened. When you are finished, click 'OK'." + Constants.vbCrLf + Constants.vbCrLf + "To reverse any changes, please click 'Cancel'.";
-            byte Response = (byte)MessageBox.Show(Message, Application.ProductName, MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-            if (Response == (int)MsgBoxResult.Ok)
+            
+            if (MessageBox.Show(Message, Application.ProductName, MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.OK)
+            {
                 return true;
+            }
             else
+            {
                 return false;
+            }
         }
 
         public enum ValidateLevel : byte
@@ -1902,7 +1940,7 @@ namespace DS_Game_Maker
             OFD.Dispose();
             if (Returnable.Length > 0)
             {
-                string PR = Returnable.Substring(0, Returnable.LastIndexOf(@"\"));
+                string PR = Returnable.Substring(0, Returnable.LastIndexOf("/"));
                 LoadDefaultFolder = PR;
             }
             return Returnable;
@@ -1967,10 +2005,11 @@ namespace DS_Game_Maker
 
         public static Image MakeBMPTransparent(Image InputImage, Color InputColor)
         {
-            Bitmap Returnable = (Bitmap)InputImage;
-            Returnable.MakeTransparent(InputColor);
-            return Returnable;
-            Returnable.Dispose();
+            using (Bitmap Returnable = (Bitmap)InputImage)
+            {
+                Returnable.MakeTransparent(InputColor);
+                return Returnable;
+            }
         }
 
         private static List<short> Positions = new List<short>();
@@ -2095,7 +2134,7 @@ namespace DS_Game_Maker
             }
             if (!(FID == 100))
             {
-                TheControl.InsertText(0, Conversions.ToString(MakeSpaces((byte)(SpaceCount + Amount))));
+                TheControl.InsertText(0, (string)MakeSpaces((byte)(SpaceCount + Amount)));
                 bool DoAdd = true;
                 //for (byte i = (byte)TheControl.Caret.Position, loopTo2 = (byte)(TheControl.Lines.Count - 1); i <= loopTo2; i++)
                 for (byte i = (byte)TheControl.CurrentPosition, loopTo2 = (byte)(TheControl.Lines.Count - 1); i <= loopTo2; i++)
@@ -2129,7 +2168,7 @@ namespace DS_Game_Maker
             {
                 SpaceCount = (sbyte)(SpaceCount - Amount);
                 string FX = P;
-                if (FX.StartsWith(Conversions.ToString(MakeSpaces(Amount))))
+                if (FX.StartsWith((char)MakeSpaces(Amount)))
                 {
                     FX = FX.Substring(Amount);
                     //TheControl.Lines[TheControl.Caret.LineNumber - 1].Text = FX;
@@ -2138,7 +2177,7 @@ namespace DS_Game_Maker
             if (SpaceCount < 0)
                 SpaceCount = 0;
             TempSpaces = (byte)SpaceCount;
-            TheControl.InsertText(0,Conversions.ToString(MakeSpaces((byte)SpaceCount)));
+            TheControl.InsertText(0,(string)MakeSpaces((byte)SpaceCount));
         }
 
         public static void SilentMoveFile(string FromPath, string ToPath)
@@ -2190,9 +2229,12 @@ namespace DS_Game_Maker
                 MsgWarn("You must always have at least one room in a Project.");
                 return;
             }
-            byte Response = (byte)MessageBox.Show("Are you sure you would like to delete '" + ResourceName + "'?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(Response == (int)MsgBoxResult.Yes))
+
+            if (MessageBox.Show("Are you sure you would like to delete '" + ResourceName + "'?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.OK)
+            {
                 return;
+            }
+
             if (Type == "Sprite")
             {
                 DOn = 0;
@@ -2204,19 +2246,19 @@ namespace DS_Game_Maker
                 {
                     foreach (string X in Directory.GetFiles(DS_Game_Maker.SessionsLib.CompilePath + "build"))
                     {
-                        if (X.EndsWith(@"\" + ResourceName + "_Sprite.h") | X.EndsWith(@"\" + ResourceName + "_Sprite.o"))
+                        if (X.EndsWith("/" + ResourceName + "_Sprite.h") | X.EndsWith("/" + ResourceName + "_Sprite.o"))
                         {
                             File.Delete(X);
                         }
                     }
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + ResourceName + ".png"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + ResourceName + ".png"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + ResourceName + ".png");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + ResourceName + ".png");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Sprite.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Sprite.bin"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Sprite.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Sprite.bin");
                 }
                 XDSRemoveLine(GetXDSLine("SPRITE " + ResourceName + ","));
                 foreach (string X in Directory.GetFiles(DS_Game_Maker.SessionsLib.SessionPath + "Sprites"))
@@ -2274,7 +2316,7 @@ namespace DS_Game_Maker
                 CurrentXDS = UpdateActionsName(CurrentXDS, "Object", ResourceName, "<Unknown>", false);
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Sprite].Nodes)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                     {
                         X.Remove();
                         break;
@@ -2289,8 +2331,9 @@ namespace DS_Game_Maker
                 XDSRemoveFilter("OBJECTPLOT " + ResourceName + ",");
                 foreach (Form X in Program.Forms.main_Form.MdiChildren)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                         continue;
+
                     if (X.Name == "Room")
                     {
                         DS_Game_Maker.Room DForm = (DS_Game_Maker.Room)X;
@@ -2300,7 +2343,7 @@ namespace DS_Game_Maker
                         DOn = 0;
                         foreach (DS_Game_Maker.Room.AnObject Y in DForm.Objects)
                         {
-                            if (Y.InUse & (Y.ObjectName ?? "") == (ResourceName ?? ""))
+                            if (Y.InUse & (Y.ObjectName == ResourceName))
                             {
                                 DForm.Objects[(int)DOn].CacheImage = (Bitmap)null;
                                 DForm.Objects[(int)DOn].InUse = false;
@@ -2346,7 +2389,7 @@ namespace DS_Game_Maker
                 }
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.DObject].Nodes)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                     {
                         X.Remove();
                         break;
@@ -2356,48 +2399,48 @@ namespace DS_Game_Maker
             else if (Type == "Background")
             {
                 XDSRemoveLine(GetXDSLine("BACKGROUND " + ResourceName));
-                File.Delete(DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + ResourceName + ".png");
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + ResourceName + ".png"))
+                File.Delete(DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + ResourceName + ".png");
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + ResourceName + ".png"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + ResourceName + ".png");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + ResourceName + ".png");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + ".c"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + ".c"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + ".c");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + ".c");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Map.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Map.bin"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Map.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Map.bin");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Tiles.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Tiles.bin"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Tiles.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Tiles.bin");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Pal.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Pal.bin"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + ResourceName + "_Pal.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Pal.bin");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + ".c"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + ".c"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + ".c");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + ".c");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Map.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Map.bin"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Map.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Map.bin");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Tiles.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Tiles.bin"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Tiles.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Tiles.bin");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Pal.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Pal.bin"))
                 {
-                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Pal.bin");
+                    File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Pal.bin");
                 }
                 if (Directory.Exists(DS_Game_Maker.SessionsLib.CompilePath + "build"))
                 {
                     foreach (string X in Directory.GetFiles(DS_Game_Maker.SessionsLib.CompilePath + "build"))
                     {
-                        string FName = X.Substring(X.LastIndexOf(@"\") + 1);
+                        string FName = X.Substring(X.LastIndexOf("/") + 1);
                         FName = FName.Substring(0, FName.LastIndexOf("."));
                         if (FName.Contains("_"))
                             FName = FName.Substring(0, FName.LastIndexOf("_"));
@@ -2417,7 +2460,7 @@ namespace DS_Game_Maker
                 }
                 foreach (Form X in Program.Forms.main_Form.MdiChildren)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                         continue;
                     if (X.Name == "Room")
                     {
@@ -2434,7 +2477,7 @@ namespace DS_Game_Maker
                 UpdateArrayActionsName("Background", ResourceName, "<Unknown>", false);
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Background].Nodes)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                         X.Remove();
                 }
             }
@@ -2443,12 +2486,12 @@ namespace DS_Game_Maker
                 string SoundLine = GetXDSLine("SOUND " + ResourceName + ",");
                 string Extension = SoundLine.EndsWith(",0") ? "wav" : "mp3";
                 XDSRemoveLine(SoundLine);
-                File.Delete(DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + ResourceName + "." + Extension);
+                File.Delete(DS_Game_Maker.SessionsLib.SessionPath + "Sounds/" + ResourceName + "." + Extension);
                 CurrentXDS = UpdateActionsName(CurrentXDS, "Sound", ResourceName, "<Unknown>", false);
                 UpdateArrayActionsName("Sound", ResourceName, "<Unknown>", false);
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Sound].Nodes)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                         X.Remove();
                 }
                 if (SoundsToRedo.Contains(ResourceName))
@@ -2462,7 +2505,7 @@ namespace DS_Game_Maker
                 {
                     if (X.StartsWith("OBJECTPLOT "))
                     {
-                        if ((iGet(X, 1, ",") ?? "") == (ResourceName ?? ""))
+                        if (iGet(X, 1, ",") == ResourceName)
                             continue;
                     }
                     NewString += X + Constants.vbCrLf;
@@ -2472,10 +2515,10 @@ namespace DS_Game_Maker
                 UpdateArrayActionsName("Room", ResourceName, "<Unknown>", false);
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Room].Nodes)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                         X.Remove();
                 }
-                if ((GetXDSLine("BOOTROOM ").Substring(9) ?? "") == (ResourceName ?? ""))
+                if (GetXDSLine("BOOTROOM ").Substring(9) == ResourceName)
                 {
                     string NewRoomName = Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Room].Nodes[0].Text;
                     XDSChangeLine("BOOTROOM " + ResourceName, "BOOTROOM " + NewRoomName);
@@ -2489,7 +2532,7 @@ namespace DS_Game_Maker
                 UpdateArrayActionsName("Path", ResourceName, "<Unknown>", false);
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Path].Nodes)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                         X.Remove();
                 }
             }
@@ -2497,18 +2540,18 @@ namespace DS_Game_Maker
             {
                 XDSRemoveLine(GetXDSLine("SCRIPT " + ResourceName + ","));
                 XDSRemoveFilter("SCRIPTARG " + ResourceName + ",");
-                File.Delete(DS_Game_Maker.SessionsLib.SessionPath + @"Scripts\" + ResourceName + ".dbas");
+                File.Delete(DS_Game_Maker.SessionsLib.SessionPath + "Scripts/" + ResourceName + ".dbas");
                 CurrentXDS = UpdateActionsName(CurrentXDS, "Script", ResourceName, "<Unknown>", false);
                 UpdateArrayActionsName("Script", ResourceName, "<Unknown>", false);
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Script].Nodes)
                 {
-                    if ((X.Text ?? "") == (ResourceName ?? ""))
+                    if (X.Text == ResourceName)
                         X.Remove();
                 }
             }
             foreach (Form X in Program.Forms.main_Form.MdiChildren)
             {
-                if ((X.Text ?? "") == (ResourceName ?? ""))
+                if (X.Text == ResourceName)
                     X.Close();
             }
         }
@@ -2522,22 +2565,22 @@ namespace DS_Game_Maker
                         string OldLine = GetXDSLine("SPRITE " + OldName + ",");
                         OldLine = OldLine.Substring(8 + OldName.Length);
                         XDSAddLine("SPRITE " + NewName + "," + OldLine);
-                        foreach (string X_ in Directory.GetFiles(DS_Game_Maker.SessionsLib.SessionPath + "Sprites"))
+                        foreach (string X_ in Directory.GetFiles(SessionsLib.SessionPath + "Sprites"))
                         {
                             string X = X_;
-                            X = X.Substring(X.LastIndexOf(@"\") + 1);
+                            X = X.Substring(X.LastIndexOf("/") + 1);
                             short FrameNumber = Convert.ToInt16(X.Substring(0, X.IndexOf("_")));
                             string SpriteName = X.Substring(X.IndexOf("_") + 1);
                             SpriteName = SpriteName.Substring(0, SpriteName.Length - 4);
-                            if ((SpriteName ?? "") == (OldName ?? ""))
-                                File.Copy(X, DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\" + FrameNumber.ToString() + "_" + NewName + ".png");
+                            if (SpriteName == OldName)
+                                File.Copy(X, SessionsLib.SessionPath + "Sprites/" + FrameNumber.ToString() + "_" + NewName + ".png");
                         }
                         AddResourceNode(ref ResourceType, NewName, "SpriteNode", true);
                         break;
                     }
                 case (byte)ResourceIDs.Background:
                     {
-                        File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + OldName + ".png", DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
+                        File.Copy(DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + OldName + ".png", DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + NewName + ".png");
                         XDSAddLine("BACKGROUND " + NewName);
                         AddResourceNode(ref ResourceType, NewName, "BackgroundNode", true);
                         break;
@@ -2547,7 +2590,7 @@ namespace DS_Game_Maker
                         string OldLine = GetXDSLine("SCRIPT " + OldName + ",");
                         OldLine = OldLine.Substring(OldLine.LastIndexOf(",") + 1);
                         XDSAddLine("SCRIPT " + NewName + "," + OldLine);
-                        File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Scripts\" + OldName + ".dbas", DS_Game_Maker.SessionsLib.SessionPath + @"Scripts\" + NewName + ".dbas");
+                        File.Copy(DS_Game_Maker.SessionsLib.SessionPath + "Scripts/" + OldName + ".dbas", DS_Game_Maker.SessionsLib.SessionPath + "Scripts/" + NewName + ".dbas");
                         foreach (string X_ in GetXDSFilter("SCRIPTARG " + OldName + ","))
                         {
                             string X = X_;
@@ -2563,11 +2606,11 @@ namespace DS_Game_Maker
                         byte Type = Convert.ToByte(OldLine.Substring(7 + OldName.Length));
                         if (Type == 1)
                         {
-                            File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + OldName + ".mp3", DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + NewName + ".mp3");
+                            File.Copy(DS_Game_Maker.SessionsLib.SessionPath + "Sounds/" + OldName + ".mp3", DS_Game_Maker.SessionsLib.SessionPath + "Sounds/" + NewName + ".mp3");
                         }
                         else
                         {
-                            File.Copy(DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + OldName + ".wav", DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + NewName + ".wav");
+                            File.Copy(DS_Game_Maker.SessionsLib.SessionPath + "Sounds/" + OldName + ".wav", DS_Game_Maker.SessionsLib.SessionPath + "Sounds/" + NewName + ".wav");
                         }
 
                         break;
@@ -2654,14 +2697,21 @@ namespace DS_Game_Maker
         public static void AddResourceNode(ref byte ResourceID, string ResourceName, string NodeType, bool DoShowWindow)
         {
             var MyNewNode = new TreeNode();
+
             MyNewNode.Name = NodeType;
+
             MyNewNode.ImageIndex = ResourceID;
             MyNewNode.SelectedImageIndex = ResourceID;
+
             MyNewNode.Text = ResourceName;
+
             Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceID].Nodes.Add(MyNewNode);
             Program.Forms.main_Form.ResourcesTreeView.SelectedNode = MyNewNode;
+
             if (DoShowWindow)
+            {
                 OpenResource(ResourceName, ResourceID, true);
+            }
         }
 
         public static string GetXDSLine(string FilterString)
@@ -2669,7 +2719,9 @@ namespace DS_Game_Maker
             foreach (string XDSLine in StringToLines(CurrentXDS))
             {
                 if (XDSLine.StartsWith(FilterString))
+                {
                     return XDSLine;
+                }
             }
             return string.Empty;
         }
@@ -2679,8 +2731,10 @@ namespace DS_Game_Maker
             string FinalString = string.Empty;
             foreach (string XDSLine in StringToLines(CurrentXDS))
             {
-                if (!((XDSLine ?? "") == (line ?? "")))
+                if ((XDSLine == line) == false)
+                {
                     FinalString += XDSLine + Constants.vbCrLf;
+                }
             }
             CurrentXDS = FinalString;
         }
@@ -2690,7 +2744,7 @@ namespace DS_Game_Maker
             string FinalString = string.Empty;
             foreach (string XDSLine in StringToLines(CurrentXDS))
             {
-                if (!XDSLine.StartsWith(Filter))
+                if (XDSLine.StartsWith(Filter) == false)
                     FinalString += XDSLine + Constants.vbCrLf;
             }
             CurrentXDS = FinalString;
@@ -2701,8 +2755,9 @@ namespace DS_Game_Maker
             var Returnable = new List<string>();
             foreach (string XDSLine in StringToLines(CurrentXDS))
             {
-                if (!XDSLine.StartsWith(FilterString) | XDSLine.Length == 0)
+                if (XDSLine.StartsWith(FilterString) == false | XDSLine.Length == 0)
                     continue;
+
                 Returnable.Add(XDSLine);
             }
             return Returnable.ToArray();
@@ -2720,7 +2775,7 @@ namespace DS_Game_Maker
         {
             try
             {
-                string[] TempArray = InputString.Split(Conversions.ToChar(SeperatorChar));
+                string[] TempArray = InputString.Split(Convert.ToChar(SeperatorChar));
                 return TempArray[ReturnableItem];
             }
             catch
@@ -2739,7 +2794,7 @@ namespace DS_Game_Maker
         {
             try
             {
-                if (DS_Game_Maker.SessionsLib.SessionPath.Length > 0 & Directory.Exists(AppPath + @"ProjectTemp\" + DS_Game_Maker.SessionsLib.Session))
+                if (DS_Game_Maker.SessionsLib.SessionPath.Length > 0 & Directory.Exists(Constants.AppDirectory + "ProjectTemp/" + DS_Game_Maker.SessionsLib.Session))
                 {
                     Directory.Delete(DS_Game_Maker.SessionsLib.SessionPath, true);
                 }
@@ -2767,27 +2822,27 @@ namespace DS_Game_Maker
             ProjectPath = Result;
             BeingUsed = true;
             CleanFresh(false);
-            string DisplayResult = Result.Substring(Result.LastIndexOf(@"\") + 1);
+            string DisplayResult = Result.Substring(Result.LastIndexOf("/") + 1);
             DisplayResult = DisplayResult.Substring(0, DisplayResult.LastIndexOf("."));
             DisplayResult = DisplayResult.Replace(" ", string.Empty);
             string SessionName = string.Empty;
             for (byte Looper = 0; Looper <= 10; Looper++)
             {
-                SessionName = Conversions.ToString(Operators.AddObject(DisplayResult, DS_Game_Maker.SessionsLib.MakeSessionName()));
-                if (!Directory.Exists(AppPath + @"ProjectTemp\" + SessionName))
+                SessionName = DisplayResult + SessionsLib.MakeSessionName().ToString();
+                if (!Directory.Exists(Constants.AppDirectory + "ProjectTemp/" + SessionName))
                     break;
             }
-            DS_Game_Maker.SessionsLib.FormSession(SessionName);
+            SessionsLib.FormSession(SessionName);
             BeingUsed = true;
             ProjectPath = Result;
-            DS_Game_Maker.SessionsLib.FormSessionFS();
-            File.Copy(Result, DS_Game_Maker.SessionsLib.SessionPath + "Project.zip");
+            SessionsLib.FormSessionFS();
+            File.Copy(Result, SessionsLib.SessionPath + "Project.zip");
             string MyBAT = "zip.exe x Project.zip -y" + Constants.vbCrLf + "exit";
-            DSGMlib.RunBatchString(MyBAT, DS_Game_Maker.SessionsLib.SessionPath, true);
+            DSGMlib.RunBatchString(MyBAT, SessionsLib.SessionPath, true);
             // File.Delete(SessionPath + "Project.zip")
             ClearResourcesTreeView();
             Program.Forms.main_Form.Text = TitleDataWorks();
-            CurrentXDS = DSGMlib.PathToString(DS_Game_Maker.SessionsLib.SessionPath + "XDS.xds");
+            CurrentXDS = DSGMlib.PathToString(SessionsLib.SessionPath + "XDS.xds");
             // Project Upgrade
             bool HasMidPointLine = false;
             bool HasWiFiLine = false;
@@ -2944,7 +2999,7 @@ namespace DS_Game_Maker
         public static string GetActionTypes(object ActionName)
         {
             string Returnable = string.Empty;
-            foreach (string X_ in File.ReadAllLines(Conversions.ToString(Operators.AddObject(Operators.AddObject(AppPath + @"Actions\", ActionName), ".action"))))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
             {
                 string X = X_;
                 if (!X.StartsWith("ARG "))
@@ -3008,27 +3063,27 @@ namespace DS_Game_Maker
             // MsgError(XDSLine)
             string SpriteName = iGet(XDSLine, 1, ",");
             if (SpriteName == "None")
-                return (Bitmap)MakeBMPTransparent(PathToImage(AppPath + @"Resources\NoSprite.png"), Color.Magenta);
+                return (Bitmap)MakeBMPTransparent(PathToImage(Constants.AppDirectory + "Resources/NoSprite.png"), Color.Magenta);
             short FrameNo = Convert.ToInt16(iGet(XDSLine, 2, ","));
             // MsgError(iget(XDSLine, 2, ","))
-            return (Bitmap)MakeBMPTransparent(DSGMlib.PathToImage(DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\" + FrameNo.ToString() + "_" + SpriteName + ".png"), Color.Magenta);
+            return (Bitmap)MakeBMPTransparent(DSGMlib.PathToImage(DS_Game_Maker.SessionsLib.SessionPath + "Sprites/" + FrameNo.ToString() + "_" + SpriteName + ".png"), Color.Magenta);
         }
 
         public static void RunBatchString(string BatchString, string WorkingDirectory, bool is7Zip)
         {
             if (is7Zip)
-                File.Copy(AppPath + "zip.exe", WorkingDirectory + "zip.exe", true);
-            File.WriteAllText(WorkingDirectory + @"\DSGMBatch.bat", BatchString);
+                File.Copy(Constants.AppDirectory + "zip.exe", WorkingDirectory + "zip.exe", true);
+            File.WriteAllText(WorkingDirectory + "/DSGMBatch.bat", BatchString);
             // MsgError(WorkingDirectory + "DSGMBatch.bat")
             var MyProcess = new Process();
-            var MyStartInfo = new ProcessStartInfo(WorkingDirectory + @"\DSGMBatch.bat");
+            var MyStartInfo = new ProcessStartInfo(WorkingDirectory + "/DSGMBatch.bat");
             MyStartInfo.WorkingDirectory = WorkingDirectory;
             MyStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             MyProcess.StartInfo = MyStartInfo;
             MyProcess.Start();
             MyProcess.WaitForExit();
             MyProcess.Dispose();
-            File.Delete(WorkingDirectory + @"\DSGMBatch.bat");
+            File.Delete(WorkingDirectory + "/DSGMBatch.bat");
             try
             {
                 if (is7Zip)
@@ -3051,7 +3106,7 @@ namespace DS_Game_Maker
                 }
                 else
                 {
-                    Returnable = ProjectPath.Substring(ProjectPath.LastIndexOf(@"\") + 1);
+                    Returnable = ProjectPath.Substring(ProjectPath.LastIndexOf("/") + 1);
                     Returnable = Returnable.Substring(0, Returnable.LastIndexOf("."));
                 }
                 CacheProjectName = Returnable;

@@ -63,6 +63,7 @@ namespace DS_Game_Maker
 
     public static class Constants
     {
+        public static string AppDirectory = AppDomain.CurrentDomain.BaseDirectory.Replace('\\', '/');
         public const string vbCrLf = "\r\n";
         public const string vbNewLine = "\n";
     }

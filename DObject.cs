@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using Microsoft.VisualBasic;
 using System.Drawing.Drawing2D;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace DS_Game_Maker
 {
@@ -56,11 +48,11 @@ namespace DS_Game_Maker
 
         public void ActionMouseEnter(object sender, EventArgs e)
         {
-            string ActionName = Conversions.ToString(((Panel)sender).Tag);
+            string ActionName = (string)((Panel)sender).Tag;
             ActionNameLabel.Text = ActionName;
             ArgumentsListLabel.Text = string.Empty;
             byte ArgumentCount = 0;
-            foreach (string X_ in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
             {
                 string X = X_;
                 if (X.StartsWith("ARG "))
@@ -95,7 +87,7 @@ namespace DS_Game_Maker
         public void ActionMouseUp(object sender, MouseEventArgs e)
         {
             Cursor = Cursors.Default;
-            string ActionName = Conversions.ToString(DraggingFromBottom.Tag);
+            string ActionName = (string)DraggingFromBottom.Tag;
             if (SelectedEvent == 100)
             {
                 DS_Game_Maker.DSGMlib.MsgWarn("You must add an Event, to which to add Actions.");
@@ -128,7 +120,7 @@ namespace DS_Game_Maker
                 return;
             byte ArgCount = 0;
             bool NoAppliesTo = false;
-            foreach (string X in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
             {
                 if (X.StartsWith("ARG "))
                     ArgCount = (byte)(ArgCount + 1);
@@ -269,7 +261,7 @@ namespace DS_Game_Maker
             {
                 string ActionName = Actions[X];
                 byte IndentChange = 0;
-                foreach (string Y in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+                foreach (string Y in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
                 {
                     if (Y == "INDENT")
                     {
@@ -328,7 +320,7 @@ namespace DS_Game_Maker
             string ImagePath;
             if (SpriteDropper.Text == "None")
             {
-                ImagePath = DS_Game_Maker.DSGMlib.AppPath + @"Resources\NoSprite.png";
+                ImagePath = Constants.AppDirectory + @"Resources\NoSprite.png";
             }
             else
             {
@@ -390,7 +382,7 @@ namespace DS_Game_Maker
                 Y.SetAutoScrollMargin(8, 8);
 
                 var Actions = new List<string>();
-                foreach (string Z in Directory.GetFiles(DS_Game_Maker.DSGMlib.AppPath + "Actions"))
+                foreach (string Z in Directory.GetFiles(Constants.AppDirectory + "Actions"))
                 {
                     string ActionName = Z.Substring(Z.LastIndexOf(@"\") + 1);
                     ActionName = ActionName.Substring(0, ActionName.LastIndexOf("."));
@@ -449,46 +441,52 @@ namespace DS_Game_Maker
         {
             for (byte DOn = 0, loopTo = (byte)(SpriteDropper.Items.Count - 1); DOn <= loopTo; DOn++)
             {
-                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(SpriteDropper.Items[DOn], OldName, false)))
+                //if (Operators.ConditionalCompareObjectEqual(SpriteDropper.Items[DOn], OldName, false)))
+                        if (SpriteDropper.Items[DOn] == OldName)
                     SpriteDropper.Items[DOn] = NewName;
             }
-            if ((SpriteDropper.Text ?? "") == (OldName ?? ""))
+            if (SpriteDropper.Text == OldName)
                 SpriteDropper.Text = NewName;
         }
 
         private void DObject_Load(object sender, EventArgs e)
         {
             SelectedEvent = 100;
-            ThinList = DS_Game_Maker.SettingsLib.GetSetting("SHRINK_ACTIONS_LIST") == "1";
-            MainToolStrip.Renderer = new DS_Game_Maker.clsToolstripRenderer();
-            ActionRightClickMenu.Renderer = new DS_Game_Maker.clsMenuRenderer();
-            EventRightClickMenu.Renderer = new DS_Game_Maker.clsMenuRenderer();
+            ThinList = SettingsLib.GetSetting("SHRINK_ACTIONS_LIST") == "1";
+            MainToolStrip.Renderer = new clsToolstripRenderer();
+            ActionRightClickMenu.Renderer = new clsMenuRenderer();
+            EventRightClickMenu.Renderer = new clsMenuRenderer();
             Text = ObjectName;
             var argRAppliesTo = ActionsToAddTabControl;
             PopulateActionsTabControl(ref argRAppliesTo);
             ActionsToAddTabControl = argRAppliesTo;
             NameTextBox.Text = ObjectName;
-            string XDSLine = DS_Game_Maker.DSGMlib.GetXDSLine("OBJECT " + ObjectName + ",");
+            string XDSLine = DSGMlib.GetXDSLine("OBJECT " + ObjectName + ",");
             MyXDSLines = string.Empty;
             // MyXDSLines += XDSLine
             EventsListBox.Items.Clear();
-            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("EVENT " + ObjectName + ","))
+            foreach (string X in DSGMlib.GetXDSFilter("EVENT " + ObjectName + ","))
             {
                 MyXDSLines += X + Constants.vbCrLf;
-                DEventMainClasses.Add(DS_Game_Maker.ScriptsLib.MainClassTypeToString(Conversions.ToByte(DS_Game_Maker.DSGMlib.iGet(X, (byte)1, ","))));
-                DEventSubClasses.Add(DS_Game_Maker.DSGMlib.iGet(X, (byte)2, ","));
+                //DEventMainClasses.Add(DS_Game_Maker.ScriptsLib.MainClassTypeToString(Conversions.ToByte(DS_Game_Maker.DSGMlib.iGet(X, (byte)1, ","))));
+                DEventMainClasses.Add(ScriptsLib.MainClassTypeToString(Convert.ToByte(DSGMlib.iGet(X, 1, ","))));
+                DEventSubClasses.Add(DSGMlib.iGet(X, 2, ","));
             }
-            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("ACT " + ObjectName + ","))
+            foreach (string X in DSGMlib.GetXDSFilter("ACT " + ObjectName + ","))
                 MyXDSLines += X + Constants.vbCrLf;
+
             foreach (string X in DEventSubClasses)
                 EventsListBox.Items.Add(X);
-            SpriteName = DS_Game_Maker.DSGMlib.iGet(XDSLine, (byte)1, ",");
+
+            SpriteName = DSGMlib.iGet(XDSLine, 1, ",");
             // MsgError(iget(XDSLine, 1, ","))
-            Frame = Convert.ToInt16(DS_Game_Maker.DSGMlib.iGet(XDSLine, (byte)2, ","));
+            Frame = Convert.ToInt16(DSGMlib.iGet(XDSLine, 2, ","));
             SpriteDropper.Items.Clear();
             SpriteDropper.Items.Add("None");
-            foreach (string X in DS_Game_Maker.DSGMlib.GetXDSFilter("SPRITE "))
-                SpriteDropper.Items.Add(DS_Game_Maker.DSGMlib.iGet(X.Substring(7), (byte)0, ","));
+
+            foreach (string X in DSGMlib.GetXDSFilter("SPRITE "))
+                SpriteDropper.Items.Add(DSGMlib.iGet(X.Substring(7), 0, ","));
+
             SpriteDropper.Text = SpriteName;
             if (EventsListBox.Items.Count > 0)
             {
@@ -1134,7 +1132,7 @@ namespace DS_Game_Maker
                         continue;
                     if (!X.StartsWith("ACT "))
                         continue;
-                    X = Conversions.ToString(DS_Game_Maker.DSGMlib.SillyFixMe(X));
+                    X = DSGMlib.SillyFixMe(X).ToString();
                     // MsgError(X(X.Length - 1))
                     if (!((DS_Game_Maker.DSGMlib.iGet(X, (byte)1, ",") ?? "") == (MainClass.ToString() ?? "")) | !((DS_Game_Maker.DSGMlib.iGet(X, (byte)2, ",") ?? "") == (SubClass ?? "")))
                         continue;
@@ -1228,7 +1226,7 @@ namespace DS_Game_Maker
         {
             bool NoAppliesTo = false;
             byte ArgCount = 0;
-            foreach (string X in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + Actions[ActionsList.SelectedIndices[0]] + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + Actions[ActionsList.SelectedIndices[0]] + ".action"))
             {
                 if (X == "NOAPPLIES")
                     NoAppliesTo = true;

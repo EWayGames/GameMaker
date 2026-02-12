@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using System.IO;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace DS_Game_Maker
 {
@@ -10,7 +9,7 @@ namespace DS_Game_Maker
         public static string ActionEquateDisplay(string ActionName, string ActionArguments)
         {
             string Returnable = string.Empty;
-            foreach (string Y in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string Y in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
             {
                 if (Y.StartsWith("DISPLAY "))
                 {
@@ -20,7 +19,7 @@ namespace DS_Game_Maker
             }
             if (Returnable.Length == 0)
                 return ActionName;
-            foreach (string Y in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string Y in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
             {
                 for (int Z = 0, loopTo = (int)DS_Game_Maker.DSGMlib.HowManyChar(ActionArguments, ";"); Z <= loopTo; Z++)
                 {
@@ -50,7 +49,7 @@ namespace DS_Game_Maker
 
         public static bool ActionIsConditional(object ActionName)
         {
-            foreach (string X_ in File.ReadAllLines(Conversions.ToString(Operators.AddObject(Operators.AddObject(DS_Game_Maker.DSGMlib.AppPath + @"Actions\", ActionName), ".action"))))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
             {
                 string X = X_;
                 if (X.StartsWith("CONDITION "))
@@ -65,15 +64,15 @@ namespace DS_Game_Maker
         public static string ActionGetIconPath(string ActionName, bool UseFullPath)
         {
             string Returnable = "Empty.png";
-            foreach (string X in File.ReadAllLines(DS_Game_Maker.DSGMlib.AppPath + @"Actions\" + ActionName + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + @"Actions\" + ActionName + ".action"))
             {
                 if (X.StartsWith("ICON "))
                     Returnable = X.Substring(5);
             }
-            if (!File.Exists(DS_Game_Maker.DSGMlib.AppPath + @"ActionIcons\" + Returnable))
+            if (!File.Exists(Constants.AppDirectory + @"ActionIcons\" + Returnable))
                 Returnable = "Empty.png";
             if (UseFullPath)
-                Returnable = DS_Game_Maker.DSGMlib.AppPath + @"ActionIcons\" + Returnable;
+                Returnable = Constants.AppDirectory + @"ActionIcons\" + Returnable;
             return Returnable;
         }
 
