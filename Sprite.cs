@@ -37,13 +37,12 @@ namespace DS_Game_Maker
                 X = X.Substring(0, X.LastIndexOf("."));
                 X = X.Substring(X.IndexOf("_") + 1);
 
-                string Y = X;
                 if (X == SpriteName)
                 {
                     if (ImageCount == 0)
                     {
                         // First image! Grab the size....
-                        MainImageList.ImageSize = DS_Game_Maker.DSGMlib.PathToImage(Y).Size;
+                        MainImageList.ImageSize = DS_Game_Maker.DSGMlib.PathToImage(X).Size;
                     }
                     ImageCount = (short)(ImageCount + 1);
                 }
@@ -350,7 +349,7 @@ namespace DS_Game_Maker
             // TransformSprite.MainTabControl.TabPages(0).Text += If(MainListView.SelectedIndices.Count > 1, "s", String.Empty)
             Program.Forms.transformSprite_Form.ImagePaths.Clear();
             foreach (byte X in MainListView.SelectedIndices)
-                Program.Forms.transformSprite_Form.ImagePaths.Add(DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\" + X.ToString() + "_" + SpriteName + ".png");
+                Program.Forms.transformSprite_Form.ImagePaths.Add(DS_Game_Maker.SessionsLib.SessionPath + "Sprites/" + X.ToString() + "_" + SpriteName + ".png");
             Program.Forms.transformSprite_Form.ShowDialog();
             DataChanged = true;
         }
@@ -363,7 +362,7 @@ namespace DS_Game_Maker
             string Response = DS_Game_Maker.DSGMlib.OpenFile(string.Empty, DS_Game_Maker.DSGMlib.ImageFilter);
             if (Response.Length == 0)
                 return;
-            string ThePath = DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\" + SpriteName + "_Import";
+            string ThePath = DS_Game_Maker.SessionsLib.SessionPath + "Sprites/" + SpriteName + "_Import";
             Directory.CreateDirectory(ThePath);
 
 
@@ -444,18 +443,18 @@ namespace DS_Game_Maker
             {
                 if (DS_Game_Maker.DSGMlib.GUIResNameChecker(NewName))
                     return;
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + SpriteName + ".png"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + SpriteName + ".png"))
                 {
-                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + SpriteName + ".png", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\" + NewName + ".png");
+                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + SpriteName + ".png", DS_Game_Maker.SessionsLib.CompilePath + "gfx/" + NewName + ".png");
                 }
-                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + SpriteName + "_Sprite.bin"))
+                if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + SpriteName + "_Sprite.bin"))
                 {
-                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + SpriteName + "_Sprite.bin", DS_Game_Maker.SessionsLib.CompilePath + @"gfx\bin\" + NewName + "_Sprite.bin");
+                    DS_Game_Maker.DSGMlib.SilentMoveFile(DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + SpriteName + "_Sprite.bin", DS_Game_Maker.SessionsLib.CompilePath + "gfx/bin/" + NewName + "_Sprite.bin");
                 }
-                var BackupDate = File.GetLastWriteTime(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h");
+                var BackupDate = File.GetLastWriteTime(DS_Game_Maker.SessionsLib.CompilePath + "gfx/dsgm_gfx.h");
                 string FinalString = string.Empty;
                 string ToAdd = string.Empty;
-                foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(DS_Game_Maker.DSGMlib.PathToString(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h")))
+                foreach (string X in DS_Game_Maker.DSGMlib.StringToLines(DS_Game_Maker.DSGMlib.PathToString(DS_Game_Maker.SessionsLib.CompilePath + "gfx/dsgm_gfx.h")))
                 {
                     ToAdd = X;
                     if (X.Contains(" char " + SpriteName + "_Sprite["))
@@ -467,13 +466,13 @@ namespace DS_Game_Maker
                 File.WriteAllText(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h", FinalString);
                 File.SetLastWriteTime(DS_Game_Maker.SessionsLib.CompilePath + @"gfx\dsgm_gfx.h", BackupDate);
             }
-            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"build\" + SpriteName + "_Sprite.h"))
+            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "build/" + SpriteName + "_Sprite.h"))
             {
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"build\" + SpriteName + "_Sprite.h");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "build/" + SpriteName + "_Sprite.h");
             }
-            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"build\" + SpriteName + "_Sprite.o"))
+            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "build/" + SpriteName + "_Sprite.o"))
             {
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"build\" + SpriteName + "_Sprite.o");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "build/" + SpriteName + "_Sprite.o");
             }
             string OldLine = DS_Game_Maker.DSGMlib.GetXDSLine("SPRITE " + SpriteName + ",");
             string NewLine = "SPRITE " + NewName + "," + MainImageList.ImageSize.Width.ToString() + "," + MainImageList.ImageSize.Height.ToString();
@@ -497,7 +496,7 @@ namespace DS_Game_Maker
                 string X = X_;
                 string Backup = X;
 
-                X = X.Substring(X.LastIndexOf(@"\") + 1);
+                X = X.Substring(X.LastIndexOf("/") + 1);
                 X = X.Substring(0, X.LastIndexOf("."));
                 X = X.Substring(X.IndexOf("_") + 1);
 
@@ -505,7 +504,7 @@ namespace DS_Game_Maker
                     File.Delete(Backup);
             }
             for (short X = 0, loopTo = (short)(MainImageList.Images.Count - 1); X <= loopTo; X++)
-                MainImageList.Images[X].Save(DS_Game_Maker.SessionsLib.SessionPath + @"Sprites\" + X.ToString() + "_" + NewName + ".png");
+                MainImageList.Images[X].Save(DS_Game_Maker.SessionsLib.SessionPath + "Sprites/" + X.ToString() + "_" + NewName + ".png");
             foreach (Form X in Program.Forms.main_Form.MdiChildren)
             {
                 if (X.Name == "DObject")

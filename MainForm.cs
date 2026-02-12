@@ -99,9 +99,6 @@ namespace DS_Game_Maker
                 withBlock1.Add("String");
             }
            
-            if (Constants.AppDirectory.EndsWith(@"\bin\Debug"))
-                Constants.AppDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + @"\" + Application.ProductName;
-            //DS_Game_Maker.DSGMlib.AppPath += @"\";
             // Set Up Action icons
             DS_Game_Maker.DSGMlib.ActionBG = (Bitmap)(File.Exists(Constants.AppDirectory + "ActionBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(Constants.AppDirectory + "ActionBG.png") : Properties.Resources.ActionBG);
             DS_Game_Maker.DSGMlib.ActionConditionalBG = (Bitmap)(File.Exists(Constants.AppDirectory + "ActionConditionalBG.png") ? DS_Game_Maker.DSGMlib.PathToImage(Constants.AppDirectory + "ActionConditionalBG.png") : Properties.Resources.ActionConditionalBG);
@@ -152,11 +149,11 @@ namespace DS_Game_Maker
             } */
 
             var VitalFiles = new Collection();
-            VitalFiles.Add(Constants.AppDirectory + @"Resources\NoSprite.png");
-            VitalFiles.Add(Constants.AppDirectory + @"ActionIcons\Empty.png");
-            VitalFiles.Add(Constants.AppDirectory + @"DefaultResources\Sprite.png");
-            VitalFiles.Add(Constants.AppDirectory + @"DefaultResources\Background.png");
-            VitalFiles.Add(Constants.AppDirectory + @"DefaultResources\Sound.wav");
+            VitalFiles.Add(Constants.AppDirectory + "Resources/NoSprite.png");
+            VitalFiles.Add(Constants.AppDirectory + "ActionIcons/Empty.png");
+            VitalFiles.Add(Constants.AppDirectory + "DefaultResources/Sprite.png");
+            VitalFiles.Add(Constants.AppDirectory + "DefaultResources/Background.png");
+            VitalFiles.Add(Constants.AppDirectory + "DefaultResources/Sound.wav");
             byte VitalBuggered = 0;
             foreach (string X in VitalFiles)
             {
@@ -217,7 +214,7 @@ namespace DS_Game_Maker
             // Fonts Setup
             foreach (string FontFile in Directory.GetFiles(Constants.AppDirectory + "Fonts"))
             {
-                string FontName = FontFile.Substring(FontFile.LastIndexOf(@"\") + 1);
+                string FontName = FontFile.Substring(FontFile.LastIndexOf("/") + 1);
                 FontName = FontName.Substring(0, FontName.IndexOf("."));
                 DS_Game_Maker.DSGMlib.FontNames.Add(FontName);
             }
@@ -296,7 +293,7 @@ namespace DS_Game_Maker
                         Directory.Delete(DS_Game_Maker.SessionsLib.SessionPath, true);
                         Directory.Delete(DS_Game_Maker.SessionsLib.CompilePath, true);
                         if (DS_Game_Maker.DSGMlib.IsNewProject)
-                            File.Delete(Constants.AppDirectory + @"NewProjects\" + DS_Game_Maker.SessionsLib.Session + ".dsgm");
+                            File.Delete(Constants.AppDirectory + "NewProjects/" + DS_Game_Maker.SessionsLib.Session + ".dsgm");
                     }
                 }
                 catch
@@ -367,7 +364,7 @@ namespace DS_Game_Maker
         private void AddBackgroundButton_Click(object sender, EventArgs e)
         {
             string NewName = DS_Game_Maker.DSGMlib.MakeResourceName("Background", "BACKGROUND");
-            File.Copy(Constants.AppDirectory + @"DefaultResources\Background.png", DS_Game_Maker.SessionsLib.SessionPath + @"Backgrounds\" + NewName + ".png");
+            File.Copy(Constants.AppDirectory + "DefaultResources/Background.png", DS_Game_Maker.SessionsLib.SessionPath + "Backgrounds/" + NewName + ".png");
             DS_Game_Maker.DSGMlib.XDSAddLine("BACKGROUND " + NewName);
             byte argResourceID = (byte)DS_Game_Maker.DSGMlib.ResourceIDs.Background;
             DS_Game_Maker.DSGMlib.AddResourceNode(ref argResourceID, NewName, "BackgroundNode", true);
@@ -402,7 +399,7 @@ namespace DS_Game_Maker
             string NewName = DS_Game_Maker.DSGMlib.MakeResourceName("Sound", "SOUND");
             Program.Forms.soundType_Form.ShowDialog();
             bool SB = Program.Forms.soundType_Form.IsSoundEffect;
-            File.Copy(Constants.AppDirectory + @"DefaultResources\Sound." + (SB ? "wav" : "mp3"), DS_Game_Maker.SessionsLib.SessionPath + @"Sounds\" + NewName + "." + (SB ? "wav" : "mp3"));
+            File.Copy(Constants.AppDirectory + "DefaultResources/Sound." + (SB ? "wav" : "mp3"), DS_Game_Maker.SessionsLib.SessionPath + "Sounds/" + NewName + "." + (SB ? "wav" : "mp3"));
             DS_Game_Maker.DSGMlib.XDSAddLine("SOUND " + NewName + "," + (SB ? "0" : "1"));
             byte argResourceID = (byte)DS_Game_Maker.DSGMlib.ResourceIDs.Sound;
             DS_Game_Maker.DSGMlib.AddResourceNode(ref argResourceID, NewName, "SoundNode", true);
@@ -439,7 +436,7 @@ namespace DS_Game_Maker
         private void AddScriptButton_Click(object sender, EventArgs e)
         {
             string NewName = DS_Game_Maker.DSGMlib.MakeResourceName("Script", "SCRIPT");
-            File.CreateText(DS_Game_Maker.SessionsLib.SessionPath + @"Scripts\" + NewName + ".dbas").Dispose();
+            File.CreateText(DS_Game_Maker.SessionsLib.SessionPath + "Scripts/" + NewName + ".dbas").Dispose();
             DS_Game_Maker.DSGMlib.XDSAddLine("SCRIPT " + NewName + ",1");
             byte argResourceID = (byte)DS_Game_Maker.DSGMlib.ResourceIDs.Script;
             DS_Game_Maker.DSGMlib.AddResourceNode(ref argResourceID, NewName, "ScriptNode", true);
@@ -533,7 +530,7 @@ namespace DS_Game_Maker
         private void SaveAsButton_Click(object sender, EventArgs e)
         {
             string Directory = DS_Game_Maker.DSGMlib.ProjectPath;
-            Directory = Directory.Substring(0, Directory.IndexOf(@"\"));
+            Directory = Directory.Substring(0, Directory.IndexOf("/"));
             string Result = string.Empty;
             if (DS_Game_Maker.DSGMlib.IsNewProject)
             {
@@ -831,21 +828,21 @@ namespace DS_Game_Maker
             DS_Game_Maker.DSGMlib.RedoSprites = true;
             DS_Game_Maker.DSGMlib.BGsToRedo.Clear();
             string ResourceName = ResourcesTreeView.SelectedNode.Text;
-            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + ".c"))
+            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + ".c"))
             {
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + ".c");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + ".c");
             }
-            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Map.bin"))
+            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Map.bin"))
             {
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Map.bin");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Map.bin");
             }
-            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Tiles.bin"))
+            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Tiles.bin"))
             {
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Tiles.bin");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Tiles.bin");
             }
-            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Pal.bin"))
+            if (File.Exists(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Pal.bin"))
             {
-                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + @"nitrofiles\" + ResourceName + "_Pal.bin");
+                File.Delete(DS_Game_Maker.SessionsLib.CompilePath + "nitrofiles/" + ResourceName + "_Pal.bin");
             }
             string OldLine = DS_Game_Maker.DSGMlib.GetXDSLine(ResourcesTreeView.SelectedNode.Parent.Text.ToUpper().Substring(0, ResourcesTreeView.SelectedNode.Parent.Text.Length - 1) + " " + ResourcesTreeView.SelectedNode.Text);
             string NewLine = DS_Game_Maker.DSGMlib.GetXDSLine(ResourcesTreeView.SelectedNode.Parent.Text.ToUpper().Substring(0, ResourcesTreeView.SelectedNode.Parent.Text.Length - 1) + " " + ResourcesTreeView.SelectedNode.Text);
@@ -935,7 +932,7 @@ namespace DS_Game_Maker
 
         private void RunNOGBAButton_Click()
         {
-            Process.Start(DS_Game_Maker.DSGMlib.FormNOGBAPath() + @"\NO$GBA.exe");
+            Process.Start(DS_Game_Maker.DSGMlib.FormNOGBAPath() + "/NO$GBA.exe");
         }
 
         private void ResRightClickMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
