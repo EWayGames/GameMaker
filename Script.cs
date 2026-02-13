@@ -81,6 +81,7 @@ namespace DS_Game_Maker
             //MainTextBox.AcceptsTab = true;
             //MainTextBox.Caret.HighlightCurrentLine = (int)Convert.ToByte(SettingsLib.GetSetting("HIGHLIGHT_CURRENT_LINE")) == 1;
             // MsgError("""" + ScriptName + """")
+
             ScriptContent = DSGMlib.PathToString(SessionsLib.SessionPath + "Scripts/" + ScriptName + ".dbas");
             MainTextBox.Text = ScriptContent;
             Text = ScriptName;
@@ -282,7 +283,10 @@ namespace DS_Game_Maker
             if (ArgumentsList.SelectedIndices.Count == 0)
                 return;
             // Dim BackupPosition = MainTextBox.Caret.Position + ArgumentsListBox.Text.Length
-            //MainTextBox.InsertText(ArgumentNames[ArgumentsList.SelectedIndex]);
+            
+            MainTextBox.InsertText(MainTextBox.CurrentPosition, ArgumentNames[ArgumentsList.SelectedIndex]);
+            MainTextBox.CurrentPosition = MainTextBox.Text.Length;
+
             MainTextBox.Focus();
             // MainTextBox.Caret.Position = BackupPosition
         }
