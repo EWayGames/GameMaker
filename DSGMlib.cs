@@ -740,7 +740,7 @@ namespace DS_Game_Maker
                     bool NeedsAppliesToVar = false;
                     if (!(ActionName == "Execute Code"))
                     {
-                        foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+                        foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
                         {
                             if (X == "INDENT")
                                 IndentOrDedent = 1;
@@ -864,7 +864,7 @@ namespace DS_Game_Maker
                     }
                     else
                     {
-                        foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+                        foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
                         {
                             string X = X_;
 
@@ -1975,18 +1975,55 @@ namespace DS_Game_Maker
 
         public static Image PathToImage(string path)
         {
-            byte[] imgData = SafeGetFileData(path);
+            byte[] imgData = SafeGetFileImage(path);
             return new Bitmap(Image.FromStream(new MemoryStream(imgData)));
+        }
+
+        public static byte[] SafeGetFileImage(string filePath)
+        {
+            bool supported = false;
+
+            string[] extensions = [".bmp",".gif",".png", ".jpg", ".jpeg"];
+
+            foreach (string ext in extensions)
+            {
+                if (ext == Path.GetExtension(filePath))
+                {
+                    supported = true;
+                }
+            }
+
+            if(supported == false)
+            {
+                return Array.Empty<byte>();
+            }
+
+            using (FileStream MyFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                using (BinaryReader MyBinaryReader = new BinaryReader(MyFileStream))
+                {
+                    byte[] FinalData = MyBinaryReader.ReadBytes((int)MyFileStream.Length);
+                    MyBinaryReader.Close();
+                    MyFileStream.Close();
+
+                    return FinalData;
+                }
+            }
         }
 
         public static byte[] SafeGetFileData(string filePath)
         {
-            var MyFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            var MyBinaryReader = new BinaryReader(MyFileStream);
-            byte[] FinalData = MyBinaryReader.ReadBytes((int)MyFileStream.Length);
-            MyBinaryReader.Close();
-            MyFileStream.Close();
-            return FinalData;
+            using (FileStream MyFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                using (BinaryReader MyBinaryReader = new BinaryReader(MyFileStream))
+                {
+                    byte[] FinalData = MyBinaryReader.ReadBytes((int)MyFileStream.Length);
+                    MyBinaryReader.Close();
+                    MyFileStream.Close();
+
+                    return FinalData;
+                }
+            }
         }
 
         public static Image MakeBMPTransparent(Image InputImage, Color InputColor)
@@ -3017,10 +3054,10 @@ namespace DS_Game_Maker
             Process.Start(URL);
         }
 
-        public static string GetActionTypes(object ActionName)
+        public static string GetActionTypes(string ActionName)
         {
             string Returnable = string.Empty;
-            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 string X = X_;
                 if (!X.StartsWith("ARG "))

@@ -1066,7 +1066,14 @@ namespace DS_Game_Maker
 
         private void OpenResourceRightClickButton_Click(object sender, EventArgs e)
         {
-            DSGMlib.OpenResource(ResourcesTreeView.SelectedNode.Text, (byte)ResourcesTreeView.SelectedNode.Parent.Index, false);
+            if (ResourcesTreeView.SelectedNode.Parent.Index != null)
+            {
+                DSGMlib.OpenResource(ResourcesTreeView.SelectedNode.Text, (byte)ResourcesTreeView.SelectedNode.Parent.Index, false);
+            }
+            else
+            {
+                throw new NullReferenceException("OpenResource-RightClick-Button *CLICK* was null");
+            }
         }
 
         private void AddResourceRightClickButton_Click(object sender, EventArgs e)
