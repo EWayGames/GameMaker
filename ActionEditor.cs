@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-
+﻿
 namespace DS_Game_Maker
 {
 
@@ -66,7 +59,7 @@ namespace DS_Game_Maker
                 string ActLine = ActLine_;
                 if (ActLine.StartsWith("TYPE "))
                 {
-                    ActionType = Conversions.ToByte(ActLine.Substring(5));
+                    ActionType = Convert.ToByte(ActLine.Substring(5));
                     continue;
                 }
                 if (ActLine.StartsWith("DISPLAY"))
@@ -133,7 +126,7 @@ namespace DS_Game_Maker
                 {
                     var ToAdd = new ListViewItem();
                     ToAdd.Text = ArgNames[X];
-                    ToAdd.SubItems.Add(ScriptsLib.ArgumentTypeToString(Conversions.ToByte(ArgTypes[X])));
+                    ToAdd.SubItems.Add(ScriptsLib.ArgumentTypeToString(Convert.ToByte(ArgTypes[X])));
                     ArgumentsListView.Items.Add(ToAdd);
                 }
             }
@@ -298,7 +291,7 @@ namespace DS_Game_Maker
             if (ArgumentForm.ArgumentName.Length == 0)
                 return;
             string NewName = ArgumentForm.ArgumentName;
-            string NewType = ScriptsLib.ArgumentTypeToString(Conversions.ToByte(ArgumentForm.ArgumentType));
+            string NewType = ScriptsLib.ArgumentTypeToString(Convert.ToByte(ArgumentForm.ArgumentType));
             ArgumentForm.Dispose();
             if (!DSGMlib.ValidateSomething(NewName, (byte)DSGMlib.ValidateLevel.Loose))
             {
@@ -318,7 +311,7 @@ namespace DS_Game_Maker
             }
             var Y = new ListViewItem();
             Y.Text = ArgumentForm.ArgumentName;
-            Y.SubItems.Add(ScriptsLib.ArgumentTypeToString(Conversions.ToByte(ArgumentForm.ArgumentType)));
+            Y.SubItems.Add(ScriptsLib.ArgumentTypeToString(Convert.ToByte(ArgumentForm.ArgumentType)));
             ArgumentsListView.Items.Add(Y);
         }
 
@@ -336,7 +329,7 @@ namespace DS_Game_Maker
             if (ArgumentForm.ArgumentName.Length == 0)
                 return;
             string NewName = ArgumentForm.ArgumentName;
-            string NewType = ScriptsLib.ArgumentTypeToString(Conversions.ToByte(ArgumentForm.ArgumentType));
+            string NewType = ScriptsLib.ArgumentTypeToString(Convert.ToByte(ArgumentForm.ArgumentType));
             if (!DSGMlib.ValidateSomething(NewName, (byte)DSGMlib.ValidateLevel.Loose))
             {
                 DSGMlib.MsgWarn("You must enter a valid name for the Argument.");
@@ -369,9 +362,13 @@ namespace DS_Game_Maker
                 return;
             }
             string ActionName = ActionsTreeView.SelectedNode.Text;
-            byte Response = (byte)MessageBox.Show("Are you sure you want to delete '" + ActionName + "'?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (!(Response == (int)MsgBoxResult.Yes))
+           
+            DialogResult Response = MessageBox.Show("Are you sure you want to delete '" + ActionName + "'?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (Response != DialogResult.No)
+            {
                 return;
+            }
+
             File.Delete(Constants.AppDirectory + "Actions/" + ActionName + ".action");
             ActionsTreeView.SelectedNode.Remove();
             if (ActionsTreeView.Nodes.Count == 0)

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class Room
@@ -243,7 +236,7 @@ namespace DS_Game_Maker
         {
             for (short X = 0, loopTo = (short)(ObjectDropper.Items.Count - 1); X <= loopTo; X++)
             {
-                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ObjectDropper.Items[X], OldName, false)))
+                if (Equals(ObjectDropper.Items[X], OldName))
                 {
                     ObjectDropper.Items[X] = NewName;
                     break;
@@ -255,7 +248,7 @@ namespace DS_Game_Maker
         {
             for (short X = 0, loopTo = (short)(TopScreenBGDropper.Items.Count - 1); X <= loopTo; X++)
             {
-                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(TopScreenBGDropper.Items[X], BackgroundName, false)))
+                if (Equals(TopScreenBGDropper.Items[X], BackgroundName))
                 {
                     TopScreenBGDropper.Items[X] = BackgroundName;
                     BottomScreenBGDropper.Items[X] = BackgroundName;
@@ -668,7 +661,7 @@ namespace DS_Game_Maker
             string TheValue = ((TextBox)sender).Text;
             if (!DSGMlib.IsNumeric(TheValue, System.Globalization.NumberStyles.Integer))
                 return;
-            if (Convert.ToInt16(TheValue) == 0 | Convert.ToInt16(TheValue) > 255)
+            if ((Convert.ToInt16(TheValue) == 0) || (Convert.ToInt16(TheValue) > 255))
                 return;
             if (((dynamic)sender).name.ToString().Contains("X"))
             {
