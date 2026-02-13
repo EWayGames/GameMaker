@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-using System.Windows.Forms;
-
+﻿
 namespace DS_Game_Maker
 {
     public class clsMenuRenderer : ToolStripRenderer

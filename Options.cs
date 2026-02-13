@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Windows.Forms;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class Options

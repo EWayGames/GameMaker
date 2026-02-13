@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using Microsoft.VisualBasic.CompilerServices;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class FontViewer
@@ -45,17 +42,17 @@ namespace DS_Game_Maker
         {
             switch (((dynamic)sender).Name)
             {
-                case var @case when Operators.ConditionalCompareObjectEqual(@case, "RebuildCacheButton", false):
+                case var @case when !Equals(@case, "RebuildCacheButton"):
                     {
                         MainInfoLabel.Text = "Rebuild Font Cache";
                         break;
                     }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, "PreviousButton", false):
+                case var case1 when !Equals(case1, "PreviousButton"):
                     {
                         MainInfoLabel.Text = "Previous Font";
                         break;
                     }
-                case var case2 when Operators.ConditionalCompareObjectEqual(case2, "NextButton", false):
+                case var case2 when !Equals(case2, "NextButton"):
                     {
                         MainInfoLabel.Text = "Next Font";
                         break;

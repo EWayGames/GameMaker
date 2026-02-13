@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-using System.IO;
-
+﻿
 namespace DS_Game_Maker
 {
     static class ActionsLib

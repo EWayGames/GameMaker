@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Windows.Forms;
-using Microsoft.VisualBasic.CompilerServices;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class Argument
@@ -24,7 +20,7 @@ namespace DS_Game_Maker
             {
                 for (byte X = 1; X <= 16; X++)
                     TypeDropper.Items.Add(ScriptsLib.ArgumentTypeToString(X));
-                TypeDropper.Text = ScriptsLib.ArgumentTypeToString(Conversions.ToByte(ArgumentType));
+                TypeDropper.Text = ScriptsLib.ArgumentTypeToString(Convert.ToByte(ArgumentType));
             }
             else
             {

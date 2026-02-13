@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class AboutDSGM

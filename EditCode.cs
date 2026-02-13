@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class EditCode
@@ -64,9 +61,13 @@ namespace DS_Game_Maker
 
         private void LoadInButton_Click(object sender, EventArgs e)
         {
-            byte MsgResponse = (byte)MessageBox.Show("Importing a Script will erase and replace the current code." + Constants.vbCrLf + Constants.vbCrLf + "Would you like to Continue?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(MsgResponse == (int)MsgBoxResult.Yes))
+            DialogResult MsgResponse = MessageBox.Show("Importing a Script will erase and replace the current code." + Constants.vbCrLf + Constants.vbCrLf + "Would you like to Continue?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (MsgResponse == DialogResult.No)
+            {
                 return;
+            }
+
+
             string Response = DSGMlib.OpenFile(string.Empty, "Dynamic Basic Files|*.dbas");
             if (Response.Length == 0)
                 return;

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Media;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using Microsoft.VisualBasic;
 
 namespace DS_Game_Maker
 {

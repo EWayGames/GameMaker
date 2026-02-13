@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-
+﻿
 namespace DS_Game_Maker
 {
     internal static partial class ResourcesLib

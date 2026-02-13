@@ -1,10 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class Action

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class TransformSprite
