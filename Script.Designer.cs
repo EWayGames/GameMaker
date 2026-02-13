@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace DS_Game_Maker
 {
-    [Microsoft.VisualBasic.CompilerServices.DesignerGenerated()]
+    //[Microsoft.VisualBasic.CompilerServices.DesignerGenerated()]
     public partial class Script : Form
     {
 
@@ -78,7 +78,7 @@ namespace DS_Game_Maker
             NameTextBox.TextChanged += new EventHandler(NameTextBox_TextChanged);
             MainToolStrip.SuspendLayout();
             MainStatusStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)MainTextBox).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)MainTextBox).BeginInit();
             SidePanel.SuspendLayout();
             SuspendLayout();
             // 
@@ -315,7 +315,7 @@ namespace DS_Game_Maker
             MainToolStrip.PerformLayout();
             MainStatusStrip.ResumeLayout(false);
             MainStatusStrip.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)MainTextBox).EndInit();
+            //((System.ComponentModel.ISupportInitialize)MainTextBox).EndInit();
             SidePanel.ResumeLayout(false);
             SidePanel.PerformLayout();
             Load += new EventHandler(Script_Load);

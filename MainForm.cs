@@ -927,14 +927,23 @@ namespace DS_Game_Maker
             {
                 try
                 {
-                    ToWorkFrom = ResourcesTreeView.SelectedNode.Parent;
+                    ToWorkFrom = ResourcesTreeView.SelectedNode?.Parent;
+                    if (ToWorkFrom == null)
+                    {
+                        break; // Exit the loop if there is no parent
+                    }
+                    ResourcesTreeView.BeginUpdate();
+
                     DeleteResourceRightClickButton.Enabled = true;
                     OpenResourceRightClickButton.Enabled = true;
                     DuplicateResourceRightClickButton.Enabled = true;
                     CompilesToNitroFSButton.Enabled = true;
                     CompilesToNitroFSButton.Image = Properties.Resources.DeleteIcon;
+
                     if (string.IsNullOrEmpty(ToWorkFrom.Text))
+                    {
                         break;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -948,47 +957,64 @@ namespace DS_Game_Maker
             }
             while (false);
             {
+                //var withBlock = AddResourceRightClickButton;
+                //withBlock.Image = Properties.Resources.PlusIcon;
+
+                // Use null-conditional to safely get the parent or the node itself
+                ToWorkFrom = ResourcesTreeView.SelectedNode?.Parent ?? ResourcesTreeView.SelectedNode;
+
+                // Exit early if EVERYTHING is somehow null to prevent the switch crash
+                if (ToWorkFrom == null) return;
+
                 var withBlock = AddResourceRightClickButton;
                 withBlock.Image = Properties.Resources.PlusIcon;
-                switch (ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) ?? "")
+
+                // Use the null-conditional operator (?) to safely check length and text
+                string nodeText = ToWorkFrom.Text ?? "";
+                if (nodeText.Length > 0)
                 {
-                    case "Sprite":
-                        {
-                            withBlock.Image = AddSpriteButton.Image;
-                            break;
-                        }
-                    case "Background":
-                        {
-                            withBlock.Image = AddBackgroundButton.Image;
-                            break;
-                        }
-                    case "Script":
-                        {
-                            withBlock.Image = AddScriptButton.Image;
-                            break;
-                        }
-                    case "Room":
-                        {
-                            withBlock.Image = AddRoomButton.Image;
-                            break;
-                        }
-                    case "Path":
-                        {
-                            withBlock.Image = AddPathButton.Image;
-                            break;
-                        }
-                    case "Object":
-                        {
-                            withBlock.Image = AddObjectButton.Image;
-                            break;
-                        }
-                    case "Sound":
-                        {
-                            withBlock.Image = AddSoundButton.Image;
-                            break;
-                        }
+
+                    switch (ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1))
+                    {
+                        case "Sprite":
+                            {
+                                withBlock.Image = AddSpriteButton.Image;
+                                break;
+                            }
+                        case "Background":
+                            {
+                                withBlock.Image = AddBackgroundButton.Image;
+                                break;
+                            }
+                        case "Script":
+                            {
+                                withBlock.Image = AddScriptButton.Image;
+                                break;
+                            }
+                        case "Room":
+                            {
+                                withBlock.Image = AddRoomButton.Image;
+                                break;
+                            }
+                        case "Path":
+                            {
+                                withBlock.Image = AddPathButton.Image;
+                                break;
+                            }
+                        case "Object":
+                            {
+                                withBlock.Image = AddObjectButton.Image;
+                                break;
+                            }
+                        case "Sound":
+                            {
+                                withBlock.Image = AddSoundButton.Image;
+                                break;
+                            }
+                    }
+
+                    withBlock.Text = "Add " + ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1);
                 }
-                withBlock.Text = "Add " + ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1);
             }
             {
                 var withBlock1 = CompilesToNitroFSButton;

@@ -47,9 +47,9 @@ namespace DS_Game_Maker
             return Returnable;
         }
 
-        public static bool ActionIsConditional(object ActionName)
+        public static bool ActionIsConditional(string ActionName)
         {
-            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 string X = X_;
                 if (X.StartsWith("CONDITION "))
@@ -64,7 +64,7 @@ namespace DS_Game_Maker
         public static string ActionGetIconPath(string ActionName, bool UseFullPath)
         {
             string Returnable = "Empty.png";
-            foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 if (X.StartsWith("ICON "))
                     Returnable = X.Substring(5);

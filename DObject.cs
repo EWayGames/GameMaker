@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 
 namespace DS_Game_Maker
 {
@@ -332,7 +331,15 @@ namespace DS_Game_Maker
             }
             var Drawable = DSGMlib.PathToImage(ImagePath);
             Drawable = DSGMlib.MakeBMPTransparent(Drawable, Color.Magenta);
-            FinalGFX.DrawImage(Drawable, new Point((int)Math.Round(32d - (double)Drawable.Width / 2d), (int)Math.Round(32d - (double)Drawable.Height / 2d)));
+
+
+            int calculateX = (int)Math.Round(32d - Drawable.Width / 2d); 
+            int calculateY = (int)Math.Round(32d - Drawable.Height / 2d);
+
+            Point XY = new Point(calculateX, calculateY);
+
+            FinalGFX.DrawImage(Drawable, XY);
+
             SpritePanel.BackgroundImage = Final;
         }
 
@@ -898,11 +905,19 @@ namespace DS_Game_Maker
         {
             // MsgError(MyXDSLines)
             // Exit Sub
+
             if (EventsListBox.SelectedIndices.Count == 0)
+            {
                 return;
-            byte Response = (byte)MessageBox.Show("Are you sure you want to remove the Event and all of its Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(Response == (int)MsgBoxResult.Yes))
+            }
+
+            DialogResult Response = MessageBox.Show("Are you sure you want to remove the Event and all of its Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            
+            if (Response == DialogResult.No)
+            {
                 return;
+            }
+
             DeleteEvent((short)EventsListBox.SelectedIndices[0]);
         }
 
@@ -1433,9 +1448,13 @@ namespace DS_Game_Maker
 
         private void ClearRightClickButton_Click(object sender, EventArgs e)
         {
-            byte Response = (byte)MessageBox.Show("Are you sure you want to clear the list of Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(Response == (int)MsgBoxResult.Yes))
+            DialogResult Response = MessageBox.Show("Are you sure you want to clear the list of Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            
+            if (Response == DialogResult.No)
+            {
                 return;
+            }
+
             Actions.Clear();
             ActionImages.Clear();
             ActionDisplays.Clear();
@@ -1468,9 +1487,13 @@ namespace DS_Game_Maker
 
         private void ClearEventsButton_Click(object sender, EventArgs e)
         {
-            byte Response = (byte)MessageBox.Show("Are you sure you want to clear the list of Events?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(Response == (int)MsgBoxResult.Yes))
+            DialogResult Response = MessageBox.Show("Are you sure you want to clear the list of Events?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            
+            if ((Response == DialogResult.No))
+            {
                 return;
+            }
+
             EventsListBox.Items.Clear();
             DEventMainClasses.Clear();
             DEventSubClasses.Clear();

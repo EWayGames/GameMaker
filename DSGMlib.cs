@@ -2095,9 +2095,15 @@ namespace DS_Game_Maker
             string[] CapsEnders = new string[] { "End If", "End While", "Next", "End With" };
             //string P = TheControl.Lines[TheControl.Caret.Position - 1].Text;
             string P = TheControl.Text;
-            P = P.Substring(0, P.Length - 2);
-            if (P.Length == 0)
+
+
+            if ((P.Length <= 2) || (P.Length == 0))
+            {
                 return;
+            }            
+            
+            P = P.Substring(0, P.Length - 2);
+
             sbyte SpaceCount = 0;
             for (byte i = 0, loopTo = (byte)(P.Length - 1); i <= loopTo; i++)
             {

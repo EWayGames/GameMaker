@@ -66,7 +66,10 @@ namespace DS_Game_Maker
                 P.Stop();
             try
             {
-                Proc.Dispose();
+                if (Proc != null)
+                {
+                    Proc.Dispose();
+                }
             }
             catch
             {
