@@ -173,7 +173,7 @@ namespace DS_Game_Maker
             short DOn = 0;
             foreach (string X in ObjectDropper.Items)
             {
-                if ((X ?? "") == (ObjectName ?? ""))
+                if (X == ObjectName)
                 {
                     TheIndex = DOn;
                     break;
@@ -189,7 +189,7 @@ namespace DS_Game_Maker
             short DOn = 0;
             foreach (string X in TopScreenBGDropper.Items)
             {
-                if ((X ?? "") == (BackgroundName ?? ""))
+                if (X == BackgroundName)
                 {
                     TheIndex = DOn;
                     break;
@@ -198,13 +198,13 @@ namespace DS_Game_Maker
             }
             TopScreenBGDropper.Items.RemoveAt(TheIndex);
             BottomScreenBGDropper.Items.RemoveAt(TheIndex);
-            if ((TopBG ?? "") == (BackgroundName ?? ""))
+            if (TopBG == BackgroundName)
             {
                 TopBG = string.Empty;
                 TopScreenBGDropper.Text = string.Empty;
                 RefreshRoom(true);
             }
-            if ((BottomBG ?? "") == (BackgroundName ?? ""))
+            if (BottomBG == BackgroundName)
             {
                 BottomBG = string.Empty;
                 BottomScreenBGDropper.Text = string.Empty;
@@ -218,7 +218,7 @@ namespace DS_Game_Maker
             short DOn = 0;
             foreach (string X in TopScreenBGDropper.Items)
             {
-                if ((X ?? "") == (OldName ?? ""))
+                if (X == OldName)
                 {
                     TheIndex = DOn;
                     break;
@@ -227,12 +227,12 @@ namespace DS_Game_Maker
             }
             TopScreenBGDropper.Items[TheIndex] = NewName;
             BottomScreenBGDropper.Items[TheIndex] = NewName;
-            if ((TopBG ?? "") == (OldName ?? ""))
+            if (TopBG == OldName)
             {
                 TopBG = NewName;
                 TopScreenBGDropper.Text = NewName;
             }
-            if ((BottomBG ?? "") == (OldName ?? ""))
+            if (BottomBG == OldName)
             {
                 BottomBG = NewName;
                 BottomScreenBGDropper.Text = NewName;
@@ -362,7 +362,7 @@ namespace DS_Game_Maker
             {
                 string TheLine = TheLine_;
                 TheLine = TheLine.Substring(11);
-                if (!((DSGMlib.iGet(TheLine, (byte)1, ",") ?? "") == (RoomName ?? "")))
+                if (DSGMlib.iGet(TheLine, 1, ",") != RoomName)
                     continue;
                 string ObjectName = DSGMlib.iGet(TheLine, (byte)0, ",");
                 bool Screen = DSGMlib.iGet(TheLine, (byte)2, ",") == "1";
@@ -378,7 +378,7 @@ namespace DS_Game_Maker
         private void DAcceptButton_Click(object sender, EventArgs e)
         {
             string NewName = NameTextBox.Text;
-            if (!((NewName ?? "") == (RoomName ?? "")))
+            if (NewName != RoomName)
             {
                 if (DSGMlib.GUIResNameChecker(NewName))
                     return;
@@ -392,7 +392,7 @@ namespace DS_Game_Maker
             DSGMlib.CurrentXDS = DSGMlib.UpdateActionsName(DSGMlib.CurrentXDS, "Room", RoomName, NewName, false);
             foreach (string X in DSGMlib.GetXDSFilter("OBJECTPLOT "))
             {
-                if ((DSGMlib.iGet(X, (byte)1, ",") ?? "") == (RoomName ?? ""))
+                if (DSGMlib.iGet(X, 1, ",") == RoomName)
                     DSGMlib.XDSRemoveLine(X);
             }
             foreach (AnObject X in Objects)
@@ -407,16 +407,16 @@ namespace DS_Game_Maker
                 TheLine += "," + X.X.ToString() + "," + X.Y.ToString();
                 DSGMlib.XDSAddLine(TheLine);
             }
-            if (!((NewName ?? "") == (RoomName ?? "")))
+            if (NewName != RoomName)
             {
-                if ((DSGMlib.GetXDSLine("BOOTROOM ").Substring(9) ?? "") == (RoomName ?? ""))
+                if (DSGMlib.GetXDSLine("BOOTROOM ").Substring(9) == RoomName)
                 {
                     DSGMlib.XDSChangeLine("BOOTROOM " + RoomName, "BOOTROOM " + NewName);
                 }
             }
             foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DSGMlib.ResourceIDs.Room].Nodes)
             {
-                if ((X.Text ?? "") == (RoomName ?? ""))
+                if (X.Text == RoomName)
                     X.Text = NewName;
             }
             SettingsLib.SetSetting("SNAP_OBJECTS", SnapToGrid ? "1" : "0");
@@ -786,7 +786,7 @@ namespace DS_Game_Maker
                 bool CanAdd = true;
                 foreach (string Y in ObjectsToOpen)
                 {
-                    if ((Y ?? "") == (Objects[X].ObjectName ?? ""))
+                    if (Y == Objects[X].ObjectName)
                         CanAdd = false;
                 }
                 if (CanAdd)
@@ -819,7 +819,7 @@ namespace DS_Game_Maker
                 bool CanAdd = true;
                 foreach (string Y in ObjectsToOpen)
                 {
-                    if ((Y ?? "") == (Objects[X].ObjectName ?? ""))
+                    if (Y == Objects[X].ObjectName)
                         CanAdd = false;
                 }
                 if (CanAdd)
@@ -830,7 +830,7 @@ namespace DS_Game_Maker
                 bool DoShow = true;
                 foreach (Form TheForm in Program.Forms.main_Form.MdiChildren)
                 {
-                    if ((TheForm.Text ?? "") == (X ?? ""))
+                    if (TheForm.Text == X)
                     {
                         TheForm.Focus();
                         DoShow = false;

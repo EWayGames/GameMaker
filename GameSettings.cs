@@ -106,7 +106,7 @@ namespace DS_Game_Maker
             DSGMlib.XDSAddLine(SysName.ToUpper() + " " + ShortName);
             foreach (Control P in CodingTabPage.Controls)
             {
-                if ((P.Name ?? "") == (SysName + "FilesList" ?? ""))
+                if (P.Name == (SysName + "FilesList"))
                 {
                     ((ListBox)P).Items.Add(ShortName);
                 }

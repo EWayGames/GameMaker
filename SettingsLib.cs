@@ -34,7 +34,7 @@ namespace DS_Game_Maker
         {
             for (byte SettingNo = 0, loopTo = (byte)(SettingNames.Count - 1); SettingNo <= loopTo; SettingNo++)
             {
-                if ((SettingNames[SettingNo] ?? "") == (SettingName ?? ""))
+                if (SettingNames[SettingNo] == SettingName)
                     return SettingValues[SettingNo];
             }
             return string.Empty;
@@ -45,7 +45,7 @@ namespace DS_Game_Maker
             var BackupValues = new List<string>();
             for (byte SettingNo = 0, loopTo = (byte)(SettingNames.Count - 1); SettingNo <= loopTo; SettingNo++)
             {
-                if ((SettingNames[SettingNo] ?? "") == (SettingName ?? ""))
+                if (SettingNames[SettingNo] == SettingName)
                 {
                     BackupValues.Add(SettingValue);
                 }

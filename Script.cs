@@ -29,7 +29,7 @@ namespace DS_Game_Maker
 
         public void SaveChanges()
         {
-            if (!((ScriptName ?? "") == (NameTextBox.Text ?? "")))
+            if (ScriptName != NameTextBox.Text)
             {
                 File.Move(SessionsLib.SessionPath + @"Scripts\" + ScriptName + ".dbas", SessionsLib.SessionPath + @"Scripts\" + NameTextBox.Text + ".dbas");
             }
@@ -43,7 +43,7 @@ namespace DS_Game_Maker
             File.WriteAllText(SessionsLib.SessionPath + @"Scripts\" + NameTextBox.Text + ".dbas", MainTextBox.Text);
             foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DSGMlib.ResourceIDs.Script].Nodes)
             {
-                if ((X.Text ?? "") == (ScriptName ?? ""))
+                if (X.Text == ScriptName)
                     X.Text = NameTextBox.Text;
             }
         }
@@ -113,7 +113,7 @@ namespace DS_Game_Maker
             // TODO LATER - after renaming, update references to this in:
             // Other scripts, actions in events.
             string NewName = NameTextBox.Text;
-            if (!((ScriptName ?? "") == (NewName ?? "")))
+            if (ScriptName != NewName)
             {
                 if (DSGMlib.GUIResNameChecker(NameTextBox.Text))
                     return;
@@ -318,7 +318,7 @@ namespace DS_Game_Maker
             bool AlreadyDone = false;
             foreach (string X in ArgumentNames)
             {
-                if ((X ?? "") == (NewName ?? ""))
+                if (X == NewName)
                     AlreadyDone = true;
             }
             if (AlreadyDone)
@@ -353,12 +353,12 @@ namespace DS_Game_Maker
                 DSGMlib.MsgWarn("You must enter a valid name for the Argument.");
                 return;
             }
-            if (!((NewName ?? "") == (ArgumentNames[ID] ?? "")))
+            if (NewName != ArgumentNames[ID])
             {
                 bool AlreadyDone = false;
                 foreach (string X in ArgumentNames)
                 {
-                    if ((X ?? "") == (NewName ?? ""))
+                    if (X == NewName)
                         AlreadyDone = true;
                 }
                 if (AlreadyDone)

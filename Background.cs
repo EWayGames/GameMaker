@@ -43,14 +43,14 @@ namespace DS_Game_Maker
         private void DAcceptButton_Click(object sender, EventArgs e)
         {
             string NewName = NameTextBox.Text;
-            if (!((BackgroundName ?? "") == (NewName ?? "")))
+            if (BackgroundName != NewName)
             {
                 if (DSGMlib.GUIResNameChecker(NewName))
                     return;
             }
             File.Delete(RealPath);
             File.Move(TempPath, RealPath);
-            if (!((NewName ?? "") == (BackgroundName ?? "")))
+            if (NewName != BackgroundName)
             {
                 DSGMlib.XDSChangeLine("BACKGROUND " + BackgroundName, "BACKGROUND " + NewName);
                 DSGMlib.SilentMoveFile(RealPath, SessionsLib.SessionPath + "Backgrounds/" + NewName + ".png");
@@ -73,7 +73,7 @@ namespace DS_Game_Maker
                     byte P = 0;
                     foreach (string D in DSGMlib.BGsToRedo)
                     {
-                        if ((D ?? "") == (BackgroundName ?? ""))
+                        if (D == BackgroundName)
                             break;
                         P = (byte)(P + 1);
                     }
@@ -88,9 +88,9 @@ namespace DS_Game_Maker
                     X = X.Substring(5);
                     bool TopChange = false;
                     bool BottomChange = false;
-                    if ((DSGMlib.iGet(X, (byte)4, ",") ?? "") == (BackgroundName ?? ""))
+                    if (DSGMlib.iGet(X, (byte)4, ",") == BackgroundName)
                         TopChange = true;
-                    if ((DSGMlib.iGet(X, (byte)8, ",") ?? "") == (BackgroundName ?? ""))
+                    if (DSGMlib.iGet(X, (byte)8, ",") == BackgroundName)
                         BottomChange = true;
                     if (TopChange & BottomChange)
                     {
@@ -136,11 +136,11 @@ namespace DS_Game_Maker
                 {
                     if (!(X.Name == "Room"))
                         continue;
-                    if ((((Room)X).TopBG ?? "") == (NewName ?? ""))
+                    if (((Room)X).TopBG == NewName)
                     {
                         ((Room)X).RefreshRoom(true);
                     }
-                    if ((((Room)X).BottomBG ?? "") == (NewName ?? ""))
+                    if (((Room)X).BottomBG == NewName)
                     {
                         ((Room)X).RefreshRoom(false);
                     }
@@ -230,7 +230,7 @@ namespace DS_Game_Maker
                 foreach (string X_ in DSGMlib.StringToLines(DSGMlib.PathToString(SessionsLib.CompilePath + "gfx/dsgm_gfx.h")))
                 {
                     string X = X_;
-                    if ((X ?? "") == ("extern const PA_BgStruct " + BackgroundName + ";" ?? ""))
+                    if (X  == ("extern const PA_BgStruct " + BackgroundName + ";"))
                         X = "extern const PA_BgStruct " + NewName + ";";
                     NewString += X + Constants.vbCrLf;
                 }

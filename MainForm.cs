@@ -464,7 +464,7 @@ namespace DS_Game_Maker
             }
             if (DSGMlib.BeingUsed)
             {
-                if ((LastPath ?? "") == (DSGMlib.ProjectPath ?? ""))
+                if (LastPath == DSGMlib.ProjectPath)
                 {
                     // Same Project - Reload job
                     DialogResult Result = MessageBox.Show("Do you want to reload the current Project?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
@@ -640,7 +640,7 @@ namespace DS_Game_Maker
             }
             foreach (string X in Directory.GetDirectories(Constants.AppDirectory + "ProjectTemp"))
             {
-                if ((X ?? "") == (SessionsLib.SessionPath.Substring(0, SessionsLib.SessionPath.Length - 1) ?? ""))
+                if (X == SessionsLib.SessionPath.Substring(0, SessionsLib.SessionPath.Length - 1))
                     continue;
                 try
                 {

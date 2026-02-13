@@ -70,9 +70,9 @@ namespace DS_Game_Maker
                 bool Okay2 = false;
                 foreach (var X in DSGMlib.Numbers)
                 {
-                    if ((FPSTextBox.Text.Substring(0, 1) ?? "") == (X ?? ""))
+                    if (FPSTextBox.Text.Substring(0, 1) == X)
                         Okay1 = true;
-                    if ((FPSTextBox.Text.Substring(1) ?? "") == (X ?? ""))
+                    if (FPSTextBox.Text.Substring(1) == X)
                         Okay2 = true;
                 }
                 if (Okay1 & Okay2)
@@ -82,7 +82,7 @@ namespace DS_Game_Maker
             {
                 foreach (string X in DSGMlib.Numbers)
                 {
-                    if ((FPSTextBox.Text ?? "") == (X ?? ""))
+                    if (FPSTextBox.Text == X)
                     {
                         CanProceed = true;
                         break;
@@ -439,7 +439,7 @@ namespace DS_Game_Maker
                 DSGMlib.MsgWarn("'None' is not a valid name.");
                 return;
             }
-            if (!((SpriteName ?? "") == (NewName ?? "")))
+            if (SpriteName != NewName)
             {
                 if (DSGMlib.GUIResNameChecker(NewName))
                     return;
@@ -480,12 +480,12 @@ namespace DS_Game_Maker
             var AffectedObjects = new List<string>();
             foreach (string X in DSGMlib.GetXDSFilter("OBJECT "))
             {
-                if ((DSGMlib.iGet(X, (byte)1, ",") ?? "") == (SpriteName ?? ""))
+                if (DSGMlib.iGet(X, 1, ",") == SpriteName)
                     AffectedObjects.Add(DSGMlib.iGet(X.Substring(7), (byte)0, ","));
             }
             foreach (string X in DSGMlib.GetXDSFilter("OBJECT "))
             {
-                if (!((DSGMlib.iGet(X, (byte)1, ",") ?? "") == (SpriteName ?? "")))
+                if (DSGMlib.iGet(X, 1, ",") != SpriteName)
                     continue;
                 string ObjectName = DSGMlib.iGet(X.Substring(7), (byte)0, ",");
                 string ObjectFrame = DSGMlib.iGet(X.Substring(7), (byte)2, ",");
@@ -539,7 +539,7 @@ namespace DS_Game_Maker
             DSGMlib.CurrentXDS = DSGMlib.UpdateActionsName(DSGMlib.CurrentXDS, "Sprite", SpriteName, NewName, false);
             foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DSGMlib.ResourceIDs.Sprite].Nodes)
             {
-                if ((X.Text ?? "") == (SpriteName ?? ""))
+                if (X.Text == SpriteName)
                     X.Text = NewName;
             }
             DSGMlib.RedoSprites = DataChanged;

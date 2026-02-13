@@ -1,7 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Drawing;
-using System.Net;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
 
 namespace DS_Game_Maker
 {
@@ -128,7 +125,7 @@ namespace DS_Game_Maker
                 X = X.Substring(X.LastIndexOf("/") + 1);
                 X = X.Substring(0, X.IndexOf(".png"));
                 X = X.Substring(X.IndexOf("_") + 1);
-                if ((X ?? "") == (TheSpriteName ?? ""))
+                if (X == TheSpriteName)
                     ImageCount = (byte)(ImageCount + 1);
             }
             for (int X = 0, loopTo = ImageCount - 1; X <= loopTo; X++)
@@ -1735,7 +1732,7 @@ namespace DS_Game_Maker
             short Returnable = 0;
             for (int X = 0, loopTo = TheText.Length - 1; X <= loopTo; X++)
             {
-                if ((TheText.Substring(X, 1) ?? "") == (WhichChar ?? ""))
+                if (TheText.Substring(X, 1) == WhichChar)
                     Returnable = (short)(Returnable + 1);
             }
             return Returnable;
@@ -1941,7 +1938,7 @@ namespace DS_Game_Maker
             foreach (string XDSLine_ in StringToLines(CurrentXDS))
             {
                 string XDSLine = XDSLine_;
-                if ((XDSLine ?? "") == (Input ?? ""))
+                if (XDSLine == Input)
                     XDSLine = ChangeTo;
                 FinalString += XDSLine + Constants.vbCrLf;
             }
@@ -2058,7 +2055,7 @@ namespace DS_Game_Maker
                     {
                         string ToAdd = iGet(Y, P, ";");
                         string TType = iGet(TypeString, P, ",");
-                        if ((TType ?? "") == (ResourceTypeString ?? "") & (ToAdd ?? "") == (OldName ?? ""))
+                        if ((TType == ResourceTypeString) && (ToAdd == OldName))
                             ToAdd = NewName;
                         NewArgumentString += ToAdd + ";";
                     }
@@ -2066,7 +2063,7 @@ namespace DS_Game_Maker
                     // MsgError("Y is " + Y)
                     // MsgError("NewString is " + NewArgumentString)
                     // Y = iget(Y, 0, ",") + "," + iget(Y, 1, ",") + "," + iget(Y, 2, ",") + "," + ActionName + "," + NewArgumentString + "," + iget(Y, 5, ",")
-                    if (!((NewArgumentString ?? "") == (Y ?? "")))
+                    if (NewArgumentString != Y)
                     {
                         DForm.ActionArguments[(int)DOn] = NewArgumentString;
                         DForm.ActionDisplays[(int)DOn] = ActionsLib.ActionEquateDisplay(ActionName, NewArgumentString);
@@ -2078,7 +2075,7 @@ namespace DS_Game_Maker
                 {
                     for (short Don = 0, loopTo2 = (short)(DForm.ActionAppliesTos.Count - 1); Don <= loopTo2; Don++)
                     {
-                        if ((DForm.ActionAppliesTos[(int)Don] ?? "") == (OldName ?? ""))
+                        if (DForm.ActionAppliesTos[Don] == OldName)
                         {
                             DForm.ActionAppliesTos[(int)Don] = NewName;
                         }
@@ -2133,7 +2130,7 @@ namespace DS_Game_Maker
                     if (L.Length == 0 | L.Length <= SpaceCount)
                         continue;
                     L = L.Substring(SpaceCount);
-                    if ((L ?? "") == (Enders[FID].ToLower() ?? ""))
+                    if (L == Enders[FID].ToLower())
                         DoAdd = false;
                 }
                 if (DoAdd)
@@ -2194,7 +2191,7 @@ namespace DS_Game_Maker
                     {
                         string ToAdd = iGet(InputtedArgumentString, P, ";");
                         string TType = iGet(TypeString, P, ",");
-                        if ((TType ?? "") == (ResourceTypeString ?? "") & (ToAdd ?? "") == (OldName ?? ""))
+                        if ((TType == ResourceTypeString) && (ToAdd == OldName))
                             ToAdd = NewName;
                         NewArgumentString += ToAdd + ";";
                     }
@@ -2202,7 +2199,7 @@ namespace DS_Game_Maker
                     string Thing = iGet(Y, 5, ",");
                     if (AppliesToAlso)
                     {
-                        if ((Thing ?? "") == (OldName ?? ""))
+                        if (Thing == OldName)
                             Thing = NewName;
                     }
                     Y = iGet(Y, 0, ",") + "," + iGet(Y, 1, ",") + "," + iGet(Y, 2, ",") + "," + ActionName + "," + NewArgumentString + "," + Thing;
@@ -2260,7 +2257,7 @@ namespace DS_Game_Maker
                 var AffectedObjects = new List<string>();
                 foreach (string X in GetXDSFilter("OBJECT "))
                 {
-                    if ((iGet(X, 1, ",") ?? "") == (ResourceName ?? ""))
+                    if (iGet(X, 1, ",") == ResourceName)
                     {
                         string ObjectName = iGet(X, 0, ",").Substring(7);
                         string NewLine = "OBJECT " + ObjectName + ",None,0";
@@ -2298,7 +2295,7 @@ namespace DS_Game_Maker
                     {
                         DObject DForm = (DObject)X;
                         string SpriteName = DForm.GetSpriteName();
-                        if ((SpriteName ?? "") == (ResourceName ?? ""))
+                        if (SpriteName == ResourceName)
                             DForm.DeleteSprite();
                         DForm.MyXDSLines = DSGMlib.UpdateActionsName(DForm.MyXDSLines, "Sprite", ResourceName, "<Unknown>", false);
                         UpdateArrayActionsName("Sprite", ResourceName, "<Unknown>", false);
@@ -2369,7 +2366,7 @@ namespace DS_Game_Maker
                                 continue;
                             if (Y.StartsWith("EVENT "))
                             {
-                                if (iGet(Y, 1, ",") == "6" & (iGet(Y, 2, ",") ?? "") == (ResourceName ?? ""))
+                                if ((iGet(Y, 1, ",") == "6") && (iGet(Y, 2, ",") == ResourceName))
                                     Y = iGet(Y, 0, ",") + ",6,<Unknown>";
                             }
                             // If Y.StartsWith("ACT ") And Y.EndsWith("," + ResourceName) Then
@@ -2440,7 +2437,7 @@ namespace DS_Game_Maker
                         FName = FName.Substring(0, FName.LastIndexOf("."));
                         if (FName.Contains("_"))
                             FName = FName.Substring(0, FName.LastIndexOf("_"));
-                        if ((FName ?? "") == (ResourceName ?? ""))
+                        if (FName == ResourceName)
                             File.Delete(X);
                     }
                 }
@@ -2654,7 +2651,7 @@ namespace DS_Game_Maker
                         XDSAddLine("ROOM " + NewName + "," + OldLine);
                         foreach (string X in GetXDSFilter("OBJECTPLOT "))
                         {
-                            if (!((iGet(X, 1, ",") ?? "") == (OldName ?? "")))
+                            if (iGet(X, 1, ",") != OldName)
                                 continue;
                             string NewLine = iGet(X, 0, ",") + "," + NewName + "," + iGet(X, 2, ",") + "," + iGet(X, 3, ",") + "," + iGet(X, 4, ",");
                             XDSAddLine(NewLine);
@@ -3157,7 +3154,7 @@ namespace DS_Game_Maker
         {
             foreach (string X in StringToLines(CurrentXDS))
             {
-                if ((X ?? "") == (XDSLine ?? ""))
+                if (X == XDSLine)
                     return true;
             }
             return false;
