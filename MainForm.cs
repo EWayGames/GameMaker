@@ -1018,10 +1018,10 @@ namespace DS_Game_Maker
             }
             {
                 var withBlock1 = CompilesToNitroFSButton;
-                if (!(ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) == "Sprite") & !(ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) == "Background"))
+                if ((ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) != "Sprite") && (ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) != "Background"))
                 {
                     withBlock1.Enabled = false;
-                    if (!(ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) == "Sound"))
+                    if (ToWorkFrom.Text.Substring(0, ToWorkFrom.Text.Length - 1) != "Sound")
                     {
                         withBlock1.Image = Properties.Resources.DeleteIcon;
                     }
