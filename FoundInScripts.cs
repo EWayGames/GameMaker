@@ -48,7 +48,7 @@ namespace DS_Game_Maker
                         DOn = (short)(DOn + 1);
                         continue;
                     }
-                    if ((ThisLine ?? "") == (Term ?? ""))
+                    if (ThisLine == Term)
                     {
                         ScriptNames.Add(ScriptName);
                         ScriptLines.Add((short)(DOn + 1));
@@ -114,7 +114,7 @@ namespace DS_Game_Maker
             bool HasDone = false;
             foreach (Form X in Program.Forms.main_Form.MdiChildren)
             {
-                if (X.Name == "Script" & (X.Text ?? "") == (ScriptName ?? ""))
+                if ((X.Name == "Script") && (X.Text == ScriptName))
                 {
                     ((Script)X).GoToLine((short)(ScriptLines[MainListBox.SelectedIndex] - 1), ScriptPositions[MainListBox.SelectedIndex], (short)Term.Length);
                     X.BringToFront();

@@ -34,7 +34,7 @@ internal static partial class OptionsLib
     {
         for (byte SettingNo = 0, loopTo = (byte)(OptionNames.Count - 1); SettingNo <= loopTo; SettingNo++)
         {
-            if ((OptionNames[SettingNo] ?? "") == (SettingName ?? ""))
+            if (OptionNames[SettingNo] == SettingName)
                 return OptionValues[SettingNo];
         }
         return string.Empty;
@@ -45,7 +45,7 @@ internal static partial class OptionsLib
         var BackupValues = new List<string>();
         for (byte SettingNo = 0, loopTo = (byte)(OptionNames.Count - 1); SettingNo <= loopTo; SettingNo++)
         {
-            if ((OptionNames[SettingNo] ?? "") == (OptionName ?? ""))
+            if (OptionNames[SettingNo] == OptionName)
             {
                 BackupValues.Add(OptionValue);
             }

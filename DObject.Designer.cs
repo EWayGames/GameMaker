@@ -114,7 +114,6 @@ namespace DS_Game_Maker
             ClearActionsRightClickButton.Click += new EventHandler(ClearRightClickButton_Click);
             ActionsPanel = new Panel();
             ActionInfoPanel = new Panel();
-            RequiresProBanner = new Label();
             ArgumentsListLabel = new Label();
             ArgumentsHeaderLabel = new Label();
             ActionNameLabel = new Label();
@@ -477,7 +476,6 @@ namespace DS_Game_Maker
             // 
             // ActionInfoPanel
             // 
-            ActionInfoPanel.Controls.Add(RequiresProBanner);
             ActionInfoPanel.Controls.Add(ArgumentsListLabel);
             ActionInfoPanel.Controls.Add(ArgumentsHeaderLabel);
             ActionInfoPanel.Controls.Add(ActionNameLabel);
@@ -486,19 +484,6 @@ namespace DS_Game_Maker
             ActionInfoPanel.Name = "ActionInfoPanel";
             ActionInfoPanel.Size = new Size(170, 160);
             ActionInfoPanel.TabIndex = 5;
-            // 
-            // RequiresProBanner
-            // 
-            RequiresProBanner.BackColor = Color.FromArgb(192, 0, 0);
-            RequiresProBanner.BorderStyle = BorderStyle.FixedSingle;
-            RequiresProBanner.Font = new Font("Arial", 9.0f, FontStyle.Bold, GraphicsUnit.Point, 0);
-            RequiresProBanner.ForeColor = Color.White;
-            RequiresProBanner.Location = new Point(4, 133);
-            RequiresProBanner.Name = "RequiresProBanner";
-            RequiresProBanner.Padding = new Padding(3);
-            RequiresProBanner.Size = new Size(162, 23);
-            RequiresProBanner.TabIndex = 3;
-            RequiresProBanner.Text = "Requires PRO";
             // 
             // ArgumentsListLabel
             // 
@@ -606,7 +591,6 @@ namespace DS_Game_Maker
         internal Label ActionNameLabel;
         internal Label ArgumentsHeaderLabel;
         internal Label ArgumentsListLabel;
-        internal Label RequiresProBanner;
         internal ToolStripButton SelectManyButton;
         internal ToolStripButton SelectOneButton;
         internal ToolStripMenuItem SelectOneRightClickButton;

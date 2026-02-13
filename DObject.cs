@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 
 namespace DS_Game_Maker
 {
@@ -52,6 +51,7 @@ namespace DS_Game_Maker
             ActionNameLabel.Text = ActionName;
             ArgumentsListLabel.Text = string.Empty;
             byte ArgumentCount = 0;
+
             foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
             {
                 string X = X_;
@@ -63,25 +63,28 @@ namespace DS_Game_Maker
                     ArgumentCount = (byte)(ArgumentCount + 1);
                 }
             }
+
             if (ArgumentCount == 0)
+            {
                 ArgumentsListLabel.Text = "<No Arguments>";
-            bool RequiresPro = false;
+            }
+
+
+            ArgumentsHeaderLabel.Height = 120;
+            ArgumentsListLabel.Height = 94;
+
+            /*bool RequiresPro = false;
             foreach (string X in DSGMlib.ProActions)
             {
-                if ((X ?? "") == (ActionName ?? ""))
+                if (X == ActionName)
                     RequiresPro = true;
             }
-            RequiresProBanner.Visible = RequiresPro;
             if (RequiresPro)
             {
                 ArgumentsHeaderLabel.Height = 94;
                 ArgumentsListLabel.Height = 68;
-            }
-            else
-            {
-                ArgumentsHeaderLabel.Height = 120;
-                ArgumentsListLabel.Height = 94;
-            }
+            }*/
+
         }
 
         public void ActionMouseUp(object sender, MouseEventArgs e)
@@ -328,7 +331,15 @@ namespace DS_Game_Maker
             }
             var Drawable = DSGMlib.PathToImage(ImagePath);
             Drawable = DSGMlib.MakeBMPTransparent(Drawable, Color.Magenta);
-            FinalGFX.DrawImage(Drawable, new Point((int)Math.Round(32d - (double)Drawable.Width / 2d), (int)Math.Round(32d - (double)Drawable.Height / 2d)));
+
+
+            int calculateX = (int)Math.Round(32d - Drawable.Width / 2d); 
+            int calculateY = (int)Math.Round(32d - Drawable.Height / 2d);
+
+            Point XY = new Point(calculateX, calculateY);
+
+            FinalGFX.DrawImage(Drawable, XY);
+
             SpritePanel.BackgroundImage = Final;
         }
 
@@ -503,7 +514,7 @@ namespace DS_Game_Maker
             if (MyXDSLines.Length > 0)
                 SaveCurrentData();
             string NewName = NameTextBox.Text;
-            if (!((ObjectName ?? "") == (NewName ?? "")))
+            if ((ObjectName != NewName))
             {
                 if (DSGMlib.GUIResNameChecker(NameTextBox.Text))
                     return;
@@ -526,7 +537,7 @@ namespace DS_Game_Maker
             foreach (string X in DSGMlib.GetXDSFilter("OBJECTPLOT " + ObjectName + ","))
                 DSGMlib.XDSChangeLine(X, "OBJECTPLOT " + NewName + X.Substring(X.IndexOf(",")));
             string FinalString = string.Empty;
-            if ((NewName ?? "") == (ObjectName ?? ""))
+            if (NewName == ObjectName)
             {
                 FinalString = MyXDSLines;
             }
@@ -556,7 +567,7 @@ namespace DS_Game_Maker
                     DForm.RenameObjectDropper(ObjectName, NewName);
                     for (byte DOn = 0, loopTo = (byte)(DForm.Objects.Length - 1); DOn <= loopTo; DOn++)
                     {
-                        if (DForm.Objects[(int)DOn].InUse & (DForm.Objects[(int)DOn].ObjectName ?? "") == (ObjectName ?? ""))
+                        if (DForm.Objects[DOn].InUse && (DForm.Objects[DOn].ObjectName == ObjectName))
                             DForm.Objects[(int)DOn].ObjectName = NewName;
                     }
                 }
@@ -567,7 +578,7 @@ namespace DS_Game_Maker
                 short SubPoint2 = (short)(SubPoint + 1 + DSGMlib.iGet(X, (byte)2, ",").Length + 1);
                 if (DSGMlib.iGet(X, (byte)1, ",") == "6")
                 {
-                    if ((DSGMlib.iGet(X, (byte)2, ",") ?? "") == (ObjectName ?? ""))
+                    if (DSGMlib.iGet(X, 2, ",") == ObjectName)
                     {
                         DSGMlib.XDSChangeLine(X, X.Substring(0, SubPoint) + "," + NewName + "," + X.Substring(SubPoint2));
                     }
@@ -575,7 +586,7 @@ namespace DS_Game_Maker
             }
             foreach (string X in DSGMlib.GetXDSFilter("EVENT "))
             {
-                if (DSGMlib.iGet(X, (byte)1, ",") == "6" & (DSGMlib.iGet(X, (byte)2, ",") ?? "") == (ObjectName ?? ""))
+                if ((DSGMlib.iGet(X, 1, ",") == "6") && (DSGMlib.iGet(X, 2, ",") == ObjectName))
                     DSGMlib.XDSChangeLine(X, DSGMlib.iGet(X, (byte)0, ",") + ",6," + NewName);
             }
             DSGMlib.CurrentXDS = DSGMlib.UpdateActionsName(DSGMlib.CurrentXDS, "Object", ObjectName, NewName, true);
@@ -592,14 +603,14 @@ namespace DS_Game_Maker
                     string Y = Y_;
                     if (Y.StartsWith("EVENT "))
                     {
-                        if (DSGMlib.iGet(Y, (byte)1, ",") == "6" & (DSGMlib.iGet(Y, (byte)2, ",") ?? "") == (ObjectName ?? ""))
+                        if ((DSGMlib.iGet(Y, 1, ",") == "6") && (DSGMlib.iGet(Y, 2, ",") == ObjectName))
                             Y = DSGMlib.iGet(Y, (byte)0, ",") + ",6," + NewName;
                     }
                     if (Y.StartsWith("ACT "))
                     {
                         short SubPoint = (short)(DSGMlib.iGet(Y, (byte)0, ",").Length + 1 + DSGMlib.iGet(Y, (byte)1, ",").Length);
                         short SubPoint2 = (short)(SubPoint + 1 + DSGMlib.iGet(Y, (byte)2, ",").Length + 1);
-                        if (DSGMlib.iGet(Y, (byte)1, ",") == "6" & (DSGMlib.iGet(Y, (byte)2, ",") ?? "") == (ObjectName ?? ""))
+                        if ((DSGMlib.iGet(Y, 1, ",") == "6") && (DSGMlib.iGet(Y, 2, ",") == ObjectName))
                         {
                             Y = Y.Substring(0, SubPoint) + "," + NewName + "," + Y.Substring(SubPoint2);
                         }
@@ -627,7 +638,7 @@ namespace DS_Game_Maker
                 {
                     // MsgError("mainclass " + Y.ToString + " is " + DirectCast(X, DObject).DEventMainClasses(Y))
                     // MsgError("subclass " + Y.ToString + " is " + DirectCast(X, DObject).DEventSubClasses(Y))
-                    if (((DObject)X).DEventMainClasses[Y] == "Collision" & (((DObject)X).DEventSubClasses[Y] ?? "") == (ObjectName ?? ""))
+                    if ((((DObject)X).DEventMainClasses[Y] == "Collision") && (((DObject)X).DEventSubClasses[Y] == ObjectName))
                     {
                         ((DObject)X).DEventSubClasses[Y] = NewName;
                     }
@@ -645,7 +656,7 @@ namespace DS_Game_Maker
             }
             foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DSGMlib.ResourceIDs.DObject].Nodes)
             {
-                if ((X.Text ?? "") == (ObjectName ?? ""))
+                if (X.Text == ObjectName)
                     X.Text = NewName;
             }
             Close();
@@ -683,7 +694,7 @@ namespace DS_Game_Maker
                     X = X.Substring(X.LastIndexOf("/") + 1);
                     X = X.Substring(0, X.LastIndexOf("."));
                     X = X.Substring(X.IndexOf("_") + 1);
-                    if ((X ?? "") == (SpriteDropper.Text ?? ""))
+                    if (X == SpriteDropper.Text)
                         ImageCount = (short)(ImageCount + 1);
                 }
             }
@@ -731,7 +742,7 @@ namespace DS_Game_Maker
                 return;
             for (short X = 0, loopTo = (short)(DEventMainClasses.Count - 1); X <= loopTo; X++)
             {
-                if ((DEventMainClasses[X] ?? "") == (MainClass ?? "") & (DEventSubClasses[X] ?? "") == (SubClass ?? ""))
+                if ((DEventMainClasses[X] == MainClass) && (DEventSubClasses[X] == SubClass))
                 {
                     SaveOnNextChange = true;
                     EventsListBox.SelectedIndex = X - 1;
@@ -894,11 +905,19 @@ namespace DS_Game_Maker
         {
             // MsgError(MyXDSLines)
             // Exit Sub
+
             if (EventsListBox.SelectedIndices.Count == 0)
+            {
                 return;
-            byte Response = (byte)MessageBox.Show("Are you sure you want to remove the Event and all of its Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(Response == (int)MsgBoxResult.Yes))
+            }
+
+            DialogResult Response = MessageBox.Show("Are you sure you want to remove the Event and all of its Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            
+            if (Response == DialogResult.No)
+            {
                 return;
+            }
+
             DeleteEvent((short)EventsListBox.SelectedIndices[0]);
         }
 
@@ -914,8 +933,10 @@ namespace DS_Game_Maker
             string OldSC = DEventSubClasses[I];
             byte MC = ScriptsLib.MainClassStringToType(Program.Forms.dEvent_Form.MainClass);
             string SC = Program.Forms.dEvent_Form.SubClass;
-            if (MC == OldMC & (SC ?? "") == (OldSC ?? ""))
+
+            if ((MC == OldMC) && (SC == OldSC))
                 return;
+
             if (DEventMainClasses.Contains(Program.Forms.dEvent_Form.MainClass) & DEventSubClasses.Contains(Program.Forms.dEvent_Form.SubClass))
             {
                 DSGMlib.MsgWarn("That event is already in-use.");
@@ -1134,7 +1155,7 @@ namespace DS_Game_Maker
                         continue;
                     X = DSGMlib.SillyFixMe(X).ToString();
                     // MsgError(X(X.Length - 1))
-                    if (!((DSGMlib.iGet(X, (byte)1, ",") ?? "") == (MainClass.ToString() ?? "")) | !((DSGMlib.iGet(X, (byte)2, ",") ?? "") == (SubClass ?? "")))
+                    if ((DSGMlib.iGet(X, 1, ",") != MainClass.ToString()) || (DSGMlib.iGet(X, 2, ",") != SubClass))
                         continue;
                     // MsgError("On X at " + X)
                     string ActionName = DSGMlib.iGet(X, (byte)3, ",");
@@ -1169,7 +1190,7 @@ namespace DS_Game_Maker
         {
             foreach (Form TheForm in MdiChildren)
             {
-                if ((TheForm.Text ?? "") == (SpriteDropper.Text ?? ""))
+                if (TheForm.Text == SpriteDropper.Text)
                 {
                     TheForm.Focus();
                     return;
@@ -1427,9 +1448,13 @@ namespace DS_Game_Maker
 
         private void ClearRightClickButton_Click(object sender, EventArgs e)
         {
-            byte Response = (byte)MessageBox.Show("Are you sure you want to clear the list of Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(Response == (int)MsgBoxResult.Yes))
+            DialogResult Response = MessageBox.Show("Are you sure you want to clear the list of Actions?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            
+            if (Response == DialogResult.No)
+            {
                 return;
+            }
+
             Actions.Clear();
             ActionImages.Clear();
             ActionDisplays.Clear();
@@ -1462,9 +1487,13 @@ namespace DS_Game_Maker
 
         private void ClearEventsButton_Click(object sender, EventArgs e)
         {
-            byte Response = (byte)MessageBox.Show("Are you sure you want to clear the list of Events?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(Response == (int)MsgBoxResult.Yes))
+            DialogResult Response = MessageBox.Show("Are you sure you want to clear the list of Events?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            
+            if ((Response == DialogResult.No))
+            {
                 return;
+            }
+
             EventsListBox.Items.Clear();
             DEventMainClasses.Clear();
             DEventSubClasses.Clear();

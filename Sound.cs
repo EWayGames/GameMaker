@@ -57,7 +57,7 @@ namespace DS_Game_Maker
         private void DAcceptButton_Click(object sender, EventArgs e)
         {
             string NewName = NameTextBox.Text;
-            if (!((NewName ?? "") == (SoundName ?? "")))
+            if (NewName != SoundName)
             {
                 if (DSGMlib.GUIResNameChecker(NewName))
                     return;
@@ -66,24 +66,27 @@ namespace DS_Game_Maker
                 P.Stop();
             try
             {
-                Proc.Dispose();
+                if (Proc != null)
+                {
+                    Proc.Dispose();
+                }
             }
             catch
             {
             }
             P.Dispose();
-            if (!((NewName ?? "") == (SoundName ?? "")))
+            if (NewName != SoundName)
             {
                 string NewLine = "SOUND " + NewName + "," + (SoundType ? "1" : "0");
                 DSGMlib.XDSChangeLine(XDSLine, NewLine);
             }
-            if (!((OldPath ?? "") == (NewPath ?? "")))
+            if ((OldPath != NewPath))
             {
                 File.Delete(OldPath);
                 File.Copy(NewPath, OldPath);
             }
             string SoundTypeString = "." + (SoundType ? "mp3" : "wav");
-            if (!((NewName ?? "") == (SoundName ?? "")))
+            if (NewName != SoundName)
             {
                 File.Move(SessionsLib.SessionPath + "Sounds/" + SoundName + SoundTypeString, SessionsLib.SessionPath + "Sounds/" + NewName + SoundTypeString);
                 if (SoundType)
@@ -105,7 +108,7 @@ namespace DS_Game_Maker
             }
             foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DSGMlib.ResourceIDs.Sound].Nodes)
             {
-                if ((X.Text ?? "") == (SoundName ?? ""))
+                if (X.Text == SoundName)
                     X.Text = NewName;
             }
             Close();

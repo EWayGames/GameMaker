@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
-
+﻿
 namespace DS_Game_Maker
 {
     static class ScriptsLib
@@ -43,7 +40,7 @@ namespace DS_Game_Maker
                 {
                     if (P.Length == 0)
                         continue;
-                    FinalString = Conversions.ToString(FinalString + Operators.AddObject(Operators.AddObject(DSGMlib.MakeSpaces((byte)2), P), Constants.vbCrLf));
+                    FinalString = FinalString + DSGMlib.MakeSpaces(2) +  P + Constants.vbCrLf;
                 }
                 FinalString += "  return 0;" + Constants.vbCrLf;
                 FinalString += "}";
@@ -57,7 +54,7 @@ namespace DS_Game_Maker
                 string X = X_;
                 if (X.Length == 0)
                     continue;
-                X = X.Replace(Conversions.ToString(ControlChars.Tab), " ");
+                X = X.Replace(Constants.vbTab, " ");
                 IndentChange = 0;
                 for (byte i = 0; i <= 200; i++)
                 {
@@ -331,7 +328,7 @@ namespace DS_Game_Maker
                 ArgumentsString = ArgumentsString.Substring(0, ArgumentsString.Length - 1);
                 ArgumentTypesString = ArgumentTypesString.Substring(0, ArgumentTypesString.Length - 1);
             }
-            return ScriptsLib.ScriptParseFromContent(ScriptName, DSGMlib.PathToString(SessionsLib.SessionPath + @"Scripts\" + ScriptName + ".dbas"), ArgumentsString, ArgumentTypesString, false, false, IsC);
+            return ScriptsLib.ScriptParseFromContent(ScriptName, DSGMlib.PathToString(SessionsLib.SessionPath + "Scripts/" + ScriptName + ".dbas"), ArgumentsString, ArgumentTypesString, false, false, IsC);
         }
 
         public static string ActionTypeToString(byte ActionType)
@@ -353,17 +350,17 @@ namespace DS_Game_Maker
 
         public static byte ActionStringToType(object ActionString)
         {
-            if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ActionString, "Objects", false)))
+            if (!Equals(ActionString, "Objects"))
                 return 0;
-            if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ActionString, "Media", false)))
+            if (!Equals(ActionString, "Media"))
                 return 1;
-            if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ActionString, "Control", false)))
+            if (!Equals(ActionString, "Control"))
                 return 2;
-            if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ActionString, "Display", false)))
+            if (!Equals(ActionString, "Display"))
                 return 3;
-            if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ActionString, "Score", false)))
+            if (!Equals(ActionString, "Score"))
                 return 4;
-            if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ActionString, "Advanced", false)))
+            if (!Equals(ActionString, "Advanced"))
                 return 5;
             return 5;
         }

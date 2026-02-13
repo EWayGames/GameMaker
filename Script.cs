@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.IO;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using Microsoft.VisualBasic;
+﻿using System.Drawing.Drawing2D;
 
 namespace DS_Game_Maker
 {
 
     public partial class Script
     {
-
         public string ScriptName;
         private string ScriptContent;
         private bool DoIt = false;
@@ -29,9 +21,9 @@ namespace DS_Game_Maker
 
         public void SaveChanges()
         {
-            if (!((ScriptName ?? "") == (NameTextBox.Text ?? "")))
+            if (ScriptName != NameTextBox.Text)
             {
-                File.Move(SessionsLib.SessionPath + @"Scripts\" + ScriptName + ".dbas", SessionsLib.SessionPath + @"Scripts\" + NameTextBox.Text + ".dbas");
+                File.Move(SessionsLib.SessionPath + "Scripts/" + ScriptName + ".dbas", SessionsLib.SessionPath + "Scripts/" + NameTextBox.Text + ".dbas");
             }
             DSGMlib.XDSChangeLine(DSGMlib.GetXDSLine("SCRIPT " + ScriptName + ","), "SCRIPT " + NameTextBox.Text + "," + (ParseDBASChecker.Checked ? "1" : "0"));
             DSGMlib.XDSRemoveFilter("SCRIPTARG " + ScriptName + ",");
@@ -40,10 +32,10 @@ namespace DS_Game_Maker
                 for (byte P = 0, loopTo = (byte)(ArgumentNames.Count - 1); P <= loopTo; P++)
                     DSGMlib.XDSAddLine("SCRIPTARG " + NameTextBox.Text + "," + ArgumentNames[P] + "," + ArgumentTypes[P]);
             }
-            File.WriteAllText(SessionsLib.SessionPath + @"Scripts\" + NameTextBox.Text + ".dbas", MainTextBox.Text);
+            File.WriteAllText(SessionsLib.SessionPath + "Scripts/" + NameTextBox.Text + ".dbas", MainTextBox.Text);
             foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)DSGMlib.ResourceIDs.Script].Nodes)
             {
-                if ((X.Text ?? "") == (ScriptName ?? ""))
+                if (X.Text == ScriptName)
                     X.Text = NameTextBox.Text;
             }
         }
@@ -89,7 +81,8 @@ namespace DS_Game_Maker
             //MainTextBox.AcceptsTab = true;
             //MainTextBox.Caret.HighlightCurrentLine = (int)Convert.ToByte(SettingsLib.GetSetting("HIGHLIGHT_CURRENT_LINE")) == 1;
             // MsgError("""" + ScriptName + """")
-            ScriptContent = DSGMlib.PathToString(SessionsLib.SessionPath + @"Scripts\" + ScriptName + ".dbas");
+
+            ScriptContent = DSGMlib.PathToString(SessionsLib.SessionPath + "Scripts/" + ScriptName + ".dbas");
             MainTextBox.Text = ScriptContent;
             Text = ScriptName;
             NameTextBox.Text = ScriptName;
@@ -113,7 +106,7 @@ namespace DS_Game_Maker
             // TODO LATER - after renaming, update references to this in:
             // Other scripts, actions in events.
             string NewName = NameTextBox.Text;
-            if (!((ScriptName ?? "") == (NewName ?? "")))
+            if (ScriptName != NewName)
             {
                 if (DSGMlib.GUIResNameChecker(NameTextBox.Text))
                     return;
@@ -204,9 +197,13 @@ namespace DS_Game_Maker
 
         private void LoadInButton_Click(object sender, EventArgs e)
         {
-            byte MsgResponse = (byte)MessageBox.Show("Importing a Script will erase and replace the current code." + Constants.vbCrLf + Constants.vbCrLf + "Would you like to Continue?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(MsgResponse == (int)MsgBoxResult.Yes))
+            DialogResult MsgResponse = MessageBox.Show("Importing a Script will erase and replace the current code." + Constants.vbCrLf + Constants.vbCrLf + "Would you like to Continue?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (MsgResponse == DialogResult.No)
+            {
                 return;
+            }
+
             string Response = DSGMlib.OpenFile(string.Empty, "Dynamic Basic Files|*.dbas");
             if (Response.Length == 0)
                 return;
@@ -286,7 +283,10 @@ namespace DS_Game_Maker
             if (ArgumentsList.SelectedIndices.Count == 0)
                 return;
             // Dim BackupPosition = MainTextBox.Caret.Position + ArgumentsListBox.Text.Length
-            //MainTextBox.InsertText(ArgumentNames[ArgumentsList.SelectedIndex]);
+            
+            MainTextBox.InsertText(MainTextBox.CurrentPosition, ArgumentNames[ArgumentsList.SelectedIndex]);
+            MainTextBox.CurrentPosition = MainTextBox.Text.Length;
+
             MainTextBox.Focus();
             // MainTextBox.Caret.Position = BackupPosition
         }
@@ -318,7 +318,7 @@ namespace DS_Game_Maker
             bool AlreadyDone = false;
             foreach (string X in ArgumentNames)
             {
-                if ((X ?? "") == (NewName ?? ""))
+                if (X == NewName)
                     AlreadyDone = true;
             }
             if (AlreadyDone)
@@ -353,12 +353,12 @@ namespace DS_Game_Maker
                 DSGMlib.MsgWarn("You must enter a valid name for the Argument.");
                 return;
             }
-            if (!((NewName ?? "") == (ArgumentNames[ID] ?? "")))
+            if (NewName != ArgumentNames[ID])
             {
                 bool AlreadyDone = false;
                 foreach (string X in ArgumentNames)
                 {
-                    if ((X ?? "") == (NewName ?? ""))
+                    if (X == NewName)
                         AlreadyDone = true;
                 }
                 if (AlreadyDone)
