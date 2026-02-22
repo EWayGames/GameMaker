@@ -118,7 +118,9 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="richTextBox1.Text" xml:space="preserve">
-    <value>This project was originally established as DS Game Maker, founded by James Garner. We would like to express our sincere gratitude and recognition to the original development team whose vision and hard work laid the foundation for this software:
+    <value>This project was originally established as DS Game Maker, founded by James Garner. 
+
+We would like to express our sincere gratitude and recognition to the original development team whose vision and hard work laid the foundation for this software:
 
 The Original Team:
 James Garner, Chris Ertl, Dave J. Murphy, Michael Noland, Jason Rogers, Gregory Potdevin, Chris Rickard, Nick Thissen, Robert Dixon, Dave Tabba, Cilein Kearns, and Baron Khan.</value>
