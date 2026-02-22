@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
+﻿using System.Drawing.Drawing2D;
 
 namespace DS_Game_Maker
 {
@@ -62,7 +56,7 @@ namespace DS_Game_Maker
             short DOn = 0;
             for (short i = 0, loopTo = (short)(VariablesList.Items.Count - 1); i <= loopTo; i++)
             {
-                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(VariablesList.Items[i], CurrentName, false)))
+                if (Equals(VariablesList.Items[i], CurrentName))
                 {
                     DOn = i;
                     break;
@@ -257,7 +251,7 @@ namespace DS_Game_Maker
             if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
                 IsSelected = true;
             e.Graphics.FillRectangle(Brushes.White, e.Bounds);
-            string FinalText = Conversions.ToString(TypeList.Items[e.Index]);
+            string FinalText = TypeList.Items[e.Index].ToString();
             if (IsSelected)
             {
                 var x = new LinearGradientBrush(new Rectangle(0, e.Bounds.X, e.Bounds.Width, e.Bounds.Height), Color.FromArgb(192, 192, 192), Color.FromArgb(80, 80, 80), LinearGradientMode.Vertical);

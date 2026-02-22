@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
+﻿using System.Diagnostics;
 
 namespace DS_Game_Maker
 {
@@ -53,10 +49,15 @@ namespace DS_Game_Maker
                 DSGMlib.MsgWarn("There is no USB Reader for a DS Homebrew Kit connected.");
                 return;
             }
+
             File.Copy(SessionsLib.CompilePath + SessionsLib.CompileName + ".nds", HBKitDrive + DSGMlib.CacheProjectName + ".nds", true);
-            byte Response = (byte)MessageBox.Show("'" + DSGMlib.CacheProjectName + "' was copied successfully." + Constants.vbCrLf + Constants.vbCrLf + "Safely disconnect USB Reader now?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (!(Response == (int)MsgBoxResult.Yes))
+            
+            DialogResult Response = MessageBox.Show("'" + DSGMlib.CacheProjectName + "' was copied successfully." + Constants.vbCrLf + Constants.vbCrLf + "Safely disconnect USB Reader now?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (Response == DialogResult.No)
+            {
                 return;
+            }
+
             DSGMlib.RunBatchString("EjectMedia " + HBKitDrive + Constants.vbCrLf + "RemoveDrive " + HBKitDrive, Constants.AppDirectory, false);
         }
     }

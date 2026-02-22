@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class Statistics

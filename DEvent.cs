@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class DEvent
@@ -77,7 +74,9 @@ namespace DS_Game_Maker
                     }
             }
             foreach (string X in NewItems)
+            {
                 Dropper.Items.Add(X);
+            }
         }
 
         private void EventButtons_Click(object sender, EventArgs e)
@@ -105,8 +104,8 @@ namespace DS_Game_Maker
 
         private void DEvent_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // MainClass = "NoData"
-            // SubClass = "NoData"
+           // MainClass = "NoData";
+           // SubClass = "NoData";
         }
 
         private void DCancelButton_Click(object sender, EventArgs e) => DCancelButton_Click();

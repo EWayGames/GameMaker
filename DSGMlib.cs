@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Net.NetworkInformation;
 
 namespace DS_Game_Maker
 {
@@ -740,7 +742,7 @@ namespace DS_Game_Maker
                     bool NeedsAppliesToVar = false;
                     if (!(ActionName == "Execute Code"))
                     {
-                        foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+                        foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
                         {
                             if (X == "INDENT")
                                 IndentOrDedent = 1;
@@ -864,7 +866,7 @@ namespace DS_Game_Maker
                     }
                     else
                     {
-                        foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+                        foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
                         {
                             string X = X_;
 
@@ -1975,18 +1977,55 @@ namespace DS_Game_Maker
 
         public static Image PathToImage(string path)
         {
-            byte[] imgData = SafeGetFileData(path);
+            byte[] imgData = SafeGetFileImage(path);
             return new Bitmap(Image.FromStream(new MemoryStream(imgData)));
+        }
+
+        public static byte[] SafeGetFileImage(string filePath)
+        {
+            bool supported = false;
+
+            string[] extensions = [".bmp",".gif",".png", ".jpg", ".jpeg"];
+
+            foreach (string ext in extensions)
+            {
+                if (ext == Path.GetExtension(filePath))
+                {
+                    supported = true;
+                }
+            }
+
+            if(supported == false)
+            {
+                return Array.Empty<byte>();
+            }
+
+            using (FileStream MyFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                using (BinaryReader MyBinaryReader = new BinaryReader(MyFileStream))
+                {
+                    byte[] FinalData = MyBinaryReader.ReadBytes((int)MyFileStream.Length);
+                    MyBinaryReader.Close();
+                    MyFileStream.Close();
+
+                    return FinalData;
+                }
+            }
         }
 
         public static byte[] SafeGetFileData(string filePath)
         {
-            var MyFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            var MyBinaryReader = new BinaryReader(MyFileStream);
-            byte[] FinalData = MyBinaryReader.ReadBytes((int)MyFileStream.Length);
-            MyBinaryReader.Close();
-            MyFileStream.Close();
-            return FinalData;
+            using (FileStream MyFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                using (BinaryReader MyBinaryReader = new BinaryReader(MyFileStream))
+                {
+                    byte[] FinalData = MyBinaryReader.ReadBytes((int)MyFileStream.Length);
+                    MyBinaryReader.Close();
+                    MyFileStream.Close();
+
+                    return FinalData;
+                }
+            }
         }
 
         public static Image MakeBMPTransparent(Image InputImage, Color InputColor)
@@ -2224,7 +2263,7 @@ namespace DS_Game_Maker
                 return;
             }
 
-            if (MessageBox.Show("Are you sure you would like to delete '" + ResourceName + "'?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.OK)
+            if (MessageBox.Show("Are you sure you would like to delete '" + ResourceName + "'?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
             {
                 return;
             }
@@ -2240,26 +2279,33 @@ namespace DS_Game_Maker
                 {
                     foreach (string X in Directory.GetFiles(SessionsLib.CompilePath + "build"))
                     {
-                        if (X.EndsWith("/" + ResourceName + "_Sprite.h") | X.EndsWith("/" + ResourceName + "_Sprite.o"))
+                        if (X.EndsWith("/" + ResourceName + "_Sprite.h") || X.EndsWith("/" + ResourceName + "_Sprite.o"))
                         {
                             File.Delete(X);
                         }
                     }
                 }
+
                 if (File.Exists(SessionsLib.CompilePath + "gfx/" + ResourceName + ".png"))
                 {
                     File.Delete(SessionsLib.CompilePath + "gfx/" + ResourceName + ".png");
                 }
+
                 if (File.Exists(SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Sprite.bin"))
                 {
                     File.Delete(SessionsLib.CompilePath + "gfx/bin/" + ResourceName + "_Sprite.bin");
                 }
+
                 XDSRemoveLine(GetXDSLine("SPRITE " + ResourceName + ","));
+
                 foreach (string X in Directory.GetFiles(SessionsLib.SessionPath + "Sprites"))
                 {
                     if (X.EndsWith("_" + ResourceName + ".png"))
+                    {
                         File.Delete(X);
+                    }
                 }
+
                 var AffectedObjects = new List<string>();
                 foreach (string X in GetXDSFilter("OBJECT "))
                 {
@@ -2271,6 +2317,7 @@ namespace DS_Game_Maker
                         AffectedObjects.Add(ObjectName);
                     }
                 }
+
                 // Update rooms if they contain affected objects >.<
                 foreach (Form X in Program.Forms.main_Form.MdiChildren)
                 {
@@ -2286,28 +2333,45 @@ namespace DS_Game_Maker
                             if (AffectedObjects.Contains(DForm.Objects[(int)DOn].ObjectName))
                             {
                                 if (DForm.Objects[(int)DOn].Screen)
+                                {
                                     TopAffected = (byte)(TopAffected + 1);
+                                }
                                 else
+                                {
                                     BottomAffected = (byte)(BottomAffected + 1);
-                                DForm.Objects[(int)DOn].CacheImage = DSGMlib.ObjectGetImage(DForm.Objects[(int)DOn].ObjectName);
+                                }
+
+                                DForm.Objects[(int)DOn].CacheImage = ObjectGetImage(DForm.Objects[(int)DOn].ObjectName);
                             }
                         }
+
                         if (TopAffected > 0)
+                        {
                             DForm.RefreshRoom(true);
+                        }
+
                         if (BottomAffected > 0)
+                        {
                             DForm.RefreshRoom(false);
+                        }
                     }
                     else if (X.Name == "DObject")
                     {
                         DObject DForm = (DObject)X;
                         string SpriteName = DForm.GetSpriteName();
+
                         if (SpriteName == ResourceName)
+                        {
                             DForm.DeleteSprite();
-                        DForm.MyXDSLines = DSGMlib.UpdateActionsName(DForm.MyXDSLines, "Sprite", ResourceName, "<Unknown>", false);
+                        }
+
+                        DForm.MyXDSLines = UpdateActionsName(DForm.MyXDSLines, "Sprite", ResourceName, "<Unknown>", false);
                         UpdateArrayActionsName("Sprite", ResourceName, "<Unknown>", false);
                     }
                 }
+
                 CurrentXDS = UpdateActionsName(CurrentXDS, "Object", ResourceName, "<Unknown>", false);
+
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.Sprite].Nodes)
                 {
                     if (X.Text == ResourceName)
@@ -2323,10 +2387,13 @@ namespace DS_Game_Maker
                 XDSRemoveFilter("EVENT " + ResourceName + ",");
                 XDSRemoveFilter("ACT " + ResourceName + ",");
                 XDSRemoveFilter("OBJECTPLOT " + ResourceName + ",");
+
                 foreach (Form X in Program.Forms.main_Form.MdiChildren)
                 {
                     if (X.Text == ResourceName)
+                    {
                         continue;
+                    }
 
                     if (X.Name == "Room")
                     {
@@ -2335,9 +2402,10 @@ namespace DS_Game_Maker
                         byte TopAffected = 0;
                         byte BottomAffected = 0;
                         DOn = 0;
+
                         foreach (Room.AnObject Y in DForm.Objects)
                         {
-                            if (Y.InUse & (Y.ObjectName == ResourceName))
+                            if (Y.InUse && (Y.ObjectName == ResourceName))
                             {
                                 DForm.Objects[DOn].CacheImage = EmptyBitmap();
                                 DForm.Objects[DOn].InUse = false;
@@ -2356,10 +2424,16 @@ namespace DS_Game_Maker
                             }
                             DOn = (short)(DOn + 1);
                         }
+
                         if (TopAffected > 0)
+                        {
                             DForm.RefreshRoom(true);
+                        }
+
                         if (BottomAffected > 0)
+                        {
                             DForm.RefreshRoom(false);
+                        }
                     }
                     else if (X.Name == "DObject")
                     {
@@ -2368,12 +2442,18 @@ namespace DS_Game_Maker
                         foreach (string Y_ in DSGMlib.StringToLines(DForm.MyXDSLines))
                         {
                             string Y = Y_;
+
                             if (Y.Length == 0)
+                            {
                                 continue;
+                            }
+
                             if (Y.StartsWith("EVENT "))
                             {
                                 if ((iGet(Y, 1, ",") == "6") && (iGet(Y, 2, ",") == ResourceName))
+                                {
                                     Y = iGet(Y, 0, ",") + ",6,<Unknown>";
+                                }
                             }
                             // If Y.StartsWith("ACT ") And Y.EndsWith("," + ResourceName) Then
                             // Dim Z As String = Y
@@ -2386,11 +2466,17 @@ namespace DS_Game_Maker
                         DForm.MyXDSLines = FinalXDS;
                     }
                 }
+
                 foreach (TreeNode X in Program.Forms.main_Form.ResourcesTreeView.Nodes[(int)ResourceIDs.DObject].Nodes)
                 {
+                    //X.TreeView.Refresh();
+                    //Program.Forms.main_Form.ResourcesTreeView.Refresh();
+
                     if (X.Text == ResourceName)
                     {
+                        //Program.Forms.main_Form.ResourcesTreeView.Nodes[1].Nodes.Remove(X);
                         X.Remove();
+                        //throw new PingException(ResourceName);
                         break;
                     }
                 }
@@ -3017,10 +3103,10 @@ namespace DS_Game_Maker
             Process.Start(URL);
         }
 
-        public static string GetActionTypes(object ActionName)
+        public static string GetActionTypes(string ActionName)
         {
             string Returnable = string.Empty;
-            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 string X = X_;
                 if (!X.StartsWith("ARG "))

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class StructureItem

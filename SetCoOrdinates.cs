@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using Microsoft.VisualBasic.CompilerServices;
-
+﻿
 namespace DS_Game_Maker
 {
 
@@ -18,8 +15,8 @@ namespace DS_Game_Maker
 
         private void DAcceptButton_Click(object sender, EventArgs e)
         {
-            X = Conversions.ToShort(XTextBox.Text.ToString());
-            Y = Conversions.ToShort(YTextBox.Text.ToString());
+            X = Convert.ToInt16(XTextBox.Text.ToString());
+            Y = Convert.ToInt16(YTextBox.Text.ToString());
             Close();
         }
 

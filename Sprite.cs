@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using Microsoft.VisualBasic;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class Sprite
@@ -356,12 +348,19 @@ namespace DS_Game_Maker
 
         private void FromSheetButton_Click(object sender, EventArgs e)
         {
-            byte MSResponse = (byte)MessageBox.Show("Importing from a Sheet will remove all existing frames." + Constants.vbCrLf + Constants.vbCrLf + "Would you like to Continue?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (!(MSResponse == (int)MsgBoxResult.Yes))
+            DialogResult MSResponse = MessageBox.Show("Importing from a Sheet will remove all existing frames." + Constants.vbCrLf + Constants.vbCrLf + "Would you like to Continue?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (MSResponse ==  DialogResult.No)
+            {
                 return;
+            }
+
             string Response = DSGMlib.OpenFile(string.Empty, DSGMlib.ImageFilter);
+
             if (Response.Length == 0)
+            {
                 return;
+            }
+
             string ThePath = SessionsLib.SessionPath + "Sprites/" + SpriteName + "_Import";
             Directory.CreateDirectory(ThePath);
 

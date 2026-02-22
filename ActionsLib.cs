@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-using System.IO;
-
+﻿
 namespace DS_Game_Maker
 {
     static class ActionsLib
@@ -9,7 +7,7 @@ namespace DS_Game_Maker
         public static string ActionEquateDisplay(string ActionName, string ActionArguments)
         {
             string Returnable = string.Empty;
-            foreach (string Y in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string Y in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 if (Y.StartsWith("DISPLAY "))
                 {
@@ -19,7 +17,7 @@ namespace DS_Game_Maker
             }
             if (Returnable.Length == 0)
                 return ActionName;
-            foreach (string Y in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string Y in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 for (int Z = 0, loopTo = (int)DSGMlib.HowManyChar(ActionArguments, ";"); Z <= loopTo; Z++)
                 {

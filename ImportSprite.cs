@@ -1,6 +1,4 @@
-﻿using System;
-using System.Drawing;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class ImportSprite

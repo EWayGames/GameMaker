@@ -1,10 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
-
+﻿
 namespace DS_Game_Maker
 {
     public partial class Action
@@ -140,7 +134,7 @@ namespace DS_Game_Maker
             byte DOn = 0;
             LabelsPanel.Controls.Clear();
             ControlsPanel.Controls.Clear();
-            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 string X = X_;
                 if (X.StartsWith("ARG "))

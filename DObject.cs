@@ -52,7 +52,7 @@ namespace DS_Game_Maker
             ArgumentsListLabel.Text = string.Empty;
             byte ArgumentCount = 0;
 
-            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string X_ in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 string X = X_;
                 if (X.StartsWith("ARG "))
@@ -123,7 +123,7 @@ namespace DS_Game_Maker
                 return;
             byte ArgCount = 0;
             bool NoAppliesTo = false;
-            foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
             {
                 if (X.StartsWith("ARG "))
                     ArgCount = (byte)(ArgCount + 1);
@@ -264,7 +264,7 @@ namespace DS_Game_Maker
             {
                 string ActionName = Actions[X];
                 byte IndentChange = 0;
-                foreach (string Y in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName + ".action"))
+                foreach (string Y in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] + ".action"))
                 {
                     if (Y == "INDENT")
                     {
@@ -329,16 +329,55 @@ namespace DS_Game_Maker
             {
                 ImagePath = SessionsLib.SessionPath + "Sprites/" + Frame.ToString() + "_" + SpriteDropper.Text + ".png";
             }
-            var Drawable = DSGMlib.PathToImage(ImagePath);
-            Drawable = DSGMlib.MakeBMPTransparent(Drawable, Color.Magenta);
+
+            Image NormalImage = DSGMlib.PathToImage(ImagePath);
+            Image TransparentImage = DSGMlib.MakeBMPTransparent(NormalImage, Color.Magenta);
 
 
-            int calculateX = (int)Math.Round(32d - Drawable.Width / 2d); 
-            int calculateY = (int)Math.Round(32d - Drawable.Height / 2d);
+            int calculateWidth = -1;
+            int calculateHeight = -1;
 
-            Point XY = new Point(calculateX, calculateY);
+            try
+            {
+                calculateWidth = (int)Math.Round(Convert.ToDecimal(32 - NormalImage.Width / 2));
+                calculateHeight = (int)Math.Round(Convert.ToDecimal(32d - NormalImage.Height / 2d));
+            }
+            catch
+            {
+                if ((calculateWidth == -1) || (calculateWidth <= 16))
+                {
+                    calculateWidth = 16;
+                }
+                if ((calculateHeight == -1) || (calculateHeight <= 16))
+                {
+                    calculateHeight = 16;
+                }
+            }
 
-            FinalGFX.DrawImage(Drawable, XY);
+            Point WH = new Point(calculateWidth, calculateHeight);
+
+            bool displayGenerated = false;
+
+            if (TransparentImage != null)
+            {
+                try
+                {
+                    FinalGFX.DrawImage(TransparentImage, WH);
+                }
+                catch 
+                {
+                    displayGenerated = true;
+                }
+            }
+            else
+            {
+                displayGenerated = true;
+            }
+
+            if (displayGenerated == true)
+            {
+                FinalGFX.DrawImage(DSGMlib.EmptyBitmap(16, 16), WH);
+            }
 
             SpritePanel.BackgroundImage = Final;
         }
@@ -1247,7 +1286,7 @@ namespace DS_Game_Maker
         {
             bool NoAppliesTo = false;
             byte ArgCount = 0;
-            foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + Actions[ActionsList.SelectedIndices[0]] + ".action"))
+            foreach (string X in File.ReadAllLines(Constants.AppDirectory + "Actions/" + ActionName.Split('\\')[1] /*Actions[ActionsList.SelectedIndices[0]]*/ + ".action"))
             {
                 if (X == "NOAPPLIES")
                     NoAppliesTo = true;

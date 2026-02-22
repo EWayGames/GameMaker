@@ -76,7 +76,10 @@ namespace DS_Game_Maker
             File.CreateText(CompilePath + "source/main.c").Dispose();
             File.CreateText(CompilePath + "gfx/dsgm_gfx.h").Dispose();
 
-            File.Copy(Constants.AppDirectory + "logo.bmp", CompilePath + "logo.bmp");
+            if (File.Exists(CompilePath + "logo.bmp") == false)
+            {
+                File.Copy(Constants.AppDirectory + "logo.bmp", CompilePath + "logo.bmp");
+            }
         }
 
     }
