@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: "DS Game Maker.sln"
+      Solution_Name: "Game_Maker.sln"
       # Configuration is set to Release for the final artifact
       Configuration: Release 
 
